@@ -1,5 +1,9 @@
 #include <iostream>
+#include <string.h>
+#include "params.hpp"
 
+void initConfig(params*);
+void initConfig(std::string);
 double bool2spin(bool);
 double bool2spin(int, int);
 bool** generate(int, int);

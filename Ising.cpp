@@ -1,5 +1,14 @@
 #include "Ising.hpp"
 
+params P;
+
+void initConfig(params* p) {
+	P = *p;
+}
+void initConfig(std::string file) {
+	P = readInput(file);
+}
+
 /**
  * @brief Converts boolean representation of spin (`true` for up `false` for down)
  * to the spin representation in Ising model.

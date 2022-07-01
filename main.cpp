@@ -2,15 +2,13 @@
 #include <fstream>
 #include <string>
 #include <SFML/Graphics.hpp>
+#include "Ising.hpp"
 
 int main() {
-	std::string line;
-	std::ifstream params("params.txt");
-	if (params.is_open()) {
-		while (getline(params, line))
-			if (line != "")
-				std::cout << line << std::endl;
-		params.close();
-	} else std::cout << "No such file." << std::endl;
+	srand(15);
+	initConfig("input.txt");
+	bool** lattice = generate(5, 5);
+	printLattice(lattice, 5, 5);
+
 	return 0;
 }
