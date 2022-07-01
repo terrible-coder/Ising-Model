@@ -4,12 +4,19 @@
  * @brief Converts boolean representation of spin (`true` for up `false` for down)
  * to the spin representation in Ising model.
  * 
- * @param s 
- * @return double 
+ * @param s The spin value: `true` for up and `false` for down.
+ * @return double `+1.0` for up and `-1.0` for down.
  */
 double bool2spin(bool s) {
 	return 2.*s - 1.;
 }
+/**
+ * @brief Converts sum of spins in boolean representation to integer representation.
+ * 
+ * @param S The sum of booleans.
+ * @param n Number of spins that have been summed.
+ * @return double 
+ */
 double bool2spin(int S, int n) {
 	return 2.*S - n;
 }
@@ -33,10 +40,18 @@ bool** generate(int w, int h) {
 	return grid;
 }
 
+/**
+ * @brief Prints the lattice in text format into the console.
+ * 
+ * @param grid The lattice of spins.
+ * @param w The width of the lattice.
+ * @param h The height of the lattice.
+ */
 void printLattice(bool** grid, int w, int h) {
 	for (int i = 0; i < h; i++) {
 		for(int j = 0; j < w; j++)
-			std::cout << grid[i][j] << "\t";
+			if (grid[i][j])	std::cout << "+" << "\t";
+			else						std::cout << "-" << "\t";
 		std::cout << std::endl;
 	}
 }
@@ -71,6 +86,14 @@ double Hamiltonian(const bool** grid, int w, int h) {
 	return E;
 }
 
+/**
+ * @brief Calculate the magnetisation of the configuration.
+ * 
+ * @param grid The lattice of spins.
+ * @param w The width of the lattice.
+ * @param h The height of the lattice.
+ * @return double 
+ */
 double Magnetisation(const bool** grid, int w, int h) {
 	int M = 0;
 	for (int i = 0; i < h; i++)
