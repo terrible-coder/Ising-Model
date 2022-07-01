@@ -80,7 +80,7 @@ double Hamiltonian(const bool** grid, int w, int h) {
 	for (int i = 0; i < h; i++)
 		for (int j = 0; j < w; j++)
 			SS += grid[i][j];
-	E = -bool2spin(SS, w*h);
+	E = - P.H * bool2spin(SS, w*h);
 
 	// Two spin interaction terms
 	for (int i = 0; i < h; i++)
@@ -90,7 +90,7 @@ double Hamiltonian(const bool** grid, int w, int h) {
 			// bool south = grid[i+1][j  ];
 			// bool west  = grid[i  ][j-1];
 			SS = bool2spin(north + east, 2);
-			E -= 2. * SS * bool2spin(grid[i][j]);
+			E -= P.J * SS * bool2spin(grid[i][j]);
 		}
 	return E;
 }
