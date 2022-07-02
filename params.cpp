@@ -16,10 +16,6 @@ params readInput(std::string filename) {
 				else if (line.rfind("H", 0) == 0) p.H  = val;
 				std::cout << line << "\t" << val << std::endl;
 			}
-		std::cout << p.kB << std::endl;
-		std::cout << p.T << std::endl;
-		std::cout << p.J << std::endl;
-		std::cout << p.H << std::endl;
 		inputFile.close();
 	} else std::cout << "No such file." << std::endl;
 
