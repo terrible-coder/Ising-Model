@@ -7,12 +7,13 @@
 #define WIDTH 50
 #define HEIGHT 50
 #define SCALE 10
+#define BIN 1000
+#define SEED 15
 
 void handleEvents(sf::RenderWindow &w) {
 	sf::Event ev;
 	while (w.pollEvent(ev)) {
-		switch (ev.type)
-		{
+		switch (ev.type) {
 		case sf::Event::Closed:
 			w.close();
 			break;
@@ -27,7 +28,7 @@ void handleEvents(sf::RenderWindow &w) {
 }
 
 int main() {
-	srand(15);
+	srand(SEED);
 	// initConfig("input.txt");
 	params p = readInput("input.txt");
 	initConfig(&p);
@@ -40,11 +41,11 @@ int main() {
 		handleEvents(window);
 		window.clear();
 		config.drawLattice(window, SCALE);
-		int ri = rand() % HEIGHT;
-		int rj = rand() % WIDTH;
-		std::cout << ri << ", " << rj << " " << config(ri, rj) << std::endl;
-		spin_flip(&config, ri, rj);
-		std::cout << ri << ", " << rj << " " << config(ri, rj) << std::endl;
+		for (int i = 0; i < BIN; i++) {
+			int ri = rand() % HEIGHT;
+			int rj = rand() % WIDTH;
+			spin_flip(&config, ri, rj);
+		}
 		window.display();
 	}
 
