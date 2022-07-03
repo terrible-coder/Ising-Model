@@ -30,83 +30,173 @@ double bool2spin(int S, int n) {
 	return 2.*S - n;
 }
 
+Ising::Ising(params* input, int w, int h, BoundaryCondition bc) {
+	this->p = input;
+	this->WIDTH  = w;
+	this->HEIGHT = h;
+	this->N = w * h;
+	// this->J = input->J;
+	// this->H = input->H;
+	this->boundary_condition = bc;
+}
+
+Ising::~Ising() {
+	// free(this->lattice);
+}
+
+/**
+ * @brief Takes care of the indexing at the boundary of the lattice.
+ * 
+ * @param ui The row index we "want" to see.
+ * @param uj The column index we "want" to see.
+ * @param ai The row index the lattice site sees.
+ * @param aj The column index the lattice site sees.
+ */
+void Ising::BC(int ui, int uj, int* ai, int* aj) {
+	switch (this->boundary_condition) {
+		case BoundaryCondition::PERIODIC:
+			*ai = (ui + this->HEIGHT) % this->HEIGHT; // For periodic boundary condition
+			*aj = (uj + this->WIDTH) % this->WIDTH;  //  the lattice is lives on a torus
+			break;
+
+		case BoundaryCondition::SCREW:
+			*ai = (ui + this->HEIGHT) % this->HEIGHT; // The lattices sites are on a
+			if (uj >= this->HEIGHT || uj < 0) {      //  single string. They wrap from
+				*aj = (uj + this->WIDTH) % this->WIDTH; // end of a row to the start of
+				*ai += uj >= this->WIDTH ? 1 : -1;     //  next row
+			}
+			break;
+
+		case BoundaryCondition::FREE:
+			*ai = (ui >= this->HEIGHT || ui < 0) ? -1 : ui; // For free edge boundary
+			*aj = (uj >= this->WIDTH  || uj < 0) ? -1 : uj; // the site sees nothing
+			break;
+
+		default:
+			std::cout << "Unknown boundary condition" << std::endl;
+	}
+}
+
+/**
+ * @brief Lattice point accessor. The index is of the site we "want" to look at.
+ * The function takes care of the appropriate boundary conditions and returns
+ * the spin value at the actual index in the grid. The function can return `NULL`
+ * if the spin is supposed to be interpreted as absent at `(i, j)`.
+ * 
+ * @param i The row index we "want" to look at.
+ * @param j The column index we "want" to look at.
+ * @return true 
+ * @return false 
+ */
+bool Ising::operator() (int i, int j) {
+	int ii, jj;
+	this->BC(i, j, &ii, &jj);
+
+	if (ii == -1 || jj == -1)
+		return NULL;
+	
+	return this->lattice[ii][jj];
+}
+
+double Ising::getField() {return this->p->H;}
+double Ising::getNNCoup() {return this->p->J;}
+int Ising::getWidth() {return this->WIDTH;}
+int Ising::getHeight() {return this->HEIGHT;}
+params* Ising::getParams() {return this->p;}
+
 /**
  * @brief Generates a lattice of spins of given dimensions. The spins are
  * represented as boolean values (`true` for up and `false` for down).
  * 
- * @param w The width of the lattice of spins.
- * @param h The height of the lattice of spins.
- * @return bool** 
  */
-bool** generate(int w, int h) {
-	bool** grid = new bool*[h];
-	for (int i = 0; i < h; i++)
-		grid[i] = (bool*) malloc(w * sizeof(bool));
+void Ising::generate() {
+	this->lattice = new bool*[this->HEIGHT];
+	for (int i = 0; i < this->HEIGHT; i++)
+		this->lattice[i] = (bool*) malloc(WIDTH * sizeof(bool));
 
-	for (int i = 0; i < h; i++)
-		for (int j = 0; j < w; j++)
-			grid[i][j] = rand() % 2 == 0;
-	return grid;
+	for (int i = 0; i < this->HEIGHT; i++)
+		for (int j = 0; j < this->WIDTH; j++)
+			this->lattice[i][j] = rand() % 2 == 0;
 }
 
 /**
  * @brief Prints the lattice in text format into the console.
  * 
- * @param grid The lattice of spins.
- * @param w The width of the lattice.
- * @param h The height of the lattice.
  */
-void printLattice(bool** grid, int w, int h) {
-	for (int i = 0; i < h; i++) {
-		for(int j = 0; j < w; j++)
-			if (grid[i][j])	std::cout << "+" << "\t";
-			else						std::cout << "-" << "\t";
+void Ising::printLattice() {
+	for (int i = 0; i < this->HEIGHT; i++) {
+		for (int j = 0; j < this->WIDTH; j++)
+			std::cout << ((*this)(i, j) ? "+" : "-") << "  ";
 		std::cout << std::endl;
 	}
 }
 
 /**
- * @brief Computes the Ising hamiltonian for a given configuration. 
+ * @brief Render the lattice onto an SFML window. Each site is drawn as a
+ * `scale x scale` rectangle. White represents spin up and black represents
+ * spin down.
  * 
- * @param grid The 2D spin configuration.
- * @param w The width of the spin lattice.
- * @param h The height of the spin lattice.
- * @return float 
+ * @param w The SFML render window to draw on.
+ * @param scale The visual size of each lattice point.
  */
-double Hamiltonian(const bool** grid, int w, int h) {
+void Ising::drawLattice(sf::RenderWindow& w, int scale) {
+	for (int i = 0; i < this->HEIGHT; i++) {
+		for (int j = 0; j < this->WIDTH; j++) {
+			sf::RectangleShape s(sf::Vector2f(scale, scale));
+			s.setPosition(j*scale, i*scale);
+			if ((*this)(i, j)) s.setFillColor(sf::Color::White);
+			else s.setFillColor(sf::Color::Black);
+			w.draw(s);
+		}
+	}
+}
+
+/**
+ * @brief Flip the spin at the given index.
+ * 
+ * @param i The row index.
+ * @param j The column index.
+ */
+void Ising::flip(int i, int j) {
+	this->lattice[i][j] = !this->lattice[i][j];
+}
+
+/**
+ * @brief Computes the Ising hamiltonian for a given configuration.
+ * 
+ * @return double 
+ */
+double Ising::Hamiltonian() {
+	int w = this->WIDTH, h = this->HEIGHT;
 	double E = 0.;
 	int SS = 0;
 	// Single spin terms
-	for (int i = 0; i < h; i++)
-		for (int j = 0; j < w; j++)
-			SS += grid[i][j];
-	E = - P.H * bool2spin(SS, w*h);
+	for (int i = 0; i < this->HEIGHT; i++)
+		for (int j = 0; j < this->WIDTH; j++)
+			SS += this->lattice[i][j];
+	E = -this->p->H * bool2spin(SS, this->N);
 
 	// Two spin interaction terms
 	for (int i = 0; i < h; i++)
 		for (int j = 0; j < w; j++) {
-			bool north = grid[(i+h-1)%h][j  ];
-			bool east  = grid[i  ][(j+w+1)%w];
+			bool north = (*this)(i-1, j  ); // this->lattice[(i+h-1)%h][j  ];
+			bool east  = (*this)(i  , j+1); // this->lattice[i  ][(j+w+1)%w];
 			// bool south = grid[(i+h+1)%h][j  ];
 			// bool west  = grid[i  ][(j+w-1)%w];
 			SS = bool2spin(north + east, 2);
-			E -= P.J * SS * bool2spin(grid[i][j]);
+			E -= this->p->J * SS * bool2spin((*this)(i, j));
 		}
 	return E;
 }
-
 /**
  * @brief Calculate the magnetisation of the configuration.
  * 
- * @param grid The lattice of spins.
- * @param w The width of the lattice.
- * @param h The height of the lattice.
  * @return double 
  */
-double Magnetisation(const bool** grid, int w, int h) {
+double Ising::Magnetisation() {
 	int M = 0;
-	for (int i = 0; i < h; i++)
-		for (int j = 0; j < w; j++)
-			M += grid[i][j];
-	return bool2spin(M, w*h);
+	for (int i = 0; i < this->HEIGHT; i++)
+		for (int j = 0; j < this->WIDTH; j++)
+			M += (*this)(i, j);
+	return bool2spin(M, this->N);
 }

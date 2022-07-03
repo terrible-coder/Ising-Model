@@ -4,9 +4,9 @@
 #include <SFML/Graphics.hpp>
 #include "MC.hpp"
 
-#define WIDTH 100
-#define HEIGHT 100
-#define SCALE 5
+#define WIDTH 50
+#define HEIGHT 50
+#define SCALE 10
 
 void handleEvents(sf::RenderWindow &w) {
 	sf::Event ev;
@@ -31,27 +31,20 @@ int main() {
 	// initConfig("input.txt");
 	params p = readInput("input.txt");
 	initConfig(&p);
-	bool** lattice = generate(WIDTH, HEIGHT);
+	Ising config(&p, WIDTH, HEIGHT, BoundaryCondition::PERIODIC);
+	config.generate();
 
 	sf::RenderWindow window(sf::VideoMode(WIDTH*SCALE, HEIGHT*SCALE), "Ising model");
 
 	while (window.isOpen()) {
 		handleEvents(window);
 		window.clear();
-		for (int i = 0; i < HEIGHT; i++) {
-			for (int j = 0; j < WIDTH; j++) {
-				sf::RectangleShape s(sf::Vector2f(SCALE, SCALE));
-				s.setPosition(j*SCALE, i*SCALE);
-				if (lattice[i][j]) s.setFillColor(sf::Color::White);
-				else s.setFillColor(sf::Color::Black);
-				window.draw(s);
-			}
-		}
+		config.drawLattice(window, SCALE);
 		int ri = rand() % HEIGHT;
 		int rj = rand() % WIDTH;
-		std::cout << ri << ", " << rj << " " << lattice[ri][rj] << std::endl;
-		spin_flip(lattice, ri, rj, WIDTH, HEIGHT, p);
-		std::cout << ri << ", " << rj << " " << lattice[ri][rj] << std::endl;
+		std::cout << ri << ", " << rj << " " << config(ri, rj) << std::endl;
+		spin_flip(&config, ri, rj);
+		std::cout << ri << ", " << rj << " " << config(ri, rj) << std::endl;
 		window.display();
 	}
 
