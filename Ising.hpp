@@ -17,17 +17,17 @@ enum BoundaryCondition {
 class Ising {
 private:
 
-	int WIDTH, HEIGHT;
+	// int WIDTH, HEIGHT;
 	int N;
 	params* p;
 	bool** lattice;
-	BoundaryCondition boundary_condition;
+	BoundaryCondition boundary;
 
 	void BC(int ui, int uj, int* ai, int* aj);
 
 public:
 
-	Ising(params* input, int w, int h, BoundaryCondition bc);
+	Ising(params* input);
 	~Ising();
 
 	bool operator() (int i, int j);
@@ -42,7 +42,7 @@ public:
 
 	void printLattice();
 
-	void drawLattice(sf::RenderWindow& w, int scale);
+	void drawLattice(sf::RenderWindow& w);
 
 	void flip(int i, int j);
 

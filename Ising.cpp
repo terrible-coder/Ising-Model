@@ -30,14 +30,12 @@ double bool2spin(int S, int n) {
 	return 2.*S - n;
 }
 
-Ising::Ising(params* input, int w, int h, BoundaryCondition bc) {
+Ising::Ising(params* input) {
 	this->p = input;
-	this->WIDTH  = w;
-	this->HEIGHT = h;
-	this->N = w * h;
+	this->N = input->width * input->height;
+	this->boundary = (BoundaryCondition) input->boundary;
 	// this->J = input->J;
 	// this->H = input->H;
-	this->boundary_condition = bc;
 }
 
 Ising::~Ising() {
@@ -53,23 +51,23 @@ Ising::~Ising() {
  * @param aj The column index the lattice site sees.
  */
 void Ising::BC(int ui, int uj, int* ai, int* aj) {
-	switch (this->boundary_condition) {
+	switch (this->boundary) {
 		case BoundaryCondition::PERIODIC:
-			*ai = (ui + this->HEIGHT) % this->HEIGHT; // For periodic boundary condition
-			*aj = (uj + this->WIDTH) % this->WIDTH;  //  the lattice is lives on a torus
+			*ai = (ui + this->p->height) % this->p->height; // For periodic boundary condition
+			*aj = (uj + this->p->width) % this->p->width;  //  the lattice is lives on a torus
 			break;
 
 		case BoundaryCondition::SCREW:
-			*ai = (ui + this->HEIGHT) % this->HEIGHT; // The lattices sites are on a
-			if (uj >= this->HEIGHT || uj < 0) {      //  single string. They wrap from
-				*aj = (uj + this->WIDTH) % this->WIDTH; // end of a row to the start of
-				*ai += uj >= this->WIDTH ? 1 : -1;     //  next row
+			*ai = (ui + this->p->height) % this->p->height; // The lattices sites are on a
+			if (uj >= this->p->height || uj < 0) {      //  single string. They wrap from
+				*aj = (uj + this->p->width) % this->p->width; // end of a row to the start of
+				*ai += uj >= this->p->width ? 1 : -1;     //  next row
 			}
 			break;
 
 		case BoundaryCondition::FREE:
-			*ai = (ui >= this->HEIGHT || ui < 0) ? -1 : ui; // For free edge boundary
-			*aj = (uj >= this->WIDTH  || uj < 0) ? -1 : uj; // the site sees nothing
+			*ai = (ui >= this->p->height || ui < 0) ? -1 : ui; // For free edge boundary
+			*aj = (uj >= this->p->width  || uj < 0) ? -1 : uj; // the site sees nothing
 			break;
 
 		default:
@@ -100,8 +98,8 @@ bool Ising::operator() (int i, int j) {
 
 double Ising::getField() {return this->p->H;}
 double Ising::getNNCoup() {return this->p->J;}
-int Ising::getWidth() {return this->WIDTH;}
-int Ising::getHeight() {return this->HEIGHT;}
+int Ising::getWidth() {return this->p->width;}
+int Ising::getHeight() {return this->p->height;}
 params* Ising::getParams() {return this->p;}
 
 /**
@@ -110,12 +108,12 @@ params* Ising::getParams() {return this->p;}
  * 
  */
 void Ising::generate() {
-	this->lattice = new bool*[this->HEIGHT];
-	for (int i = 0; i < this->HEIGHT; i++)
-		this->lattice[i] = (bool*) malloc(WIDTH * sizeof(bool));
+	this->lattice = new bool*[this->p->height];
+	for (int i = 0; i < this->p->height; i++)
+		this->lattice[i] = (bool*) malloc(this->p->width * sizeof(bool));
 
-	for (int i = 0; i < this->HEIGHT; i++)
-		for (int j = 0; j < this->WIDTH; j++)
+	for (int i = 0; i < this->p->height; i++)
+		for (int j = 0; j < this->p->width; j++)
 			this->lattice[i][j] = rand() % 2 == 0;
 }
 
@@ -124,8 +122,8 @@ void Ising::generate() {
  * 
  */
 void Ising::printLattice() {
-	for (int i = 0; i < this->HEIGHT; i++) {
-		for (int j = 0; j < this->WIDTH; j++)
+	for (int i = 0; i < this->p->height; i++) {
+		for (int j = 0; j < this->p->width; j++)
 			std::cout << ((*this)(i, j) ? "+" : "-") << "  ";
 		std::cout << std::endl;
 	}
@@ -139,11 +137,11 @@ void Ising::printLattice() {
  * @param w The SFML render window to draw on.
  * @param scale The visual size of each lattice point.
  */
-void Ising::drawLattice(sf::RenderWindow& w, int scale) {
-	for (int i = 0; i < this->HEIGHT; i++) {
-		for (int j = 0; j < this->WIDTH; j++) {
-			sf::RectangleShape s(sf::Vector2f(scale, scale));
-			s.setPosition(j*scale, i*scale);
+void Ising::drawLattice(sf::RenderWindow& w) {
+	for (int i = 0; i < this->p->height; i++) {
+		for (int j = 0; j < this->p->width; j++) {
+			sf::RectangleShape s(sf::Vector2f(this->p->scale, this->p->scale));
+			s.setPosition(j*this->p->scale, i*this->p->scale);
 			if ((*this)(i, j)) s.setFillColor(sf::Color::White);
 			else s.setFillColor(sf::Color::Black);
 			w.draw(s);
@@ -167,12 +165,12 @@ void Ising::flip(int i, int j) {
  * @return double 
  */
 double Ising::Hamiltonian() {
-	int w = this->WIDTH, h = this->HEIGHT;
+	int w = this->p->width, h = this->p->height;
 	double E = 0.;
 	int SS = 0;
 	// Single spin terms
-	for (int i = 0; i < this->HEIGHT; i++)
-		for (int j = 0; j < this->WIDTH; j++)
+	for (int i = 0; i < this->p->height; i++)
+		for (int j = 0; j < this->p->width; j++)
 			SS += this->lattice[i][j];
 	E = -this->p->H * bool2spin(SS, this->N);
 
@@ -195,8 +193,8 @@ double Ising::Hamiltonian() {
  */
 double Ising::Magnetisation() {
 	int M = 0;
-	for (int i = 0; i < this->HEIGHT; i++)
-		for (int j = 0; j < this->WIDTH; j++)
+	for (int i = 0; i < this->p->height; i++)
+		for (int j = 0; j < this->p->width; j++)
 			M += (*this)(i, j);
 	return bool2spin(M, this->N);
 }

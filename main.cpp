@@ -4,9 +4,9 @@
 #include <SFML/Graphics.hpp>
 #include "MC.hpp"
 
-#define WIDTH 50
-#define HEIGHT 50
-#define SCALE 10
+// #define WIDTH 50
+// #define HEIGHT 50
+// #define SCALE 10
 #define BIN 1000
 #define SEED 15
 
@@ -27,23 +27,28 @@ void handleEvents(sf::RenderWindow &w) {
 	}
 }
 
-int main() {
+int main(int argc, char** argv) {
+	std::string filename;
+	if (argc > 1) filename = argv[1];
+	else          filename = "input.txt"; 
 	srand(SEED);
-	// initConfig("input.txt");
-	params p = readInput("input.txt");
+	params p = readInput(filename);
 	initConfig(&p);
-	Ising config(&p, WIDTH, HEIGHT, BoundaryCondition::PERIODIC);
+	Ising config(&p);
 	config.generate();
 
-	sf::RenderWindow window(sf::VideoMode(WIDTH*SCALE, HEIGHT*SCALE), "Ising model");
+	int wWidth = p.width * p.scale;
+	int wHeight = p.height * p.scale;
+
+	sf::RenderWindow window(sf::VideoMode(wWidth, wHeight), "Ising model");
 
 	while (window.isOpen()) {
 		handleEvents(window);
 		window.clear();
-		config.drawLattice(window, SCALE);
+		config.drawLattice(window);
 		for (int i = 0; i < BIN; i++) {
-			int ri = rand() % HEIGHT;
-			int rj = rand() % WIDTH;
+			int ri = rand() % config.getParams()->height;
+			int rj = rand() % config.getParams()->width;
 			spin_flip(&config, ri, rj);
 		}
 		window.display();
