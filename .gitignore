@@ -1,4 +1,7 @@
 Ising.py
 input.txt
 *.o
+*.tsv
 Ising_model
+
+.vscode/*
