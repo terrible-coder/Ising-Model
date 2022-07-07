@@ -1,11 +1,12 @@
 kB = 1
 J = 1
 H = 0
-T = 1
+T = 2.5
 
 width = 100
 height = 100
 scale = 5
 
 boundary = periodic
-
+probability = glauber
+kinetics = exchange

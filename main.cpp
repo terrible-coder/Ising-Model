@@ -74,11 +74,8 @@ int main(int argc, char** argv) {
 		handleEvents(window);
 		window.clear();
 		config.drawLattice(window);
-		for (int i = 0; i < BIN; i++) {
-			int ri = rand() % config.getParams()->height;
-			int rj = rand() % config.getParams()->width;
-			spin_flip(&config, ri, rj);
-		}
+		for (int i = 0; i < BIN; i++)
+			dynamics(&config);
 		energy[k] = config.Hamiltonian();
 		magnet[k] = config.Magnetisation();
 		k++;

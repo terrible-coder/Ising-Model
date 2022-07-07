@@ -1,8 +1,8 @@
 #include <cmath>
 #include "Ising.hpp"
 
-double Probability(double, bool, params);
-// void spin_flip(bool**&, int, int, int, int, params);
+double Probability(double, params);
 
+void dynamics(Ising*);
 void spin_flip(Ising*, int, int);
-
+void spin_exchange(Ising*, int, int, int, int);

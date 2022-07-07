@@ -33,6 +33,8 @@ params readInput(std::string filename) {
 				else if (sVal == "screw")    p.boundary = 1;
 				else if (sVal == "free")     p.boundary = 2;
 			}
+			else if (key == "probability") p.probability = sVal;
+			else if (key == "kinetics")    p.kinetics = sVal;
 		}
 		inputFile.close();
 	} else std::cout << "No such file." << std::endl;

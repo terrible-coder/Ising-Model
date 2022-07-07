@@ -159,6 +159,16 @@ void Ising::flip(int i, int j) {
 	this->lattice[i][j] = !this->lattice[i][j];
 }
 
+void Ising::exchange(int i1, int j1, int i2, int j2) {
+	int i1a, j1a;
+	int i2a, j2a;
+	this->BC(i1, j1, &i1a, &j1a);
+	this->BC(i2, j2, &i2a, &j2a);
+	bool temp = this->lattice[i1a][j1a];
+	this->lattice[i1a][j1a] = this->lattice[i2a][j2a];
+	this->lattice[i2a][j2a] = temp;
+}
+
 /**
  * @brief Computes the Ising hamiltonian for a given configuration.
  * 

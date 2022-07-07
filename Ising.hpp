@@ -45,6 +45,7 @@ public:
 	void drawLattice(sf::RenderWindow& w);
 
 	void flip(int i, int j);
+	void exchange(int i1, int j1, int i2, int j2);
 
 	double Hamiltonian();
 
