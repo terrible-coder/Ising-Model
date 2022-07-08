@@ -8,5 +8,5 @@ height = 100
 scale = 5
 
 boundary = periodic
-probability = glauber
-kinetics = exchange
+probability = boltzmann
+kinetics = flip

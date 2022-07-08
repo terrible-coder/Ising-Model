@@ -5,7 +5,7 @@
 #include "MC.hpp"
 
 #define BIN 1000
-#define RUN 500
+#define RUN 1000
 #define SEED 15
 
 void handleEvents(sf::RenderWindow &w) {
@@ -38,8 +38,8 @@ int main(int argc, char** argv) {
 	Ising config(&p);
 	config.generate();
 
-	double energy[RUN];
-	double magnet[RUN];
+	double energy[RUN/2];
+	double magnet[RUN/2];
 	std::ofstream energy_data("energy.tsv");
 	std::ofstream magnet_data("magnet.tsv");
 	if (!energy_data.is_open() || !magnet_data.is_open()) {
@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
 
 	while (window.isOpen() && p.T < 4) {
 		if (k == RUN) {
-			for (int i = 0; i < RUN; i++) {
+			for (int i = 0; i < RUN/2; i++) {
 				energy_data << energy[i] / config.getSize() << "\t";
 				magnet_data << magnet[i] / config.getSize() << "\t";
 			}
@@ -76,8 +76,10 @@ int main(int argc, char** argv) {
 		config.drawLattice(window);
 		for (int i = 0; i < BIN; i++)
 			dynamics(&config);
-		energy[k] = config.Hamiltonian();
-		magnet[k] = config.Magnetisation();
+		if (k >= RUN / 2) {
+			energy[k-RUN/2] = config.Hamiltonian();
+			magnet[k-RUN/2] = config.Magnetisation();
+		}
 		k++;
 		window.display();
 	}
