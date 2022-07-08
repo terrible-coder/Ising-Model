@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
 
 	srand(SEED);
 	params p = readInput(filename);
-	p.T = 0.01;
+	p.T = 1.0;
 
 	initConfig(&p);
 	Ising config(&p);
@@ -53,16 +53,16 @@ int main(int argc, char** argv) {
 
 	int k = 0;
 
-	while (window.isOpen() && p.T <= 2) {
+	while (window.isOpen() && p.T < 4) {
 		if (k == RUN) {
 			for (int i = 0; i < RUN; i++) {
-				energy_data << energy[i] << "\t";
-				magnet_data << magnet[i] << "\t";
+				energy_data << energy[i] / config.getSize() << "\t";
+				magnet_data << magnet[i] / config.getSize() << "\t";
 			}
 			energy_data << std::endl;
 			magnet_data << std::endl;
 
-			p.T += 0.02;
+			p.T += 0.01;
 			k = 0;
 			std::cout << "Restarting for T = " << p.T << std::endl;
 

@@ -36,6 +36,7 @@ public:
 	double getNNCoup();
 	int getHeight();
 	int getWidth();
+	int getSize();
 	params* getParams();
 
 	void generate();

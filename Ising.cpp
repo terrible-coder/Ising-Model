@@ -100,6 +100,7 @@ double Ising::getField() {return this->p->H;}
 double Ising::getNNCoup() {return this->p->J;}
 int Ising::getWidth() {return this->p->width;}
 int Ising::getHeight() {return this->p->height;}
+int Ising::getSize() {return this->N;}
 params* Ising::getParams() {return this->p;}
 
 /**

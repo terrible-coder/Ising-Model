@@ -59,13 +59,7 @@ void spin_flip(Ising* config, int i, int j) {
 
 	double dE = 2 * c.getField() * s + 2 * c.getNNCoup() * s  * S;
 	if (acceptance(dE, *c.getParams()))
-	// if (dE < 0)
 		c.flip(i, j);
-	// else {
-	// 	double r = static_cast<double> (rand()) / static_cast<double> (RAND_MAX);
-	// 	if (r < Probability(dE, *c.getParams()))
-	// 		c.flip(i, j);
-	// }
 }
 
 /**
