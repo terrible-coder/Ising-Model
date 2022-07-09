@@ -37,53 +37,20 @@ int main(int argc, char** argv) {
 	Ising config(&p);
 	config.generate();
 
-	// double energy[RUN/2];
-	// double magnet[RUN/2];
-	// std::ofstream energy_data("energy.tsv");
-	// std::ofstream magnet_data("magnet.tsv");
-	// if (!energy_data.is_open() || !magnet_data.is_open()) {
-	// 	return EXIT_FAILURE;
-	// }
-
 	int wWidth = p.width * p.scale;
 	int wHeight = p.height * p.scale;
 
 	sf::RenderWindow window(sf::VideoMode(wWidth, wHeight), "Ising model");
 
-	// int k = 0;
-
 	while (window.isOpen() && p.T < 4) {
-		// if (k == RUN) {
-		// 	for (int i = 0; i < RUN/2; i++) {
-		// 		energy_data << energy[i] / config.getSize() << "\t";
-		// 		magnet_data << magnet[i] / config.getSize() << "\t";
-		// 	}
-		// 	energy_data << std::endl;
-		// 	magnet_data << std::endl;
-
-		// 	p.T += 0.01;
-		// 	k = 0;
-		// 	std::cout << "Restarting for T = " << p.T << std::endl;
-
-		// 	initConfig(&p);
-		// 	config = *(new Ising(&p));
-		// 	config.generate();
-		// }
 
 		handleEvents(window);
 		window.clear();
 		config.drawLattice(window);
 		for (int i = 0; i < BIN; i++)
 			dynamics(&config);
-		// if (k >= RUN / 2) {
-		// 	energy[k-RUN/2] = config.Hamiltonian();
-		// 	magnet[k-RUN/2] = config.Magnetisation();
-		// }
-		// k++;
 		window.display();
 	}
-	// energy_data.close();
-	// magnet_data.close();
 
-	return 0;
+	return EXIT_SUCCESS;
 }
