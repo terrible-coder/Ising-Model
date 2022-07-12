@@ -32,29 +32,22 @@ int main(int argc, char** argv) {
 	if (argc > 1) filename = argv[1];
 	else          filename = "input.txt";
 
-	std::cout << "Before init" << std::endl;
-	// std::cout << "Temp: " << SPECS.Temperature[0] << std::endl;
-	std::cout << "Lx: " << SPECS.Lx << std::endl;
-	std::cout << "Ly: " << SPECS.Ly << std::endl;
-	std::cout << "Coupling: " << SPECS.Coupling << std::endl;
+	sf::Font font;
+	bool loaded =	font.loadFromFile("./font/times new roman.ttf");
+	if (!loaded) {
+		std::cout << "Could not load font file." << std::endl;
+		return EXIT_FAILURE;
+	}
 
 	srand(SEED);
 	std::cout << "Initialising system..." << std::endl;
 	init_system(filename, &SPECS);
 
-	std::cout << "After init" << std::endl;
-	std::cout << "Temp: " << SPECS.Temperature[0] << std::endl;
-	std::cout << "Lx: " << SPECS.Lx << std::endl;
-	std::cout << "Ly: " << SPECS.Ly << std::endl;
-	std::cout << "Coupling: " << SPECS.Coupling << std::endl;
-
 	std::cout << "Setting global values..." << std::endl;
 	Ising::setCoupling(SPECS.Coupling);
 	Ising::setField(SPECS.Field);
 
-	std::cout << SPECS.Temperature[0] << std::endl;
-
-	std::cout << "initialising configuration" << std::endl;
+	std::cout << "Initialising configuration" << std::endl;
 	Ising config(SPECS.Lx, SPECS.Ly,
 							 SPECS.Temperature[0],
 							 BoundaryCondition::PERIODIC);
@@ -67,8 +60,8 @@ int main(int argc, char** argv) {
 	sf::RenderWindow window(sf::VideoMode(wWidth, wHeight), "Ising model");
 
 	while (window.isOpen()) {
-
 		handleEvents(window);
+
 		window.clear();
 		config.drawLattice(window, SPECS.scale);
 		for (int i = 0; i < BIN; i++)

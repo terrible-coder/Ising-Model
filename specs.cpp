@@ -66,7 +66,6 @@ double* readTemp(std::string str) {
 		Tf = std::stod(third);
 		points = static_cast<int> ((Tf - Ti) / interval);
 	}
-	std::cout << points << " points" << std::endl;
 
 	double* T = (double*) malloc(points * sizeof(double));
 	for (int i = 0; i < points; i++)
@@ -103,12 +102,11 @@ void init_system(std::string filename, Specifications* S) {
 		if (key == "scale"      ) S->scale         = std::stoi(value);
 	}
 
-	// SPECIFICATIONS = *S;
+	std::cout << "Temp: " << S->Temperature[0] << "\n";
+	std::cout << "Lx: " << S->Lx << "\n";
+	std::cout << "Ly: " << S->Ly << "\n";
+	std::cout << "Coupling: " << S->Coupling << "\n";
+	std::cout << std::endl;
 
-	std::cout << "Temp: " << S->Temperature[0] << std::endl;
-	std::cout << "Lx: " << S->Lx << std::endl;
-	std::cout << "Ly: " << S->Ly << std::endl;
-	std::cout << "Coupling: " << S->Coupling << std::endl;
 	input_file.close();
-
 }
