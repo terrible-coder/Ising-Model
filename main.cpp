@@ -43,6 +43,9 @@ int main(int argc, char** argv) {
 	std::cout << "Initialising system..." << std::endl;
 	init_system(filename, &SPECS);
 
+	std::ofstream energyOutput;
+	energyOutput.open("energy"+std::to_string(SPECS.Temperature[0]) + ".dat");
+
 	std::cout << "Setting global values..." << std::endl;
 	Ising::setCoupling(SPECS.Coupling);
 	Ising::setField(SPECS.Field);
@@ -54,11 +57,25 @@ int main(int argc, char** argv) {
 	std::cout << "Generating configuration" << std::endl;
 	config.generate();
 
-	int wWidth  = SPECS.Lx * SPECS.scale;
-	int wHeight = SPECS.Ly * SPECS.scale;
+	sf::Text status;
+	status.setFont(font);
+	status.setString("Hello! I am just sitting here.");
+	status.setCharacterSize(16);
+	status.setFillColor(sf::Color::Yellow);
+	status.setStyle(sf::Text::Bold);
+
+	int sysWidth  = SPECS.Lx * SPECS.scale;
+	int sysHeight = SPECS.Ly * SPECS.scale;
+	int statWidth = sysWidth;
+	int statHeight= 20;
+
+	int wWidth  = sysWidth;
+	int wHeight = sysHeight + statHeight;
+	status.setPosition(sf::Vector2f(5, sysHeight));
 
 	sf::RenderWindow window(sf::VideoMode(wWidth, wHeight), "Ising model");
 
+	int k = 0;
 	while (window.isOpen()) {
 		handleEvents(window);
 
@@ -66,8 +83,13 @@ int main(int argc, char** argv) {
 		config.drawLattice(window, SPECS.scale);
 		for (int i = 0; i < BIN; i++)
 			dynamics(&config, &SPECS);
+		status.setString("t = " + std::to_string(k));
+		energyOutput << config.Hamiltonian() << "\n";
+		window.draw(status);
 		window.display();
+		k++;
 	}
 
+	energyOutput.close();
 	return EXIT_SUCCESS;
 }
