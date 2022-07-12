@@ -1,10 +1,7 @@
 #include <iostream>
 #include <string.h>
-#include "params.hpp"
 #include <SFML/Graphics.hpp>
 
-void initConfig(params*);
-void initConfig(std::string);
 double bool2spin(bool);
 double bool2spin(int, int);
 
@@ -16,10 +13,12 @@ enum BoundaryCondition {
 
 class Ising {
 private:
-
-	// int WIDTH, HEIGHT;
+	static double J, H;
+	// static inline bool _setJ = false, _setH = false;
+	static bool _setJ, _setH;
+	int Lx, Ly;
 	int N;
-	params* p;
+	double T;
 	bool** lattice;
 	BoundaryCondition boundary;
 
@@ -27,23 +26,28 @@ private:
 
 public:
 
-	Ising(params* input);
+	Ising(int w, int h,
+				double temperature,
+				BoundaryCondition b);
 	~Ising();
+
+	static void setCoupling(double coupling);
+	static double getNNCoup();
+	static void setField(double field);
+	static double getField();
 
 	bool operator() (int i, int j);
 
-	double getField();
-	double getNNCoup();
 	int getHeight();
 	int getWidth();
 	int getSize();
-	params* getParams();
+	double getTemp();
 
 	void generate();
 
 	void printLattice();
 
-	void drawLattice(sf::RenderWindow& w);
+	void drawLattice(sf::RenderWindow& w, int scale);
 
 	void flip(int i, int j);
 	void exchange(int i1, int j1, int i2, int j2);
@@ -52,3 +56,9 @@ public:
 
 	double Magnetisation();
 };
+
+
+// bool Ising::_setJ;
+// bool Ising::_setH;
+// double Ising::H;
+// double Ising::J;

@@ -1,12 +1,12 @@
 kB = 1
-J = 1
-H = 0
-T = 0.05
+Coupling = 1
+Field = 0
+temperature = 2.5
 
-width = 32
-height = 32
+Lx = 32
+Ly = 32
 scale = 2
 
 boundary = periodic
 probability = boltzmann
-kinetics = flip
+dynamics = flip
