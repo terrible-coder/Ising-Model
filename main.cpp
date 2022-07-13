@@ -9,6 +9,7 @@
 #define SEED 15
 
 static Specifications SPECS;
+bool draw;
 
 void handleEvents(sf::RenderWindow &w) {
 	sf::Event ev;
@@ -18,6 +19,7 @@ void handleEvents(sf::RenderWindow &w) {
 			w.close();
 			break;
 		case sf::Event::KeyPressed:
+			if (ev.key.code == sf::Keyboard::D) draw = !draw;
 			if (ev.key.code == sf::Keyboard::Escape)
 				w.close();
 			break;
@@ -107,17 +109,24 @@ int main(int argc, char** argv) {
 			config.generate();
 		}
 
-		window.clear();
-		config.drawLattice(window, SPECS.scale);
+		if (draw || k%100 == 0)
+			window.clear();
+		if (draw)
+			config.drawLattice(window, SPECS.scale);
+
 		for (int i = 0; i < BIN; i++)
 			dynamics(&config, &SPECS);
-		std::string text = "t = " + std::to_string(k) + "\t" +
-											 "Ensemble = " + std::to_string(ensemble+1) + "\t" +
-											 "Temperature = " + std::to_string(SPECS.Temperature[tp]);
-		status.setString(text);
+
+		if (draw || k%100 == 0) {
+			std::string text = "t = " + std::to_string(k) + "\t" +
+												"Ensemble = " + std::to_string(ensemble+1) + "\t" +
+												"Temperature = " + std::to_string(SPECS.Temperature[tp]);
+			status.setString(text);
+			window.draw(status);
+			window.display();
+		}
+
 		energyOutput << config.Hamiltonian() << ",";
-		window.draw(status);
-		window.display();
 		k++;
 	}
 
