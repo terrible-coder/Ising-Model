@@ -77,21 +77,31 @@ int main(int argc, char** argv) {
 
 	int k = 0;
 	int ensemble = 0;
+	int tp = 0;
 	while (window.isOpen()) {
 		handleEvents(window);
-
 		if (k == RUN) {
 			k = 0;
 			ensemble++;
 			energyOutput << std::endl;
+			if (ensemble == SPECS.ENSEMBLE_SIZE) {
+				ensemble = 0;
+				tp++;
+				if (tp == SPECS._t_points)	break;
+
+				energyOutput.close();
+				energyOutput.open("energy"+std::to_string(SPECS.Temperature[tp]) + ".csv");
+
+				config = *new Ising(SPECS.Lx, SPECS.Ly,
+													SPECS.Temperature[tp],
+													BoundaryCondition::PERIODIC);
+				continue;
+			}
 			std::cout << "Generating configuration " << ensemble+1 << std::endl;
 			config.generate();
 		} else if (k == 0) {
 			std::cout << "Generating configuration " << ensemble+1 << std::endl;
 			config.generate();
-		}
-		if (ensemble == SPECS.ENSEMBLE_SIZE) {
-			break;
 		}
 
 		window.clear();

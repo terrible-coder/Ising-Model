@@ -1,7 +1,7 @@
 kB = 1
 Coupling = 1
 Field = 0
-temperature = 0.5
+temperature = 0.5:0.5:1.5
 
 Lx = 64
 Ly = 64
@@ -11,4 +11,4 @@ boundary = periodic
 probability = glauber
 dynamics = flip
 
-ensemble = 10
+ensemble = 2
