@@ -14,11 +14,13 @@ enum BoundaryCondition {
 class Ising {
 private:
 	static double J, H;
-	// static inline bool _setJ = false, _setH = false;
 	static bool _setJ, _setH;
+
+	bool is_generated;
 	int Lx, Ly;
 	int N;
 	double T;
+	bool** initial;
 	bool** lattice;
 	BoundaryCondition boundary;
 
@@ -44,6 +46,7 @@ public:
 	double getTemp();
 
 	void generate();
+	void reinit();
 
 	void printLattice();
 

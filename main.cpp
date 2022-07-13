@@ -58,6 +58,7 @@ int main(int argc, char** argv) {
 	Ising config(SPECS.Lx, SPECS.Ly,
 							 SPECS.Temperature[0],
 							 BoundaryCondition::PERIODIC);
+	config.generate();
 	std::cout << std::endl;
 
 	sf::Text status;
@@ -99,14 +100,15 @@ int main(int argc, char** argv) {
 				config = *new Ising(SPECS.Lx, SPECS.Ly,
 													SPECS.Temperature[tp],
 													BoundaryCondition::PERIODIC);
+				config.generate();
 				std::cout << std::endl;
 				continue;
 			}
-			std::cout << "Generating configuration " << ensemble+1 << std::endl;
-			config.generate();
+			std::cout << "Ensemble member " << ensemble+1 << std::endl;
+			config.reinit();
 		} else if (k == 0) {
-			std::cout << "Generating configuration " << ensemble+1 << std::endl;
-			config.generate();
+			std::cout << "Ensemble member " << ensemble+1 << std::endl;
+			config.reinit();
 		}
 
 		if (draw || k%100 == 0)

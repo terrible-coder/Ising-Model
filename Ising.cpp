@@ -46,6 +46,8 @@ Ising::Ising(int w, int h,
 	this->N  = w * h;
 	this->T  = temperature;
 	this->boundary = b;
+	this->is_generated = false;
+
 	std::cout << "Temperature of config: " << this->T << std::endl;
 }
 
@@ -120,13 +122,33 @@ double Ising::getTemp() {return this->T;}
  * 
  */
 void Ising::generate() {
-	this->lattice = new bool*[this->Ly];
+	if (this->is_generated) {
+		std::cout << "Lattice already generated. Cannot be generated more than once." << std::endl;
+		return;
+	}
+	this->is_generated = true;
+
+	this->initial = new bool*[this->Ly];
 	for (int i = 0; i < this->Ly; i++)
-		this->lattice[i] = (bool*) malloc(this->Lx * sizeof(bool));
+		this->initial[i] = (bool*) malloc(this->Lx * sizeof(bool));
 
 	for (int i = 0; i < this->Ly; i++)
 		for (int j = 0; j < this->Lx; j++)
-			this->lattice[i][j] = rand() % 2 == 0;
+			this->initial[i][j] = rand() % 2 == 0;
+
+	this->lattice = new bool*[this->Ly];
+	for (int i = 0; i < this->Ly; i++)
+		this->lattice[i] = (bool*) malloc(this->Lx * sizeof(bool));
+}
+
+void Ising::reinit() {
+	if (!this->is_generated) {
+		std::cout << "Initial state not generated yet. Try that first." << std::endl;
+		return;
+	}
+	for (int i = 0; i < this->Ly; i++)
+		for (int j = 0; j < this->Lx; j++)
+			this->lattice[i][j] = this->initial[i][j];
 }
 
 /**
