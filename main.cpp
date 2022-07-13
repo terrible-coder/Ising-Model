@@ -5,7 +5,7 @@
 #include "MC.hpp"
 
 #define BIN 1000
-#define RUN 1000
+#define RUN 10000
 #define SEED 15
 
 static Specifications SPECS;
@@ -39,23 +39,24 @@ int main(int argc, char** argv) {
 		return EXIT_FAILURE;
 	}
 
+	const std::string SEPARATOR = "\n==========================\n";
+
 	srand(SEED);
 	std::cout << "Initialising system..." << std::endl;
 	init_system(filename, &SPECS);
 
-	std::cout << SPECS.ENSEMBLE_SIZE << " " << SPECS._t_points << std::endl;
-
 	std::ofstream energyOutput;
-	energyOutput.open("energy"+std::to_string(SPECS.Temperature[0]) + ".csv");
+	energyOutput.open("data/energy"+std::to_string(SPECS.Temperature[0]) + ".csv");
 
 	std::cout << "Setting global values..." << std::endl;
 	Ising::setCoupling(SPECS.Coupling);
 	Ising::setField(SPECS.Field);
 
-	std::cout << "Initialising configuration" << std::endl;
+	std::cout << SEPARATOR;
 	Ising config(SPECS.Lx, SPECS.Ly,
 							 SPECS.Temperature[0],
 							 BoundaryCondition::PERIODIC);
+	std::cout << std::endl;
 
 	sf::Text status;
 	status.setFont(font);
@@ -90,11 +91,13 @@ int main(int argc, char** argv) {
 				if (tp == SPECS._t_points)	break;
 
 				energyOutput.close();
-				energyOutput.open("energy"+std::to_string(SPECS.Temperature[tp]) + ".csv");
+				energyOutput.open("data/energy"+std::to_string(SPECS.Temperature[tp]) + ".csv");
 
+				std::cout << SEPARATOR;
 				config = *new Ising(SPECS.Lx, SPECS.Ly,
 													SPECS.Temperature[tp],
 													BoundaryCondition::PERIODIC);
+				std::cout << std::endl;
 				continue;
 			}
 			std::cout << "Generating configuration " << ensemble+1 << std::endl;
@@ -108,7 +111,10 @@ int main(int argc, char** argv) {
 		config.drawLattice(window, SPECS.scale);
 		for (int i = 0; i < BIN; i++)
 			dynamics(&config, &SPECS);
-		status.setString("t = " + std::to_string(k));
+		std::string text = "t = " + std::to_string(k) + "\t" +
+											 "Ensemble = " + std::to_string(ensemble+1) + "\t" +
+											 "Temperature = " + std::to_string(SPECS.Temperature[tp]);
+		status.setString(text);
 		energyOutput << config.Hamiltonian() << ",";
 		window.draw(status);
 		window.display();
