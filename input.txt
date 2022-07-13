@@ -1,12 +1,14 @@
 kB = 1
 Coupling = 1
 Field = 0
-temperature = 2.5
+temperature = 0.5
 
-Lx = 32
-Ly = 32
-scale = 2
+Lx = 64
+Ly = 64
+scale = 8
 
 boundary = periodic
-probability = boltzmann
+probability = glauber
 dynamics = flip
+
+ensemble = 10

@@ -35,7 +35,7 @@ int countOccurence(std::string str, char c) {
 	return count;
 }
 
-double* readTemp(std::string str) {
+double* readTemp(std::string str, int* p) {
 	double Ti, Tf, interval;
 	// interpret above values from str using : delimiter
 	int points;
@@ -66,6 +66,7 @@ double* readTemp(std::string str) {
 		Tf = std::stod(third);
 		points = static_cast<int> ((Tf - Ti) / interval);
 	}
+	*p = points;
 
 	double* T = (double*) malloc(points * sizeof(double));
 	for (int i = 0; i < points; i++)
@@ -91,12 +92,13 @@ void init_system(std::string filename, Specifications* S) {
 		// separate parts before and after "="
 		std::string key, value;
 		extract_values(line, &key, &value);
+		if (key == "ensemble"   ) S->ENSEMBLE_SIZE = std::stoi(value); else
 		if (key == "kB"         ) S->BoltzConstant = std::stod(value); else
 		if (key == "Coupling"   ) S->Coupling      = std::stod(value); else
 		if (key == "Field"      ) S->Field         = std::stod(value); else
 		if (key == "probability") S->Transition    = readTrans(value); else
 		if (key == "dynamics"   ) S->SpinKinetics  = readKinet(value); else
-		if (key == "temperature") S->Temperature   = readTemp (value); else
+		if (key == "temperature") S->Temperature   = readTemp (value, &(S->_t_points)); else
 		if (key == "Lx"         ) S->Lx            = std::stoi(value); else
 		if (key == "Ly"         ) S->Ly            = std::stoi(value); else
 		if (key == "scale"      ) S->scale         = std::stoi(value);

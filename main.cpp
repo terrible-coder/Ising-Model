@@ -43,8 +43,10 @@ int main(int argc, char** argv) {
 	std::cout << "Initialising system..." << std::endl;
 	init_system(filename, &SPECS);
 
+	std::cout << SPECS.ENSEMBLE_SIZE << " " << SPECS._t_points << std::endl;
+
 	std::ofstream energyOutput;
-	energyOutput.open("energy"+std::to_string(SPECS.Temperature[0]) + ".dat");
+	energyOutput.open("energy"+std::to_string(SPECS.Temperature[0]) + ".csv");
 
 	std::cout << "Setting global values..." << std::endl;
 	Ising::setCoupling(SPECS.Coupling);
@@ -54,8 +56,6 @@ int main(int argc, char** argv) {
 	Ising config(SPECS.Lx, SPECS.Ly,
 							 SPECS.Temperature[0],
 							 BoundaryCondition::PERIODIC);
-	std::cout << "Generating configuration" << std::endl;
-	config.generate();
 
 	sf::Text status;
 	status.setFont(font);
@@ -76,15 +76,30 @@ int main(int argc, char** argv) {
 	sf::RenderWindow window(sf::VideoMode(wWidth, wHeight), "Ising model");
 
 	int k = 0;
+	int ensemble = 0;
 	while (window.isOpen()) {
 		handleEvents(window);
+
+		if (k == RUN) {
+			k = 0;
+			ensemble++;
+			energyOutput << std::endl;
+			std::cout << "Generating configuration " << ensemble+1 << std::endl;
+			config.generate();
+		} else if (k == 0) {
+			std::cout << "Generating configuration " << ensemble+1 << std::endl;
+			config.generate();
+		}
+		if (ensemble == SPECS.ENSEMBLE_SIZE) {
+			break;
+		}
 
 		window.clear();
 		config.drawLattice(window, SPECS.scale);
 		for (int i = 0; i < BIN; i++)
 			dynamics(&config, &SPECS);
 		status.setString("t = " + std::to_string(k));
-		energyOutput << config.Hamiltonian() << "\n";
+		energyOutput << config.Hamiltonian() << ",";
 		window.draw(status);
 		window.display();
 		k++;

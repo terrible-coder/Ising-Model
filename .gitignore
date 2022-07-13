@@ -2,6 +2,8 @@ Ising.py
 input.txt
 *.o
 *.tsv
+*.csv
+*.dat
 Ising_model
 
 .vscode/*
