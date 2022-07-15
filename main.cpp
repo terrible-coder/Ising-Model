@@ -4,8 +4,8 @@
 #include <SFML/Graphics.hpp>
 #include "MC.hpp"
 
-#define BIN 1000
-#define RUN 10000
+// #define BIN 1000
+#define RUN 5000
 #define SEED 15
 
 static Specifications SPECS;
@@ -46,6 +46,8 @@ int main(int argc, char** argv) {
 	srand(SEED);
 	std::cout << "Initialising system..." << std::endl;
 	init_system(filename, &SPECS);
+
+	const int BIN = SPECS.Lx * SPECS.Ly;
 
 	std::ofstream energyOutput;
 	energyOutput.open("data/energy"+std::to_string(SPECS.Temperature[0]) + ".csv");

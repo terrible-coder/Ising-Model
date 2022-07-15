@@ -11,4 +11,4 @@ boundary = periodic
 probability = glauber
 dynamics = flip
 
-ensemble = 10
+ensemble = 50
