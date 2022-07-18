@@ -47,7 +47,7 @@ void getFont(sf::Font* font) {
  * 
  * @param statusBar The pointer to the sf::Text object to initialise.
  */
-void getStatusBar(sf::Text* statusBar) {
+void getStatusBar(sf::Text* statusBar, float x, float y) {
 	static sf::Font font;
 	getFont(&font);
 	statusBar->setFont(font);
@@ -55,6 +55,7 @@ void getStatusBar(sf::Text* statusBar) {
 	statusBar->setCharacterSize(16);
 	statusBar->setFillColor(sf::Color::Yellow);
 	statusBar->setStyle(sf::Text::Bold);
+	statusBar->setPosition(x, y);
 }
 
 /**
@@ -100,19 +101,9 @@ int main(int argc, char** argv) {
 	const int BIN = SPECS.Lx * SPECS.Ly;
 	const std::string SEPARATOR = "\n==========================\n";
 
-	std::ofstream energyOutput;
-	energyOutput.open(outputFileName(SPECS.Temperature[0], true));
-
 	std::cout << "Setting global values..." << std::endl;
 	Ising::setCoupling(SPECS.Coupling);
 	Ising::setField(SPECS.Field);
-
-	std::cout << SEPARATOR;
-	Ising config(SPECS.Lx, SPECS.Ly,
-							 SPECS.Temperature[0],
-							 BoundaryCondition::PERIODIC);
-	config.generate();
-	std::cout << std::endl;
 
 	// The width and height of the visualisation area
 	int sysWidth  = SPECS.Lx * SPECS.scale;
@@ -126,66 +117,63 @@ int main(int argc, char** argv) {
 	int wHeight = sysHeight + statHeight;
 
 	sf::Text status;
-	try {getStatusBar(&status);}
-	catch (std::exception) {return EXIT_FAILURE;}
-	status.setPosition(sf::Vector2f(5, sysHeight));
+	try { getStatusBar(&status, 5, sysHeight); }
+	catch (std::exception) {
+		std::cout << "Could not create status bar object."
+							<< " It is likely that the font did not load";
+		return EXIT_FAILURE;
+	}
 
 	sf::RenderWindow window(sf::VideoMode(wWidth, wHeight), "Ising model");
 
-	// Counter for the Monte Carlo run
-	int k = 0;
-	// Counter for the ensemble members
-	int ensemble = 0;
-	// Counter for the temperature values
-	int tp = 0;
-	while (window.isOpen()) {
-		handleEvents(window);
-		if (k == RUN) {
-			k = 0;
-			ensemble++;
-			energyOutput << std::endl;
-			if (ensemble == SPECS.ENSEMBLE_SIZE) {
-				ensemble = 0;
-				tp++;
-				if (tp == SPECS._t_points)	break;
+	for (int tp = 0; tp < SPECS._t_points; tp++) {
+		double T = SPECS.Temperature[tp];
+		std::ofstream energyData(outputFileName(T, true));
+		std::ofstream magnetData(outputFileName(T, false));
+		std::cout << outputFileName(T, true) << std::endl;
 
-				energyOutput.close();
-				energyOutput.open(outputFileName(SPECS.Temperature[tp], true));
+		std::cout << SEPARATOR;
 
-				std::cout << SEPARATOR;
-				config = *new Ising(SPECS.Lx, SPECS.Ly,
-													SPECS.Temperature[tp],
-													BoundaryCondition::PERIODIC);
-				config.generate();
-				std::cout << std::endl;
-				continue;
+		Ising config(SPECS.Lx, SPECS.Ly, T, BoundaryCondition::PERIODIC);
+		config.generate();
+
+		for (int ensemble = 0; ensemble < SPECS.ENSEMBLE_SIZE; ensemble++) {
+			std::cout << "Ensemble member " << ensemble+1 << "\n";
+			config.reinit();
+
+			for (int k = 0; k < RUN; k++) {
+				if (!window.isOpen()) {
+					std::cout << "\n\nWindow closed abruptly\nAt ";
+					std::cout << "k = " << k;
+					std::cout << " ensemble = " << ensemble;
+					std::cout << " t = " << tp << std::endl;
+					return EXIT_FAILURE;
+				}
+
+				for (int i = 0; i < BIN; i++)
+					dynamics(&config, &SPECS);
+
+				energyData << config.Hamiltonian() << ",";
+				magnetData << config.Magnetisation() << ",";
+
+				handleEvents(window);
+				if (draw || k % 10 == 0)
+					window.clear();
+				if (draw)
+					config.drawLattice(window, SPECS.scale);
+				if (draw || k % 10 == 0) {
+					std::string text = getStatus(k, ensemble+1, T);
+					status.setString(text);
+					window.draw(status);
+					window.display();
+				}
 			}
-			std::cout << "Ensemble member " << ensemble+1 << std::endl;
-			config.reinit();
-		} else if (k == 0) {
-			std::cout << "Ensemble member " << ensemble+1 << std::endl;
-			config.reinit();
+			energyData << std::endl;
+			magnetData << std::endl;
 		}
-
-		if (draw || k%10 == 0)
-			window.clear();
-		if (draw)
-			config.drawLattice(window, SPECS.scale);
-
-		for (int i = 0; i < BIN; i++)
-			dynamics(&config, &SPECS);
-
-		if (draw || k%10 == 0) {
-			std::string text = getStatus(k, ensemble+1, SPECS.Temperature[tp]);
-			status.setString(text);
-			window.draw(status);
-			window.display();
-		}
-
-		energyOutput << config.Hamiltonian() << ",";
-		k++;
+		energyData.close();
+		magnetData.close();
 	}
 
-	energyOutput.close();
 	return EXIT_SUCCESS;
 }
