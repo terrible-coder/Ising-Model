@@ -7,7 +7,6 @@
 #include "MC.hpp"
 
 #define RUN 5000
-#define SEED 15
 
 static Specifications SPECS;
 bool draw;
@@ -94,7 +93,6 @@ int main(int argc, char** argv) {
 	if (argc > 1) filename = argv[1];
 	else          filename = "input.txt";
 
-	srand(SEED);
 	std::cout << "Initialising system..." << std::endl;
 	init_system(filename, &SPECS);
 
@@ -157,11 +155,12 @@ int main(int argc, char** argv) {
 				magnetData << config.Magnetisation() << ",";
 
 				handleEvents(window);
-				if (draw || k % 10 == 0)
+				const int skip = 100;
+				if (draw || k % skip == 0)
 					window.clear();
 				if (draw)
 					config.drawLattice(window, SPECS.scale);
-				if (draw || k % 10 == 0) {
+				if (draw || k % skip == 0) {
 					std::string text = getStatus(k, ensemble+1, T);
 					status.setString(text);
 					window.draw(status);

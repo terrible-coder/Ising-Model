@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string.h>
+#include <random>
 #include <SFML/Graphics.hpp>
 
 double bool2spin(bool);
@@ -59,9 +60,3 @@ public:
 
 	double Magnetisation();
 };
-
-
-// bool Ising::_setJ;
-// bool Ising::_setH;
-// double Ising::H;
-// double Ising::J;

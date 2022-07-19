@@ -132,9 +132,14 @@ void Ising::generate() {
 	for (int i = 0; i < this->Ly; i++)
 		this->initial[i] = (bool*) malloc(this->Lx * sizeof(bool));
 
+	// Tie the seed value to the size of the lattice. This ensures the same
+	// initial lattice for every type of experiment.
+	std::default_random_engine RNG(this->N);
+	std::uniform_int_distribution<int> dist(0, 1);
+
 	for (int i = 0; i < this->Ly; i++)
 		for (int j = 0; j < this->Lx; j++)
-			this->initial[i][j] = rand() % 2 == 0;
+			this->initial[i][j] = (bool) dist(RNG);
 
 	this->lattice = new bool*[this->Ly];
 	for (int i = 0; i < this->Ly; i++)
