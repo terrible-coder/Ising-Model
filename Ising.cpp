@@ -119,9 +119,13 @@ double Ising::getTemp() {return this->T;}
 /**
  * @brief Generates a lattice of spins of given dimensions. The spins are
  * represented as boolean values (`true` for up and `false` for down).
+ * This is the initial configuration of the model. That is, all ensemble
+ * members will start from this configuration.
  * 
+ * Note: This function should not be called more than once.
  */
 void Ising::generate() {
+	// Allow generation of initial configuration only once.
 	if (this->is_generated) {
 		std::cout << "Lattice already generated. Cannot be generated more than once." << std::endl;
 		return;
@@ -146,11 +150,15 @@ void Ising::generate() {
 		this->lattice[i] = (bool*) malloc(this->Lx * sizeof(bool));
 }
 
+/**
+ * @brief Initialise the lattice to the initial configuration generated.
+ */
 void Ising::reinit() {
 	if (!this->is_generated) {
 		std::cout << "Initial state not generated yet. Try that first." << std::endl;
 		return;
 	}
+	// copy initial data into lattice
 	for (int i = 0; i < this->Ly; i++)
 		for (int j = 0; j < this->Lx; j++)
 			this->lattice[i][j] = this->initial[i][j];
@@ -158,7 +166,6 @@ void Ising::reinit() {
 
 /**
  * @brief Prints the lattice in text format into the console.
- * 
  */
 void Ising::printLattice() {
 	for (int i = 0; i < this->Ly; i++) {
@@ -198,11 +205,20 @@ void Ising::flip(int i, int j) {
 	this->lattice[i][j] = !this->lattice[i][j];
 }
 
+/**
+ * @brief Exchange the spins at the given indices.
+ * 
+ * @param i1 Row index 1.
+ * @param j1 Column index 1.
+ * @param i2 Row index 2.
+ * @param j2 Column index 2.
+ */
 void Ising::exchange(int i1, int j1, int i2, int j2) {
 	int i1a, j1a;
 	int i2a, j2a;
 	this->BC(i1, j1, &i1a, &j1a);
 	this->BC(i2, j2, &i2a, &j2a);
+
 	bool temp = this->lattice[i1a][j1a];
 	this->lattice[i1a][j1a] = this->lattice[i2a][j2a];
 	this->lattice[i2a][j2a] = temp;
@@ -217,19 +233,19 @@ double Ising::Hamiltonian() {
 	int w = this->Lx, h = this->Ly;
 	double E = 0.;
 	int SS = 0;
+
 	// Single spin terms
-	for (int i = 0; i < this->Ly; i++)
-		for (int j = 0; j < this->Lx; j++)
+	for (int i = 0; i < h; i++)
+		for (int j = 0; j < w; j++)
 			SS += this->lattice[i][j];
 	E = -Ising::getField() * bool2spin(SS, this->N);
 
 	// Two spin interaction terms
 	for (int i = 0; i < h; i++)
 		for (int j = 0; j < w; j++) {
-			bool north = (*this)(i-1, j  ); // this->lattice[(i+h-1)%h][j  ];
-			bool east  = (*this)(i  , j+1); // this->lattice[i  ][(j+w+1)%w];
-			// bool south = grid[(i+h+1)%h][j  ];
-			// bool west  = grid[i  ][(j+w-1)%w];
+			bool north = (*this)(i-1, j  );
+			bool east  = (*this)(i  , j+1);
+
 			SS = bool2spin(north + east, 2);
 			E -= Ising::getNNCoup() * SS * bool2spin((*this)(i, j));
 		}
@@ -245,6 +261,6 @@ double Ising::Magnetisation() {
 	int M = 0;
 	for (int i = 0; i < this->Ly; i++)
 		for (int j = 0; j < this->Lx; j++)
-			M += (*this)(i, j);
+			M += this->lattice[i][j];
 	return bool2spin(M, this->N);
 }

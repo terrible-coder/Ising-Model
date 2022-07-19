@@ -79,13 +79,20 @@ std::string getStatus(int time, int member, double T) {
  * @return std::string 
  */
 std::string outputFileName(double T, bool energy) {
+	static bool log_folder = false;
 	const std::string EN = std::to_string(SPECS.ENSEMBLE_SIZE);
 	const std::string Lx = std::to_string(SPECS.Lx);
 	const std::string Ly = std::to_string(SPECS.Ly);
-	std::string folder   = "data" + Lx + "x" + Ly + "en" + EN;
-	std::string name     = (energy ? "energy" : "magnet") + std::to_string(T);
-	std::string ext      = "csv";
-	return folder + "/" + name + "." + ext;
+	std::string folder = "data" + Lx + "x" + Ly + "en" + EN + "/";
+	std::string name   = (energy ? "energy" : "magnet") + std::to_string(T);
+	std::string ext    = ".csv";
+
+	if (!log_folder) {
+		log_folder = true;
+		std::cout << "Outputting to folder: " << folder << std::endl;
+	}
+
+	return folder + name + ext;
 }
 
 int main(int argc, char** argv) {
@@ -128,7 +135,6 @@ int main(int argc, char** argv) {
 		double T = SPECS.Temperature[tp];
 		std::ofstream energyData(outputFileName(T, true));
 		std::ofstream magnetData(outputFileName(T, false));
-		std::cout << outputFileName(T, true) << std::endl;
 
 		std::cout << SEPARATOR;
 
@@ -142,9 +148,9 @@ int main(int argc, char** argv) {
 			for (int k = 0; k < RUN; k++) {
 				if (!window.isOpen()) {
 					std::cout << "\n\nWindow closed abruptly\nAt ";
-					std::cout << "k = " << k;
+					std::cout << "t = " << k;
 					std::cout << " ensemble = " << ensemble;
-					std::cout << " t = " << tp << std::endl;
+					std::cout << " tp = " << tp << std::endl;
 					return EXIT_FAILURE;
 				}
 
