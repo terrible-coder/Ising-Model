@@ -2,9 +2,10 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-T = 1.7
-Sz= 64
-filename = f"data{Sz}x{Sz}en50/energy{T}00000.csv"
+T  = 2.3
+SZ = 40
+EN = 20
+filename = f"data{SZ}x{SZ}en{EN}/energy{T}00000.csv"
 
 data = pd.read_csv(filename, header=None) / (64**2)
 
@@ -32,7 +33,7 @@ for i in range(ROWS-1):
 plt.plot(data_mean, "k-", markevery=every)
 
 plt.grid()
-plt.title(f"T={T}, Size={Sz}")
+plt.title(f"T={T}, Size={SZ}")
 plt.xlabel("MC steps")
 plt.ylabel("Energy per spin")
 
@@ -40,7 +41,7 @@ plt.figure()
 plt.plot(data_std, markevery=every)
 
 plt.grid()
-plt.title(f"T={T}, Size={Sz}")
+plt.title(f"T={T}, Size={SZ}")
 plt.xlabel("MC steps")
 plt.ylabel("SD of energy")
 

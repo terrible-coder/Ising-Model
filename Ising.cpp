@@ -138,7 +138,8 @@ void Ising::generate() {
 
 	// Tie the seed value to the size of the lattice. This ensures the same
 	// initial lattice for every type of experiment.
-	std::default_random_engine RNG(this->N);
+	int seed = this->N + (int)(this->T * 1000. + 0.5);
+	std::default_random_engine RNG(seed);
 	std::uniform_int_distribution<int> dist(0, 1);
 
 	for (int i = 0; i < this->Ly; i++)

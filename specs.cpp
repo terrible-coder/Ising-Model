@@ -62,7 +62,7 @@ Dynamics readKinet(std::string str) {
  * @param c The character to search for.
  * @return int 
  */
-int countOccurence(std::string str, char c) {
+int countOccurrence(std::string str, char c) {
 	int count = 0;
 	for (char ch : str)
 		if (ch == c)
@@ -82,7 +82,7 @@ double* readTemp(std::string str, int* p) {
 	double Ti, Tf, interval;
 	// interpret above values from str using : delimiter
 	int points;
-	int colonCount = countOccurence(str, ':');
+	int colonCount = countOccurrence(str, ':');
 	if (colonCount == 0) {		// single temperature value
 		Ti = std::stod(str);
 		interval = 0;
@@ -96,7 +96,7 @@ double* readTemp(std::string str, int* p) {
 		Ti = std::stod(first);
 		interval = 0.1; // default interval value;
 		Tf = std::stod(second);
-		points = static_cast<int> ((Tf - Ti) / interval);
+		points = (int) ((Tf - Ti) / interval + 0.5);
 	} else
 	if (colonCount == 2) {		// range defined with given interval
 		int cPos1 = str.find_first_of(':');
@@ -107,7 +107,7 @@ double* readTemp(std::string str, int* p) {
 		Ti = std::stod(first);
 		interval = std::stod(second);
 		Tf = std::stod(third);
-		points = static_cast<int> ((Tf - Ti) / interval);
+		points = (int) ((Tf - Ti) / interval + 0.5);
 	}
 	*p = points;
 
@@ -158,6 +158,7 @@ void init_system(std::string filename, Specifications* S) {
 	std::cout << "Lx: " << S->Lx << "\n";
 	std::cout << "Ly: " << S->Ly << "\n";
 	std::cout << "Coupling: " << S->Coupling << "\n";
+	std::cout << "Temperature points: " << S->_t_points << "\n";
 	std::cout << std::endl;
 
 	input_file.close();
