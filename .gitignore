@@ -1,9 +1,8 @@
-Ising.py
-input.txt
-*.o
-*.tsv
-*.csv
-*.dat
+# files
 Ising_model
+.vscode/*.log
+null.d
 
-.vscode/*
+# folders
+data
+bin/*

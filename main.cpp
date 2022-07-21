@@ -4,9 +4,8 @@
 #include <exception>
 
 #include <SFML/Graphics.hpp>
+#include "defaults.hpp"
 #include "MC.hpp"
-
-#define RUN 5000
 
 static Specifications SPECS;
 bool draw;
@@ -35,8 +34,7 @@ void handleEvents(sf::RenderWindow &w) {
  * @param font 
  */
 void getFont(sf::Font* font) {
-	std::string fontFile = "./font/times new roman.ttf";
-	bool loaded = font->loadFromFile(fontFile);
+	bool loaded = font->loadFromFile(FONTS);
 	if (!loaded)
 		throw std::exception();
 }
@@ -51,7 +49,7 @@ void getStatusBar(sf::Text* statusBar, float x, float y) {
 	getFont(&font);
 	statusBar->setFont(font);
 	statusBar->setString("Hello! I am just sitting here.");
-	statusBar->setCharacterSize(16);
+	statusBar->setCharacterSize(TEXT_SIZE);
 	statusBar->setFillColor(sf::Color::Yellow);
 	statusBar->setStyle(sf::Text::Bold);
 	statusBar->setPosition(x, y);
@@ -83,28 +81,26 @@ std::string outputFileName(double T, bool energy) {
 	const std::string EN = std::to_string(SPECS.ENSEMBLE_SIZE);
 	const std::string Lx = std::to_string(SPECS.Lx);
 	const std::string Ly = std::to_string(SPECS.Ly);
-	std::string folder = "data" + Lx + "x" + Ly + "en" + EN + "/";
+	std::string folder = DATA_DIR_PREFIX + Lx + "x" + Ly + "en" + EN + "/";
 	std::string name   = (energy ? "energy" : "magnet") + std::to_string(T);
-	std::string ext    = ".csv";
 
 	if (!log_folder) {
 		log_folder = true;
 		std::cout << "Outputting to folder: " << folder << std::endl;
 	}
 
-	return folder + name + ext;
+	return folder + name + DATA_EXT;
 }
 
 int main(int argc, char** argv) {
 	std::string filename;
 	if (argc > 1) filename = argv[1];
-	else          filename = "input.txt";
+	else          filename = INPUT_FILE;
 
 	std::cout << "Initialising system..." << std::endl;
 	init_system(filename, &SPECS);
 
 	const int BIN = SPECS.Lx * SPECS.Ly;
-	const std::string SEPARATOR = "\n==========================\n";
 
 	std::cout << "Setting global values..." << std::endl;
 	Ising::setCoupling(SPECS.Coupling);
@@ -115,7 +111,7 @@ int main(int argc, char** argv) {
 	int sysHeight = SPECS.Ly * SPECS.scale;
 	// The width and height of the status bar
 	int statWidth = sysWidth;
-	int statHeight= 20;
+	int statHeight= STAT_BAR_H;
 
 	// The total window width and height
 	int wWidth  = sysWidth;
@@ -125,7 +121,7 @@ int main(int argc, char** argv) {
 	try { getStatusBar(&status, 5, sysHeight); }
 	catch (std::exception) {
 		std::cout << "Could not create status bar object."
-							<< " It is likely that the font did not load";
+							<< " It is likely that the font did not load\n";
 		return EXIT_FAILURE;
 	}
 
@@ -161,12 +157,11 @@ int main(int argc, char** argv) {
 				magnetData << config.Magnetisation() << ",";
 
 				handleEvents(window);
-				const int skip = 100;
-				if (draw || k % skip == 0)
+				if (draw || k % (SKIP*SKIP) == 0)
 					window.clear();
 				if (draw)
 					config.drawLattice(window, SPECS.scale);
-				if (draw || k % skip == 0) {
+				if (draw || k % (SKIP*SKIP) == 0) {
 					std::string text = getStatus(k, ensemble+1, T);
 					status.setString(text);
 					window.draw(status);
