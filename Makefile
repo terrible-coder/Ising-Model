@@ -1,20 +1,23 @@
+BINARY=Ising_model
+CODEDIRS=. ./src
+INCDIRS=./include
+OBJDIR=./bin
+
 CC=c++
 LIBS=-lsfml-graphics -lsfml-window -lsfml-system
+DEPFLAGS=-MP -MD
+CFLAGS=-Wall $(foreach D,$(INCDIRS),-I$(D)) $(DEPFLAGS)
+CFILES=$(foreach D,$(CODEDIRS),$(wildcard $(D)/*.cpp))
+OBJECTS=$(patsubst %.cpp,$(OBJDIR)/%.o,$(CFILES))
+DEPFILES=$(patsubst %.cpp,$(OBJDIR)/%.d,$(CFILES))
 
-Ising_model: params.o Ising.o MC.o main.o
-	$(CC) *.o $(LIBS) -o Ising_model
+$(BINARY): $(OBJECTS)
+	$(CC) $^ $(LIBS) -o $@
 
-main.o: main.cpp Ising.hpp
-	$(CC) -c main.cpp
+$(OBJDIR)/%.o: %.cpp
+	$(CC) $(CFLAGS) -c -o $@ $<
 
-Ising.o: Ising.cpp Ising.hpp
-	$(CC) -c Ising.cpp
-
-params.o: params.cpp params.hpp
-	$(CC) -c params.cpp
-
-MC.o: MC.cpp MC.hpp
-	$(CC) -c MC.cpp
+-include $(DEPFILES)
 
 clean:
-	rm *.o Ising_model
+	@rm $(OBJECTS) $(DEPFILES) $(BINARY)

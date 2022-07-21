@@ -1,12 +1,14 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <exception>
+
 #include <SFML/Graphics.hpp>
+#include "defaults.hpp"
 #include "MC.hpp"
 
-#define BIN 1000
-#define RUN 1000
-#define SEED 15
+static Specifications SPECS;
+bool draw;
 
 void handleEvents(sf::RenderWindow &w) {
 	sf::Event ev;
@@ -16,6 +18,7 @@ void handleEvents(sf::RenderWindow &w) {
 			w.close();
 			break;
 		case sf::Event::KeyPressed:
+			if (ev.key.code == sf::Keyboard::D) draw = !draw;
 			if (ev.key.code == sf::Keyboard::Escape)
 				w.close();
 			break;
@@ -25,65 +28,152 @@ void handleEvents(sf::RenderWindow &w) {
 	}
 }
 
+/**
+ * @brief Load a font file into the Font object.
+ * 
+ * @param font 
+ */
+void getFont(sf::Font* font) {
+	bool loaded = font->loadFromFile(FONTS);
+	if (!loaded)
+		throw std::exception();
+}
+
+/**
+ * @brief Initialise the `sf::Text` object for the status bar.
+ * 
+ * @param statusBar The pointer to the sf::Text object to initialise.
+ */
+void getStatusBar(sf::Text* statusBar, float x, float y) {
+	static sf::Font font;
+	getFont(&font);
+	statusBar->setFont(font);
+	statusBar->setString("Hello! I am just sitting here.");
+	statusBar->setCharacterSize(TEXT_SIZE);
+	statusBar->setFillColor(sf::Color::Yellow);
+	statusBar->setStyle(sf::Text::Bold);
+	statusBar->setPosition(x, y);
+}
+
+/**
+ * @brief Get the current status of the simulation.
+ * 
+ * @param time The integer time step.
+ * @param member The ensemble member currently running.
+ * @param T The temperature of the simulation.
+ * @return std::string 
+ */
+std::string getStatus(int time, int member, double T) {
+	return "t = " + std::to_string(time) + "\t" +
+				 "Ensemble = " + std::to_string(member) + "\t" +
+				 "Temperature = " + std::to_string(T);
+}
+
+/**
+ * @brief Generate the output file name to save the data to.
+ * 
+ * @param T The temperature of the system.
+ * @param energy If the data is for energy. `true` means energy, `false` means magnetisation.
+ * @return std::string 
+ */
+std::string outputFileName(double T, bool energy) {
+	static bool log_folder = false;
+	const std::string EN = std::to_string(SPECS.ENSEMBLE_SIZE);
+	const std::string Lx = std::to_string(SPECS.Lx);
+	const std::string Ly = std::to_string(SPECS.Ly);
+	std::string folder = DATA_DIR_PREFIX + Lx + "x" + Ly + "en" + EN + "/";
+	std::string name   = (energy ? "energy" : "magnet") + std::to_string(T);
+
+	if (!log_folder) {
+		log_folder = true;
+		std::cout << "Outputting to folder: " << folder << std::endl;
+	}
+
+	return folder + name + DATA_EXT;
+}
+
 int main(int argc, char** argv) {
 	std::string filename;
 	if (argc > 1) filename = argv[1];
-	else          filename = "input.txt";
+	else          filename = INPUT_FILE;
 
-	srand(SEED);
-	params p = readInput(filename);
+	std::cout << "Initialising system..." << std::endl;
+	init_system(filename, &SPECS);
 
-	initConfig(&p);
-	Ising config(&p);
-	config.generate();
+	const int BIN = SPECS.Lx * SPECS.Ly;
 
-	// double energy[RUN/2];
-	// double magnet[RUN/2];
-	// std::ofstream energy_data("energy.tsv");
-	// std::ofstream magnet_data("magnet.tsv");
-	// if (!energy_data.is_open() || !magnet_data.is_open()) {
-	// 	return EXIT_FAILURE;
-	// }
+	std::cout << "Setting global values..." << std::endl;
+	Ising::setCoupling(SPECS.Coupling);
+	Ising::setField(SPECS.Field);
 
-	int wWidth = p.width * p.scale;
-	int wHeight = p.height * p.scale;
+	// The width and height of the visualisation area
+	int sysWidth  = SPECS.Lx * SPECS.scale;
+	int sysHeight = SPECS.Ly * SPECS.scale;
+	// The width and height of the status bar
+	int statWidth = sysWidth;
+	int statHeight= STAT_BAR_H;
+
+	// The total window width and height
+	int wWidth  = sysWidth;
+	int wHeight = sysHeight + statHeight;
+
+	sf::Text status;
+	try { getStatusBar(&status, 5, sysHeight); }
+	catch (std::exception) {
+		std::cout << "Could not create status bar object."
+							<< " It is likely that the font did not load\n";
+		return EXIT_FAILURE;
+	}
 
 	sf::RenderWindow window(sf::VideoMode(wWidth, wHeight), "Ising model");
 
-	// int k = 0;
+	for (int tp = 0; tp < SPECS._t_points; tp++) {
+		double T = SPECS.Temperature[tp];
+		std::ofstream energyData(outputFileName(T, true));
+		std::ofstream magnetData(outputFileName(T, false));
 
-	while (window.isOpen() && p.T < 4) {
-		// if (k == RUN) {
-		// 	for (int i = 0; i < RUN/2; i++) {
-		// 		energy_data << energy[i] / config.getSize() << "\t";
-		// 		magnet_data << magnet[i] / config.getSize() << "\t";
-		// 	}
-		// 	energy_data << std::endl;
-		// 	magnet_data << std::endl;
+		std::cout << SEPARATOR;
 
-		// 	p.T += 0.01;
-		// 	k = 0;
-		// 	std::cout << "Restarting for T = " << p.T << std::endl;
+		Ising config(SPECS.Lx, SPECS.Ly, T, BoundaryCondition::PERIODIC);
+		config.generate();
 
-		// 	initConfig(&p);
-		// 	config = *(new Ising(&p));
-		// 	config.generate();
-		// }
+		for (int ensemble = 0; ensemble < SPECS.ENSEMBLE_SIZE; ensemble++) {
+			std::cout << "Ensemble member " << ensemble+1 << "\n";
+			config.reinit();
 
-		handleEvents(window);
-		window.clear();
-		config.drawLattice(window);
-		for (int i = 0; i < BIN; i++)
-			dynamics(&config);
-		// if (k >= RUN / 2) {
-		// 	energy[k-RUN/2] = config.Hamiltonian();
-		// 	magnet[k-RUN/2] = config.Magnetisation();
-		// }
-		// k++;
-		window.display();
+			for (int k = 0; k < RUN; k++) {
+				if (!window.isOpen()) {
+					std::cout << "\n\nWindow closed abruptly\nAt ";
+					std::cout << "t = " << k;
+					std::cout << " ensemble = " << ensemble;
+					std::cout << " tp = " << tp << std::endl;
+					return EXIT_FAILURE;
+				}
+
+				for (int i = 0; i < BIN; i++)
+					dynamics(&config, &SPECS);
+
+				energyData << config.Hamiltonian() << ",";
+				magnetData << config.Magnetisation() << ",";
+
+				handleEvents(window);
+				if (draw || k % (SKIP*SKIP) == 0)
+					window.clear();
+				if (draw)
+					config.drawLattice(window, SPECS.scale);
+				if (draw || k % (SKIP*SKIP) == 0) {
+					std::string text = getStatus(k, ensemble+1, T);
+					status.setString(text);
+					window.draw(status);
+					window.display();
+				}
+			}
+			energyData << std::endl;
+			magnetData << std::endl;
+		}
+		energyData.close();
+		magnetData.close();
 	}
-	// energy_data.close();
-	// magnet_data.close();
 
-	return 0;
+	return EXIT_SUCCESS;
 }
