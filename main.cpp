@@ -5,6 +5,7 @@
 
 #include <SFML/Graphics.hpp>
 #include "defaults.hpp"
+#include "io/data_logger.hpp"
 #include "MC.hpp"
 
 static Specifications SPECS;
@@ -69,29 +70,6 @@ std::string getStatus(int time, int member, double T) {
 				 "Temperature = " + std::to_string(T);
 }
 
-/**
- * @brief Generate the output file name to save the data to.
- * 
- * @param T The temperature of the system.
- * @param energy If the data is for energy. `true` means energy, `false` means magnetisation.
- * @return std::string 
- */
-std::string outputFileName(double T, bool energy) {
-	static bool log_folder = false;
-	const std::string EN = std::to_string(SPECS.ENSEMBLE_SIZE);
-	const std::string Lx = std::to_string(SPECS.Lx);
-	const std::string Ly = std::to_string(SPECS.Ly);
-	std::string folder = DATA_DIR_PREFIX + Lx + "x" + Ly + "en" + EN + "/";
-	std::string name   = (energy ? "energy" : "magnet") + std::to_string(T);
-
-	if (!log_folder) {
-		log_folder = true;
-		std::cout << "Outputting to folder: " << folder << std::endl;
-	}
-
-	return folder + name + DATA_EXT;
-}
-
 int main(int argc, char** argv) {
 	std::string filename;
 	if (argc > 1) filename = argv[1];
@@ -109,13 +87,10 @@ int main(int argc, char** argv) {
 	// The width and height of the visualisation area
 	int sysWidth  = SPECS.Lx * SPECS.scale;
 	int sysHeight = SPECS.Ly * SPECS.scale;
-	// The width and height of the status bar
-	int statWidth = sysWidth;
-	int statHeight= STAT_BAR_H;
 
 	// The total window width and height
 	int wWidth  = sysWidth;
-	int wHeight = sysHeight + statHeight;
+	int wHeight = sysHeight + STAT_BAR_H;
 
 	sf::Text status;
 	try { getStatusBar(&status, 5, sysHeight); }
@@ -129,8 +104,7 @@ int main(int argc, char** argv) {
 
 	for (int tp = 0; tp < SPECS._t_points; tp++) {
 		double T = SPECS.Temperature[tp];
-		std::ofstream energyData(outputFileName(T, true));
-		std::ofstream magnetData(outputFileName(T, false));
+		openLogger(SPECS.Lx, SPECS.Ly, SPECS.ENSEMBLE_SIZE, T);
 
 		std::cout << SEPARATOR;
 
@@ -152,9 +126,7 @@ int main(int argc, char** argv) {
 
 				for (int i = 0; i < BIN; i++)
 					dynamics(&config, &SPECS);
-
-				energyData << config.Hamiltonian() << ",";
-				magnetData << config.Magnetisation() << ",";
+				logData(config.Hamiltonian() / config.getSize(), config.Magnetisation() / config.getSize());
 
 				handleEvents(window);
 				if (draw || k % (SKIP*SKIP) == 0)
@@ -168,11 +140,9 @@ int main(int argc, char** argv) {
 					window.display();
 				}
 			}
-			energyData << std::endl;
-			magnetData << std::endl;
+			nextEnsemble();
 		}
-		energyData.close();
-		magnetData.close();
+		closeLogger();
 	}
 
 	return EXIT_SUCCESS;

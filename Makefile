@@ -1,6 +1,6 @@
 BINARY=Ising_model
-CODEDIRS=. ./src
-INCDIRS=./include
+CODEDIRS=. ./src ./src/*
+INCDIRS=./include ./include/*
 OBJDIR=./bin
 
 CC=c++
