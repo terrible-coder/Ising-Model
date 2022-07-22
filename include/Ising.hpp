@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string.h>
 #include <random>
+#include <fstream>
 #include <SFML/Graphics.hpp>
 
 double bool2spin(bool);
@@ -52,6 +53,7 @@ public:
 	void printLattice();
 
 	void drawLattice(sf::RenderWindow& w, int scale);
+	void saveFrame(int count);
 
 	void flip(int i, int j);
 	void exchange(int i1, int j1, int i2, int j2);

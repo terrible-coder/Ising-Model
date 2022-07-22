@@ -131,8 +131,9 @@ int main(int argc, char** argv) {
 				handleEvents(window);
 				if (draw || k % (SKIP*SKIP) == 0)
 					window.clear();
-				if (draw)
-					config.drawLattice(window, SPECS.scale);
+				// if (draw)
+				// 	config.drawLattice(window, SPECS.scale);
+				if (k % SKIP == 0)	config.saveFrame(k);
 				if (draw || k % (SKIP*SKIP) == 0) {
 					std::string text = getStatus(k, ensemble+1, T);
 					status.setString(text);

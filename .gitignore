@@ -2,6 +2,7 @@
 Ising_model
 .vscode/*.log
 null.d
+*.ppm
 
 # folders
 data
