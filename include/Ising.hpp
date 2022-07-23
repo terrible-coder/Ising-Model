@@ -2,16 +2,12 @@
 #include <string.h>
 #include <random>
 #include <fstream>
+
 #include <SFML/Graphics.hpp>
+#include "boundary.hpp"
 
 double bool2spin(bool);
 double bool2spin(int, int);
-
-enum BoundaryCondition {
-	PERIODIC = 0,
-	SCREW,
-	FREE
-};
 
 class Ising {
 private:
@@ -25,8 +21,6 @@ private:
 	bool** initial;
 	bool** lattice;
 	BoundaryCondition boundary;
-
-	void BC(int ui, int uj, int* ai, int* aj);
 
 public:
 
