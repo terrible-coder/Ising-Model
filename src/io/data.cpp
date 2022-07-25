@@ -11,6 +11,7 @@ std::ofstream magnetData;
 
 void openLogger(int w, int h, int en, double T) {
 	static bool log_folder = false;
+	static int _last_en = -1;
 
 	if (energyData.is_open() || magnetData.is_open()) {
 		std::cout << "The previous data files are still open. You should close that." << std::endl;
@@ -21,19 +22,25 @@ void openLogger(int w, int h, int en, double T) {
 	std::string EN = std::to_string(en);
 	std::string Lx = std::to_string(w);
 	std::string Ly = std::to_string(h);
-	std::string folder = DATA_DIR_PREFIX + Lx + "x" + Ly + "en" + EN + "/";
+	std::string dir = DATA_DIR_PREFIX + Lx + "x" + Ly + "en" + EN + "/";
+
+	if (en != _last_en) {
+		if (std::filesystem::create_directory(dir) == 0)
+			std::cout << "Problem creating directory." << std::endl;
+		_last_en = en;
+	}
 
 	// file name contains information about temperature
-	std::string name;
-	name = folder + "energy" + std::to_string(T) + DATA_EXT;
-	energyData.open(name);
+	std::string path;
+	path = dir + "energy" + std::to_string(T) + DATA_EXT;
+	energyData.open(path);
 
-	name = folder + "magnet" + std::to_string(T) + DATA_EXT;
-	magnetData.open(name);
+	path = dir + "magnet" + std::to_string(T) + DATA_EXT;
+	magnetData.open(path);
 
 	if (!log_folder) {
 		log_folder = true;
-		std::cout << "Outputting to folder: " << folder << std::endl;
+		std::cout << "Outputting to folder: " << dir << std::endl;
 	}
 }
 

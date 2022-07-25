@@ -6,7 +6,7 @@ OBJDIR=./bin
 CC=c++
 LIBS=-lsfml-graphics -lsfml-window -lsfml-system
 DEPFLAGS=-MP -MD
-CFLAGS=-Wall $(foreach D,$(INCDIRS),-I$(D)) $(DEPFLAGS)
+CFLAGS=-Wall -std=c++17 $(foreach D,$(INCDIRS),-I$(D)) $(DEPFLAGS)
 CFILES=$(foreach D,$(CODEDIRS),$(wildcard $(D)/*.cpp))
 OBJECTS=$(patsubst %.cpp,$(OBJDIR)/%.o,$(CFILES))
 DEPFILES=$(patsubst %.cpp,$(OBJDIR)/%.d,$(CFILES))

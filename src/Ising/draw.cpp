@@ -44,7 +44,17 @@ void Ising::drawLattice(sf::RenderTexture& rt, int scale) {
 }
 
 void Ising::saveFrame(sf::RenderTexture& rt, int count, int en) {
-	std::string name = "image/en" + std::to_string(en+1) + "/con" + std::to_string(this->getTemp())
-									 + "fr" + std::to_string(count) + ".png";
-	rt.getTexture().copyToImage().saveToFile(name);
+	static int _last_en = -1;
+
+	std::string dir = "image/con" + std::to_string(this->getTemp()) + "/"
+									+ "en" + std::to_string(en+1) + "/";
+
+	if (en != _last_en) {
+		if (std::filesystem::create_directories(dir) == 0)
+			std::cout << "Problem creating directory." << std::endl;
+		_last_en = en;
+	}
+
+	std::string path = dir + "frame" + std::to_string(count) + ".png";
+	rt.getTexture().copyToImage().saveToFile(path);
 }
