@@ -101,6 +101,8 @@ int main(int argc, char** argv) {
 	}
 
 	sf::RenderWindow window(sf::VideoMode(wWidth, wHeight), "Ising model");
+	sf::RenderTexture texture;
+	texture.create(wWidth, wHeight);
 
 	for (int tp = 0; tp < SPECS._t_points; tp++) {
 		double T = SPECS.Temperature[tp];
@@ -129,15 +131,20 @@ int main(int argc, char** argv) {
 				logData(config.Hamiltonian() / config.getSize(), config.Magnetisation() / config.getSize());
 
 				handleEvents(window);
-				if (draw || k % (SKIP*SKIP) == 0)
-					window.clear();
-				// if (draw)
-				// 	config.drawLattice(window, SPECS.scale);
-				if (k % SKIP == 0)	config.saveFrame(k);
-				if (draw || k % (SKIP*SKIP) == 0) {
+				if (k % SKIP == 0) {
+					texture.clear();
+					config.drawLattice(texture, SPECS.scale);
 					std::string text = getStatus(k, ensemble+1, T);
 					status.setString(text);
-					window.draw(status);
+					texture.draw(status);
+					config.saveFrame(texture, k, ensemble);
+					texture.display();
+				}
+
+				if (draw && k % (SKIP*SKIP) == 0) {
+					window.clear();
+					sf::Sprite sprite(texture.getTexture());
+					window.draw(sprite);
 					window.display();
 				}
 			}

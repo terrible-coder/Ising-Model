@@ -27,32 +27,24 @@ void Ising::printLattice() {
  * `scale x scale` rectangle. White represents spin up and black represents
  * spin down.
  * 
- * @param w The SFML render window to draw on.
+ * @param rt The SFML render window to draw on.
  * @param scale The visual size of each lattice point.
  */
-void Ising::drawLattice(sf::RenderWindow& w, int scale) {
+void Ising::drawLattice(sf::RenderTexture& rt, int scale) {
 	for (int i = 0; i < this->Ly; i++) {
 		for (int j = 0; j < this->Lx; j++) {
+			if(!this->lattice[i][j])
+				continue;
 			sf::RectangleShape s(sf::Vector2f(scale, scale));
 			s.setPosition(j*scale, i*scale);
-			if ((*this)(i, j)) s.setFillColor(sf::Color::White);
-			else s.setFillColor(sf::Color::Black);
-			w.draw(s);
+			s.setFillColor(sf::Color::White);
+			rt.draw(s);
 		}
 	}
 }
 
-void Ising::saveFrame(int count) {
-	std::string name = "image/con" + std::to_string(this->getTemp())
-									 + "fr" + std::to_string(count) + ".ppm";
-	std::ofstream frame(name);
-	frame << "P3" << std::endl;
-	frame << this->Lx << " " << this->Ly << std::endl;
-	frame << "255" << std::endl;
-	for (int y = 0; y < this->Ly; y++) {
-		for (int x = 0; x < this->Lx; x++) {
-			int val = this->lattice[y][x] ? 255 : 0;
-			frame << val << " " << val << " " << val << std::endl;
-		}
-	}
+void Ising::saveFrame(sf::RenderTexture& rt, int count, int en) {
+	std::string name = "image/en" + std::to_string(en+1) + "/con" + std::to_string(this->getTemp())
+									 + "fr" + std::to_string(count) + ".png";
+	rt.getTexture().copyToImage().saveToFile(name);
 }

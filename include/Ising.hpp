@@ -1,5 +1,5 @@
 #include <iostream>
-#include <string.h>
+#include <string>
 #include <random>
 #include <fstream>
 
@@ -46,8 +46,8 @@ public:
 
 	void printLattice();
 
-	void drawLattice(sf::RenderWindow& w, int scale);
-	void saveFrame(int count);
+	void drawLattice(sf::RenderTexture& st, int scale);
+	void saveFrame(sf::RenderTexture& st, int count, int en);
 
 	void flip(int i, int j);
 	void exchange(int i1, int j1, int i2, int j2);
