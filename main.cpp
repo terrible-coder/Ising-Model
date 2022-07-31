@@ -8,7 +8,7 @@
 #include "io/data_logger.hpp"
 #include "MC.hpp"
 
-static Specifications SPECS;
+static Context CTX;
 bool draw;
 
 void handleEvents(sf::RenderWindow &w) {
@@ -76,17 +76,17 @@ int main(int argc, char** argv) {
 	else          filename = INPUT_FILE;
 
 	std::cout << "Initialising system..." << std::endl;
-	init_system(filename, &SPECS);
+	init_system(filename, &CTX);
 
-	const int BIN = SPECS.Lx * SPECS.Ly;
+	const int BIN = CTX.Lx * CTX.Ly;
 
 	std::cout << "Setting global values..." << std::endl;
-	Ising::setCoupling(SPECS.Coupling);
-	Ising::setField(SPECS.Field);
+	Ising::setCoupling(CTX.Coupling);
+	Ising::setField(CTX.Field);
 
 	// The width and height of the visualisation area
-	int sysWidth  = SPECS.Lx * SPECS.scale;
-	int sysHeight = SPECS.Ly * SPECS.scale;
+	int sysWidth  = CTX.Lx * CTX.scale;
+	int sysHeight = CTX.Ly * CTX.scale;
 
 	// The total window width and height
 	int wWidth  = sysWidth;
@@ -104,16 +104,16 @@ int main(int argc, char** argv) {
 	sf::RenderTexture texture;
 	texture.create(wWidth, wHeight);
 
-	for (int tp = 0; tp < SPECS._t_points; tp++) {
-		double T = SPECS.Temperature[tp];
-		openLogger(SPECS.Lx, SPECS.Ly, SPECS.ENSEMBLE_SIZE, T);
+	for (int tp = 0; tp < CTX._t_points; tp++) {
+		double T = CTX.Temperature[tp];
+		openLogger(CTX.Lx, CTX.Ly, CTX.ENSEMBLE_SIZE, T);
 
 		std::cout << SEPARATOR;
 
-		Ising config(SPECS.Lx, SPECS.Ly, T, BoundaryCondition::PERIODIC);
+		Ising config(CTX.Lx, CTX.Ly, T, BoundaryCondition::PERIODIC);
 		config.generate();
 
-		for (int ensemble = 0; ensemble < SPECS.ENSEMBLE_SIZE; ensemble++) {
+		for (int ensemble = 0; ensemble < CTX.ENSEMBLE_SIZE; ensemble++) {
 			std::cout << "Ensemble member " << ensemble+1 << "\n";
 			config.reinit();
 
@@ -127,13 +127,13 @@ int main(int argc, char** argv) {
 				}
 
 				for (int i = 0; i < BIN; i++)
-					dynamics(&config, &SPECS);
+					dynamics(&config, &CTX);
 				logData(config.Hamiltonian() / config.getSize(), config.Magnetisation() / config.getSize());
 
 				handleEvents(window);
 				if (k % SKIP == 0) {
 					texture.clear();
-					config.drawLattice(texture, SPECS.scale);
+					config.drawLattice(texture, CTX.scale);
 					std::string text = getStatus(k, ensemble+1, T);
 					status.setString(text);
 					texture.draw(status);

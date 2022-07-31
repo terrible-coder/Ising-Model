@@ -1,4 +1,4 @@
-#include "specs.hpp"
+#include "context.hpp"
 
 /**
  * @brief Keep track if the system has been initialised. This flag allows the
@@ -123,9 +123,9 @@ double* readTemp(std::string str, int* p) {
  * only once.
  * 
  * @param filename The input file path.
- * @param S The system settings to initialise.
+ * @param ctx The system settings to initialise.
  */
-void init_system(std::string filename, Specifications* S) {
+void init_system(std::string filename, Context* ctx) {
 	// allow system to be initialised only once. any second attempt to initialise
 	// system variables during the run will simply be ignored.
 	if (initiated)
@@ -143,22 +143,22 @@ void init_system(std::string filename, Specifications* S) {
 		// separate parts before and after "="
 		std::string key, value;
 		extract_values(line, &key, &value);
-		if (key == "ensemble"   ) S->ENSEMBLE_SIZE = std::stoi(value); else
-		if (key == "kB"         ) S->BoltzConstant = std::stod(value); else
-		if (key == "Coupling"   ) S->Coupling      = std::stod(value); else
-		if (key == "Field"      ) S->Field         = std::stod(value); else
-		if (key == "probability") S->Transition    = readTrans(value); else
-		if (key == "dynamics"   ) S->SpinKinetics  = readKinet(value); else
-		if (key == "temperature") S->Temperature   = readTemp (value, &(S->_t_points)); else
-		if (key == "Lx"         ) S->Lx            = std::stoi(value); else
-		if (key == "Ly"         ) S->Ly            = std::stoi(value); else
-		if (key == "scale"      ) S->scale         = std::stoi(value);
+		if (key == "ensemble"   ) ctx->ENSEMBLE_SIZE = std::stoi(value); else
+		if (key == "kB"         ) ctx->BoltzConstant = std::stod(value); else
+		if (key == "Coupling"   ) ctx->Coupling      = std::stod(value); else
+		if (key == "Field"      ) ctx->Field         = std::stod(value); else
+		if (key == "probability") ctx->Transition    = readTrans(value); else
+		if (key == "dynamics"   ) ctx->SpinKinetics  = readKinet(value); else
+		if (key == "temperature") ctx->Temperature   = readTemp (value, &(ctx->_t_points)); else
+		if (key == "Lx"         ) ctx->Lx            = std::stoi(value); else
+		if (key == "Ly"         ) ctx->Ly            = std::stoi(value); else
+		if (key == "scale"      ) ctx->scale         = std::stoi(value);
 	}
 
-	std::cout << "Lx: " << S->Lx << "\n";
-	std::cout << "Ly: " << S->Ly << "\n";
-	std::cout << "Coupling: " << S->Coupling << "\n";
-	std::cout << "Temperature points: " << S->_t_points << "\n";
+	std::cout << "Lx: " << ctx->Lx << "\n";
+	std::cout << "Ly: " << ctx->Ly << "\n";
+	std::cout << "Coupling: " << ctx->Coupling << "\n";
+	std::cout << "Temperature points: " << ctx->_t_points << "\n";
 	std::cout << std::endl;
 
 	input_file.close();

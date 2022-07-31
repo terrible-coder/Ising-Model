@@ -12,7 +12,7 @@ enum Dynamics {
 	EXCHANGE = true
 };
 
-struct Specifications {
+struct Context {
 	int ENSEMBLE_SIZE;
 
 	int Lx, Ly;
@@ -27,4 +27,4 @@ struct Specifications {
 	Dynamics SpinKinetics;
 };
 
-void init_system(std::string filename, Specifications* S);
+void init_system(std::string filename, Context* ctx);
