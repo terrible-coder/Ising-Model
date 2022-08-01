@@ -9,15 +9,15 @@
  * 
  */
 
-#include "Ising.hpp"
+#include "io/draw.hpp"
 
 /**
  * @brief Prints the lattice in text format into the console.
  */
-void Ising::printLattice() {
-	for (int i = 0; i < this->Ly; i++) {
-		for (int j = 0; j < this->Lx; j++)
-			std::cout << ((*this)(i, j) ? "+" : "-") << "  ";
+void printLattice(Ising* config) {
+	for (int i = 0; i < config->getHeight(); i++) {
+		for (int j = 0; j < config->getWidth(); j++)
+			std::cout << ((*config)(i, j) ? "+" : "-") << "  ";
 		std::cout << std::endl;
 	}
 }
@@ -30,10 +30,10 @@ void Ising::printLattice() {
  * @param rt The SFML render window to draw on.
  * @param scale The visual size of each lattice point.
  */
-void Ising::drawLattice(sf::RenderTexture& rt, int scale) {
-	for (int i = 0; i < this->Ly; i++) {
-		for (int j = 0; j < this->Lx; j++) {
-			if(!this->lattice[i][j])
+void drawLattice(Ising* config, int scale, sf::RenderTexture& rt) {
+	for (int i = 0; i < config->getHeight(); i++) {
+		for (int j = 0; j < config->getWidth(); j++) {
+			if(!(*config)(i, j))
 				continue;
 			sf::RectangleShape s(sf::Vector2f(scale, scale));
 			s.setPosition(j*scale, i*scale);
@@ -43,10 +43,10 @@ void Ising::drawLattice(sf::RenderTexture& rt, int scale) {
 	}
 }
 
-void Ising::saveFrame(sf::RenderTexture& rt, int count, int en) {
+void saveFrame(Ising* config, int count, int en, sf::RenderTexture& rt) {
 	static int _last_en = -1;
 
-	std::string dir = "image/con" + std::to_string(this->getTemp()) + "/"
+	std::string dir = "image/con" + std::to_string(config->getTemp()) + "/"
 									+ "en" + std::to_string(en+1) + "/";
 
 	if (en != _last_en) {

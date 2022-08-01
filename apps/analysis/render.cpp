@@ -5,6 +5,7 @@
 
 #include <SFML/Graphics.hpp>
 #include "defaults.hpp"
+#include "io/draw.hpp"
 #include "io/data_logger.hpp"
 #include "MC.hpp"
 
@@ -133,11 +134,11 @@ int main(int argc, char** argv) {
 				handleEvents(window);
 				if (k % SKIP == 0) {
 					texture.clear();
-					config.drawLattice(texture, CTX.scale);
+					drawLattice(&config, CTX.scale, texture);
 					std::string text = getStatus(k, ensemble+1, T);
 					status.setString(text);
 					texture.draw(status);
-					config.saveFrame(texture, k, ensemble);
+					saveFrame(&config, k, ensemble, texture);
 					texture.display();
 				}
 

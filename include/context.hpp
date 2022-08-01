@@ -2,6 +2,9 @@
 #include <fstream>
 #include <string.h>
 
+#ifndef CONTEXT_HPP
+#define CONTEXT_HPP
+
 enum TransProb {
 	BOLTZMANN = 'b',
 	GLAUBER		= 'g'
@@ -28,3 +31,5 @@ struct Context {
 };
 
 void init_system(std::string filename, Context* ctx);
+
+#endif

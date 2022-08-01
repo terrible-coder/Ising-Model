@@ -1,10 +1,11 @@
+#pragma once
+
 #include <iostream>
 #include <string>
 #include <random>
 #include <filesystem>
 #include <fstream>
 
-#include <SFML/Graphics.hpp>
 #include "boundary.hpp"
 
 double bool2spin(bool);
@@ -44,11 +45,6 @@ public:
 
 	void generate();
 	void reinit();
-
-	void printLattice();
-
-	void drawLattice(sf::RenderTexture& st, int scale);
-	void saveFrame(sf::RenderTexture& st, int count, int en);
 
 	void flip(int i, int j);
 	void exchange(int i1, int j1, int i2, int j2);
