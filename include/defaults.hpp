@@ -12,4 +12,6 @@
 #define RUN 5000
 #define SKIP 10
 
+#define BUFFER 32
+
 #endif

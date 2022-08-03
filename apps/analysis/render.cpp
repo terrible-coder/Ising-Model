@@ -1,15 +1,13 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <cstdint>
 #include <exception>
 
 #include <SFML/Graphics.hpp>
 #include "defaults.hpp"
-#include "io/draw.hpp"
-#include "io/data_logger.hpp"
-#include "MC.hpp"
+// #include "io/draw.hpp"
 
-static Context CTX;
 bool draw;
 
 void handleEvents(sf::RenderWindow &w) {
@@ -20,7 +18,7 @@ void handleEvents(sf::RenderWindow &w) {
 			w.close();
 			break;
 		case sf::Event::KeyPressed:
-			if (ev.key.code == sf::Keyboard::D) draw = !draw;
+		//	if (ev.key.code == sf::Keyboard::D) draw = !draw;
 			if (ev.key.code == sf::Keyboard::Escape)
 				w.close();
 			break;
@@ -71,23 +69,62 @@ std::string getStatus(int time, int member, double T) {
 				 "Temperature = " + std::to_string(T);
 }
 
+bool readNext(std::ifstream& file, bool** grid, const int w, const int h) {
+	int N = w * h;
+	std::int64_t number;
+	int idx = 0;
+	int i, j, k;
+	while (N > 0) {
+		if (N > BUFFER) k = BUFFER - 1;
+		else k = N - 1;
+		N -= k + 1;
+		if (!file.read((char*) &number, (k+1)/4))
+			return false;
+		for (; k >= 0; k--, idx++) {
+			i = idx / w;
+			j = idx % w;
+			grid[i][j] = (number & (1 << k)) >> k;
+		}
+	}
+
+	if (i != h-1 && j != w-1) {
+		std::cout << "Incomplete file." << std::endl;
+		return false;
+	}
+	return true;
+}
+
 int main(int argc, char** argv) {
 	std::string filename;
 	if (argc > 1) filename = argv[1];
-	else          filename = INPUT_FILE;
+	else {
+		std::cout << "No file given." << std::endl;
+		return EXIT_FAILURE;
+	}
+	std::ifstream snap(filename, std::ios::binary);
+	if (!snap) {
+		std::cout << "Could not open file." << std::endl;
+		return EXIT_FAILURE;
+	}
 
-	std::cout << "Initialising system..." << std::endl;
-	init_system(filename, &CTX);
+	int Lx, Ly;
+	int scale;
+	snap.read((char*) &Lx, sizeof(int));
+	snap.read((char*) &Ly, sizeof(int));
+	// snap.read((char*) &scale, sizeof(int));
+	scale = 10;
 
-	const int BIN = CTX.Lx * CTX.Ly;
+	std::cout << "Width: " << Lx << "\n";
+	std::cout << "Height: " << Ly << "\n";
 
-	std::cout << "Setting global values..." << std::endl;
-	Ising::setCoupling(CTX.Coupling);
-	Ising::setField(CTX.Field);
+	// read Temp from filename
+	// read ensemble # from filename
+	std::string temp = "??";
+	std::string en   = "??";
 
 	// The width and height of the visualisation area
-	int sysWidth  = CTX.Lx * CTX.scale;
-	int sysHeight = CTX.Ly * CTX.scale;
+	int sysWidth  = Lx * scale;
+	int sysHeight = Ly * scale;
 
 	// The total window width and height
 	int wWidth  = sysWidth;
@@ -101,58 +138,33 @@ int main(int argc, char** argv) {
 		return EXIT_FAILURE;
 	}
 
+	std::cout << "Generating lattice..." << std::endl;
+	bool** lattice = new bool*[Ly];
+	for (int i = 0; i < Ly; i++)
+		lattice[i] = (bool*) malloc(Lx * sizeof(bool));
+
 	sf::RenderWindow window(sf::VideoMode(wWidth, wHeight), "Ising model");
-	sf::RenderTexture texture;
-	texture.create(wWidth, wHeight);
-
-	for (int tp = 0; tp < CTX._t_points; tp++) {
-		double T = CTX.Temperature[tp];
-		openLogger(CTX.Lx, CTX.Ly, CTX.ENSEMBLE_SIZE, T);
-
-		std::cout << SEPARATOR;
-
-		Ising config(CTX.Lx, CTX.Ly, T, BoundaryCondition::PERIODIC);
-		config.generate();
-
-		for (int ensemble = 0; ensemble < CTX.ENSEMBLE_SIZE; ensemble++) {
-			std::cout << "Ensemble member " << ensemble+1 << "\n";
-			config.reinit();
-
-			for (int k = 0; k < RUN; k++) {
-				if (!window.isOpen()) {
-					std::cout << "\n\nWindow closed abruptly\nAt ";
-					std::cout << "t = " << k;
-					std::cout << " ensemble = " << ensemble;
-					std::cout << " tp = " << tp << std::endl;
-					return EXIT_FAILURE;
-				}
-
-				for (int i = 0; i < BIN; i++)
-					dynamics(&config, &CTX);
-				logData(config.Hamiltonian() / config.getSize(), config.Magnetisation() / config.getSize());
-
-				handleEvents(window);
-				if (k % SKIP == 0) {
-					texture.clear();
-					drawLattice(&config, CTX.scale, texture);
-					std::string text = getStatus(k, ensemble+1, T);
-					status.setString(text);
-					texture.draw(status);
-					saveFrame(&config, k, ensemble, texture);
-					texture.display();
-				}
-
-				if (draw && k % (SKIP*SKIP) == 0) {
-					window.clear();
-					sf::Sprite sprite(texture.getTexture());
-					window.draw(sprite);
-					window.display();
-				}
-			}
-			nextEnsemble();
+	std::cout << "Window created" << std::endl;
+	while(window.isOpen()) {
+		handleEvents(window);
+		window.clear();
+		if (!readNext(snap, lattice, Lx, Ly)) {
+			std::cout << "Terminating." << std::endl;
+			return EXIT_FAILURE;
 		}
-		closeLogger();
+		for (int y = 0; y < Ly; y++) {
+			for (int x = 0; x < Lx; x++) {
+				sf::RectangleShape sq(sf::Vector2f(scale, scale));
+				if (lattice[y][x])
+					sq.setFillColor(sf::Color::Black);
+				sq.setPosition(x*scale, y*scale);
+				window.draw(sq);
+			}
+		}
+		window.display();
 	}
+	std::cout << "Reading done. Closing file." << std::endl;
+	snap.close();
 
 	return EXIT_SUCCESS;
 }

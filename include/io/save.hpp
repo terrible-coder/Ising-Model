@@ -3,12 +3,11 @@
 #include <iostream>
 #include <fstream>
 
+#include "../defaults.hpp"
 #include "../Ising.hpp"
 
 #define snaps "snaps/"
 #define frames "frames/"
-
-#define BUFFER 32
 
 void open(Ising* config, int en, std::string parentDir);
 

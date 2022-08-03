@@ -2,7 +2,7 @@ SIM_BIN=Ising_sim
 GPH_BIN=Ising_draw
 
 CODE_SIM=./src ./src/Ising ./src/io ./apps/simulation
-CODE_GPH=./src ./src/Ising ./src/io ./src/graphics ./apps/analysis
+CODE_GPH=./apps/analysis
 INCDIRS=./include ./include/*
 OBJDIR=./bin
 
@@ -32,4 +32,4 @@ $(OBJDIR)/%.o: %.cpp
 -include $(DEPFILES)
 
 clean:
-	@rm $(SOBJECTS) $(GOBJECTS) $(SDEPFILES) $(GDEPFILES) $(SIM_BIN) $(GPH_BIN) null.d
+	@rm $(SOBJECTS) $(GOBJECTS) $(SDEPFILES) $(GDEPFILES) $(SIM_BIN) $(GPH_BIN) null.d .vscode/*.log
