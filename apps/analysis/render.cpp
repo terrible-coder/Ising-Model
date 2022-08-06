@@ -8,7 +8,7 @@
 #include "defaults.hpp"
 // #include "io/draw.hpp"
 
-bool draw;
+bool pause;
 
 void handleEvents(sf::RenderWindow &w) {
 	sf::Event ev;
@@ -18,7 +18,7 @@ void handleEvents(sf::RenderWindow &w) {
 			w.close();
 			break;
 		case sf::Event::KeyPressed:
-		//	if (ev.key.code == sf::Keyboard::D) draw = !draw;
+			if (ev.key.code == sf::Keyboard::P) pause = !pause;
 			if (ev.key.code == sf::Keyboard::Escape)
 				w.close();
 			break;
@@ -71,26 +71,26 @@ std::string getStatus(int time, int member, double T) {
 
 bool readNext(std::ifstream& file, bool** grid, const int w, const int h) {
 	int N = w * h;
-	std::int64_t number;
+	std::uint64_t number;
 	int idx = 0;
 	int i, j, k;
 	while (N > 0) {
-		if (N > BUFFER) k = BUFFER - 1;
-		else k = N - 1;
-		N -= k + 1;
-		if (!file.read((char*) &number, (k+1)/4))
+		if (N < BUFFER) {
+			std::cout << "Bad file format." << std::endl;
 			return false;
-		for (; k >= 0; k--, idx++) {
+		}
+		if (!file.read((char*) &number, sizeof(std::uint64_t)))
+			return false;
+		for (k = BUFFER - 1; k >= 0; k--, idx++) {
 			i = idx / w;
 			j = idx % w;
-			grid[i][j] = (number & (1 << k)) >> k;
+			std::uint64_t shift = ((std::uint64_t)1) << k;
+			grid[i][j] = (number & shift) >> k;
 		}
+		N -= BUFFER;
 	}
 
-	if (i != h-1 && j != w-1) {
-		std::cout << "Incomplete file." << std::endl;
-		return false;
-	}
+	if (idx != w*h) std::cout << "Bad read" << std::endl;
 	return true;
 }
 
@@ -147,6 +147,7 @@ int main(int argc, char** argv) {
 	std::cout << "Window created" << std::endl;
 	while(window.isOpen()) {
 		handleEvents(window);
+		if (pause) continue;
 		window.clear();
 		if (!readNext(snap, lattice, Lx, Ly)) {
 			std::cout << "Terminating." << std::endl;
@@ -155,12 +156,13 @@ int main(int argc, char** argv) {
 		for (int y = 0; y < Ly; y++) {
 			for (int x = 0; x < Lx; x++) {
 				sf::RectangleShape sq(sf::Vector2f(scale, scale));
-				if (lattice[y][x])
-					sq.setFillColor(sf::Color::Black);
+				if (!lattice[y][x]) continue;
+				sq.setFillColor(sf::Color::White);
 				sq.setPosition(x*scale, y*scale);
 				window.draw(sq);
 			}
 		}
+		window.draw
 		window.display();
 	}
 	std::cout << "Reading done. Closing file." << std::endl;

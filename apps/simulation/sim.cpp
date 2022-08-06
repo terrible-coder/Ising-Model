@@ -45,7 +45,8 @@ int main(int argc, char** argv) {
 			for (int k = 0; k < RUN; k++) {
 				for (int i = 0; i < BIN; i++)
 					dynamics(&config, &CTX);
-				snap(&config);
+				if (!snap(&config))
+					return EXIT_FAILURE;
 			}
 			// next ensemble
 			close();

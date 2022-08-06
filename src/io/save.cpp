@@ -26,17 +26,19 @@ bool snap(Ising* config) {
 	int k = 0;
 	std::uint64_t number;
 	for (int i = 0; i < config->getHeight(); i++) {
-		for (int j = 0; j < config->getWidth(); j++, k++) {
-			if (k == BUFFER) {
+		for (int j = 0; j < config->getWidth(); j++) {
+			number = (number << 1) | (*config)(i, j);
+			k++;
+			if (k % BUFFER == 0) {
 				evolution.write((char*) &number, sizeof(std::uint64_t));
 				number = 0;
-				k = 0;
 			}
-			number = (number << 1) | (*config)(i, j);
 		}
 	}
-	if (number != 0)
-		evolution.write((char*) &number, sizeof(std::uint64_t));
+	if (k != config->getWidth() * config->getHeight()) {
+		std::cout << "something is not write" << std::endl;
+		return false;
+	}
 	return true;
 }
 
