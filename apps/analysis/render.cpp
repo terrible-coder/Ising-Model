@@ -1,6 +1,7 @@
 #include <iostream>
-#include <fstream>
 #include <string>
+#include <iomanip>
+#include <fstream>
 #include <cstdint>
 #include <exception>
 
@@ -70,18 +71,15 @@ std::string getStatus(int time, int member, double T) {
 				 "Ensemble = " + std::to_string(member) + "\t" +
 				 "Temperature = " + std::to_string(T);
 }
-
-/**
- * @brief Read the ensemble number from the name of the file.
- * This function works only if the full path to the experiment folder is used.
- * 
- * @param name Name of the binary data file.
- * @return int 
- */
-int getEn(std::string name) {
-	int idxEn = name.find("En") + 2;
-	int idxDot = name.find_last_of(".");
-	return std::stoi(name.substr(idxEn, idxDot-idxEn));
+std::string getStatus(int time, std::string member, double T) {
+	return "t = " + std::to_string(time) + "\t" +
+				 "Ensemble = " + member + "\t" +
+				 "Temperature = " + std::to_string(T);
+}
+std::string getStatus(int time, std::string member, std::string T) {
+	return "t = " + std::to_string(time) + "\t" +
+				 "Ensemble = " + member + "\t" +
+				 "Temperature = " + T;
 }
 
 /**
@@ -134,14 +132,55 @@ bool readNext(std::ifstream& file, bool** grid, const int w, const int h) {
 	return true;
 }
 
+std::string frameName(int n, const int maxLen) {
+	std::string fno = std::to_string(n);
+	int d = maxLen - fno.length();
+	for (int i = 0; i < d; i++)
+		fno = "0" + fno;
+	return fno;
+}
+
+void print_progress(int p, int total, int width = 80) {
+	std::string total_str = std::to_string(total);
+	std::string p_str = std::to_string(p);
+	int bar_width = width - total_str.size()*2 - 4;
+
+	std::cout << '\r';
+	if(bar_width > 1) {
+		int fill_width = bar_width * p / total;
+		std::cout << "[";
+		for(int i = 0; i < bar_width; ++i) {
+			char c = ' ';
+			if(i < fill_width || p == total) c = '=';
+			else if(i == fill_width) c = '>';
+
+			std::cout << c;
+		}
+		std::cout << "] ";
+	}
+	std::cout << std::setfill(' ') << std::setw(total_str.size())
+		<< p_str << "/" << total_str << std::flush;
+	if(p == total) std::cout << std::endl;
+}
+
 int main(int argc, char** argv) {
-	std::string filename;
-	if (argc > 1) filename = argv[1];
-	else {
+	std::string exT;
+	std::string member;
+	if (argc < 2) {
 		std::cout << "No file given." << std::endl;
 		return EXIT_FAILURE;
+	} else if (argc < 3) {
+		std::cout << "Ensemble not specified." << std::endl;
+		return EXIT_FAILURE;
 	}
-	std::ifstream snap(filename, std::ios::binary);
+	exT = argv[1];
+	member = argv[2];
+
+	std::string snapsPath = exT + "snaps/En" + member + BIN_EXT;
+	std::string framePath = exT + "frames/En" + member + "/fr";
+
+	std::ifstream snap(snapsPath, std::ios::binary);
+	std::ofstream frame;
 	if (!snap) {
 		std::cout << "Could not open file." << std::endl;
 		return EXIT_FAILURE;
@@ -156,10 +195,10 @@ int main(int argc, char** argv) {
 	std::cout << "Height: " << Ly << "\n";
 	std::cout << "Scale: " << scale << "\n";
 
-	// read Temp from filename
-	// read ensemble # from filename
-	double temp = getTemp(filename);
-	int en   = getEn(filename);
+	// read Temp from exT
+	// read ensemble # from exT
+	double temp = getTemp(exT);
+	// int en   = std::stoi(member);
 
 	// The total window width and height
 	int wWidth  = sysWidth;
@@ -178,13 +217,17 @@ int main(int argc, char** argv) {
 	for (int i = 0; i < Ly; i++)
 		lattice[i] = (bool*) malloc(Lx * sizeof(bool));
 
-	sf::RenderWindow window(sf::VideoMode(wWidth, wHeight), "Ising model");
+	// sf::RenderWindow window(sf::VideoMode(wWidth, wHeight), "Ising model");
+	sf::RenderTexture texture;
+	texture.create(wWidth, wHeight);
 
 	int t = 0;
-	while(window.isOpen()) {
-		handleEvents(window);
+	// while(window.isOpen()) {
+	while (true) {
+		// handleEvents(window);
 		if (pause) continue;
-		window.clear();
+		// window.clear();
+		texture.clear();
 		if (!readNext(snap, lattice, Lx, Ly)) {
 			if (t == RUN) break;
 			std::cout << "Terminating at t = " << t << std::endl;
@@ -196,14 +239,19 @@ int main(int argc, char** argv) {
 				if (!lattice[y][x]) continue;
 				sq.setFillColor(sf::Color::White);
 				sq.setPosition(x*scale, y*scale);
-				window.draw(sq);
+				texture.draw(sq);
 			}
 		}
-		status.setString(getStatus(t++, en, temp));
-		window.draw(status);
-		window.display();
+		status.setString(getStatus(++t, member, temp));
+		texture.draw(status);
+		texture.display();
+		sf::Texture img = texture.getTexture();
+		img.copyToImage().saveToFile(framePath+frameName(t, 4)+IMG_EXT);
+		print_progress(t, RUN);
+		// window.draw(sf::Sprite(img));
+		// window.display();
 	}
-	std::cout << "Reading done. Closing file." << std::endl;
+	std::cout << "\nReading done. Closing file." << std::endl;
 	snap.close();
 
 	return EXIT_SUCCESS;

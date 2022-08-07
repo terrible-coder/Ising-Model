@@ -3,6 +3,8 @@
 
 #define FONTS "./assets/font/times new roman.ttf"
 #define DATA_EXT ".csv"
+#define BIN_EXT ".ism"
+#define IMG_EXT ".png"
 #define DATA_DIR_PREFIX "data/data"
 #define INPUT_FILE "input.txt"
 #define SEPARATOR "\n==========================\n"

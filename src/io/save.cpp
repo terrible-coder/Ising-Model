@@ -9,7 +9,7 @@ void open(Ising* config, int en, std::string parentDir) {
 
 	std::string T = "Temp" + std::to_string(config->getTemp()) + "/";
 	std::string path = parentDir + T + snaps + "En"
-									 + std::to_string(en) + ".ism";
+									 + std::to_string(en) + BIN_EXT;
 	evolution.open(path, std::ios::binary);
 	if (!evolution) {
 		std::cout << "Could not open file: " + path << std::endl;
