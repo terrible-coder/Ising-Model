@@ -4,6 +4,7 @@
 #include <exception>
 
 #include "defaults.hpp"
+#include "io/data_logger.hpp"
 #include "io/save.hpp"
 #include "io/prepare.hpp"
 #include "MC.hpp"
@@ -31,7 +32,7 @@ int main(int argc, char** argv) {
 	for (int tp = 0; tp < CTX._t_points; tp++) {
 		double T = CTX.Temperature[tp];
 		// new temperature
-
+		openLogger(parentDir, T);
 		std::cout << SEPARATOR;
 
 		Ising config(CTX.Lx, CTX.Ly, T, BoundaryCondition::PERIODIC);
@@ -45,12 +46,16 @@ int main(int argc, char** argv) {
 			for (int k = 0; k < RUN; k++) {
 				for (int i = 0; i < BIN; i++)
 					dynamics(&config, &CTX);
+				logData(config.Hamiltonian() / config.getSize(),
+								config.Magnetisation() / config.getSize());
 				if (!snap(&config))
 					return EXIT_FAILURE;
 			}
 			// next ensemble
+			nextEnsemble();
 			close();
 		}
+		closeLogger();
 	}
 
 	return EXIT_SUCCESS;
