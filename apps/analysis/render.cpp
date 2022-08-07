@@ -7,6 +7,9 @@
 #include <SFML/Graphics.hpp>
 #include "defaults.hpp"
 
+#define sysWidth 600
+#define sysHeight 600
+
 bool pause;
 
 void handleEvents(sf::RenderWindow &w) {
@@ -145,23 +148,18 @@ int main(int argc, char** argv) {
 	}
 
 	int Lx, Ly;
-	int scale;
 	snap.read((char*) &Lx, sizeof(int));
 	snap.read((char*) &Ly, sizeof(int));
-	// snap.read((char*) &scale, sizeof(int));
-	scale = 10;
+	float scale = (float)sysWidth / Lx;
 
 	std::cout << "Width: " << Lx << "\n";
 	std::cout << "Height: " << Ly << "\n";
+	std::cout << "Scale: " << scale << "\n";
 
 	// read Temp from filename
 	// read ensemble # from filename
 	double temp = getTemp(filename);
 	int en   = getEn(filename);
-
-	// The width and height of the visualisation area
-	int sysWidth  = Lx * scale;
-	int sysHeight = Ly * scale;
 
 	// The total window width and height
 	int wWidth  = sysWidth;
@@ -181,14 +179,15 @@ int main(int argc, char** argv) {
 		lattice[i] = (bool*) malloc(Lx * sizeof(bool));
 
 	sf::RenderWindow window(sf::VideoMode(wWidth, wHeight), "Ising model");
-	std::cout << "Window created" << std::endl;
+
 	int t = 0;
 	while(window.isOpen()) {
 		handleEvents(window);
 		if (pause) continue;
 		window.clear();
 		if (!readNext(snap, lattice, Lx, Ly)) {
-			std::cout << "Terminating." << std::endl;
+			if (t == RUN) break;
+			std::cout << "Terminating at t = " << t << std::endl;
 			return EXIT_FAILURE;
 		}
 		for (int y = 0; y < Ly; y++) {

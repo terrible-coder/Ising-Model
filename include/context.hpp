@@ -19,7 +19,6 @@ struct Context {
 	int ENSEMBLE_SIZE;
 
 	int Lx, Ly;
-	int scale;
 	double* Temperature;
 	int _t_points;
 	double BoltzConstant;
