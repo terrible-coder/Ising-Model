@@ -140,6 +140,14 @@ std::string frameName(int n, const int maxLen) {
 	return fno;
 }
 
+/**
+ * @brief Print the progress of a process. The function has been taken from
+ * https://gist.github.com/juliusikkala/946f505656ed3c35f6c2741f29f26080
+ * 
+ * @param p 
+ * @param total 
+ * @param width 
+ */
 void print_progress(int p, int total, int width = 80) {
 	std::string total_str = std::to_string(total);
 	std::string p_str = std::to_string(p);
@@ -166,6 +174,7 @@ void print_progress(int p, int total, int width = 80) {
 int main(int argc, char** argv) {
 	std::string exT;
 	std::string member;
+	std::string dispMode = "draw";
 	if (argc < 2) {
 		std::cout << "No file given." << std::endl;
 		return EXIT_FAILURE;
@@ -175,6 +184,16 @@ int main(int argc, char** argv) {
 	}
 	exT = argv[1];
 	member = argv[2];
+
+	// true is for draw, false is for save
+	bool mode = true;
+	if (argc > 3) {
+		dispMode = argv[3];
+		if (dispMode != "save" && dispMode != "draw") {
+			std::cout << "Unknown mode." << std::endl;
+		} else
+		mode = dispMode == "draw";
+	}
 
 	std::string snapsPath = exT + "snaps/En" + member + BIN_EXT;
 	std::string framePath = exT + "frames/En" + member + "/fr";
@@ -198,7 +217,6 @@ int main(int argc, char** argv) {
 	// read Temp from exT
 	// read ensemble # from exT
 	double temp = getTemp(exT);
-	// int en   = std::stoi(member);
 
 	// The total window width and height
 	int wWidth  = sysWidth;
@@ -217,17 +235,23 @@ int main(int argc, char** argv) {
 	for (int i = 0; i < Ly; i++)
 		lattice[i] = (bool*) malloc(Lx * sizeof(bool));
 
-	// sf::RenderWindow window(sf::VideoMode(wWidth, wHeight), "Ising model");
+	sf::RenderWindow window;
 	sf::RenderTexture texture;
-	texture.create(wWidth, wHeight);
+	if (mode)	{
+		window.create(sf::VideoMode(wWidth, wHeight), "Ising model");
+		texture.~RenderTexture();
+	}	else {
+		texture.create(wWidth, wHeight);
+		window.~RenderWindow();
+	}
 
 	int t = 0;
-	// while(window.isOpen()) {
-	while (true) {
-		// handleEvents(window);
+	while ((mode && window.isOpen()) || !mode) {
+		if (mode) handleEvents(window);
 		if (pause) continue;
-		// window.clear();
-		texture.clear();
+		if (mode) window.clear();
+		else texture.clear();
+
 		if (!readNext(snap, lattice, Lx, Ly)) {
 			if (t == RUN) break;
 			std::cout << "Terminating at t = " << t << std::endl;
@@ -239,17 +263,21 @@ int main(int argc, char** argv) {
 				if (!lattice[y][x]) continue;
 				sq.setFillColor(sf::Color::White);
 				sq.setPosition(x*scale, y*scale);
-				texture.draw(sq);
+				if (mode) window.draw(sq);
+				else texture.draw(sq);
 			}
 		}
 		status.setString(getStatus(++t, member, temp));
-		texture.draw(status);
-		texture.display();
-		sf::Texture img = texture.getTexture();
-		img.copyToImage().saveToFile(framePath+frameName(t, 4)+IMG_EXT);
+		if (mode) {
+			window.draw(status);
+			window.display();
+		} else {
+			texture.draw(status);
+			texture.display();
+			sf::Texture img = texture.getTexture();
+			img.copyToImage().saveToFile(framePath+frameName(t, 4)+IMG_EXT);
+		}
 		print_progress(t, RUN);
-		// window.draw(sf::Sprite(img));
-		// window.display();
 	}
 	std::cout << "\nReading done. Closing file." << std::endl;
 	snap.close();
