@@ -6,7 +6,6 @@
 
 #include <SFML/Graphics.hpp>
 #include "defaults.hpp"
-// #include "io/draw.hpp"
 
 bool pause;
 
@@ -69,6 +68,44 @@ std::string getStatus(int time, int member, double T) {
 				 "Temperature = " + std::to_string(T);
 }
 
+/**
+ * @brief Read the ensemble number from the name of the file.
+ * This function works only if the full path to the experiment folder is used.
+ * 
+ * @param name Name of the binary data file.
+ * @return int 
+ */
+int getEn(std::string name) {
+	int idxEn = name.find("En") + 2;
+	int idxDot = name.find_last_of(".");
+	return std::stoi(name.substr(idxEn, idxDot-idxEn));
+}
+
+/**
+ * @brief Read the temperature from the name of the file.
+ * This function works only if the full path to the experiment folder is used.
+ * 
+ * @param name 
+ * @return double 
+ */
+double getTemp(std::string name) {
+	int idxT = name.find("Temp") + 4;
+	int c = 0;
+	for (int i = 0; i < (int)name.length() - idxT; i++, c++)
+		if (name.at(idxT + i) == '/') break;
+	return std::stod(name.substr(idxT, c));
+}
+
+/**
+ * @brief Read the next frame of the lattice.
+ * 
+ * @param file The binary file.
+ * @param grid The boolean lattice to read into.
+ * @param w The width of the lattice to be read.
+ * @param h The height of the lattice to be read.
+ * @return true if the read is successful,
+ * @return false if the read did not complete
+ */
 bool readNext(std::ifstream& file, bool** grid, const int w, const int h) {
 	int N = w * h;
 	std::uint64_t number;
@@ -119,8 +156,8 @@ int main(int argc, char** argv) {
 
 	// read Temp from filename
 	// read ensemble # from filename
-	std::string temp = "??";
-	std::string en   = "??";
+	double temp = getTemp(filename);
+	int en   = getEn(filename);
 
 	// The width and height of the visualisation area
 	int sysWidth  = Lx * scale;
@@ -145,6 +182,7 @@ int main(int argc, char** argv) {
 
 	sf::RenderWindow window(sf::VideoMode(wWidth, wHeight), "Ising model");
 	std::cout << "Window created" << std::endl;
+	int t = 0;
 	while(window.isOpen()) {
 		handleEvents(window);
 		if (pause) continue;
@@ -162,7 +200,8 @@ int main(int argc, char** argv) {
 				window.draw(sq);
 			}
 		}
-		window.draw
+		status.setString(getStatus(t++, en, temp));
+		window.draw(status);
 		window.display();
 	}
 	std::cout << "Reading done. Closing file." << std::endl;
