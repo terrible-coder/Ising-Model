@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <iostream>
 #include <fstream>
 #include <string.h>
@@ -18,7 +19,7 @@ enum Dynamics {
 struct Context {
 	int ENSEMBLE_SIZE;
 
-	int Lx, Ly;
+	std::uint16_t Lx, Ly;
 	double* Temperature;
 	int _t_points;
 	double BoltzConstant;

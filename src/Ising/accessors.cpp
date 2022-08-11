@@ -30,9 +30,9 @@ void Ising::setField(double field) {
 
 double Ising::getField()  {  return Ising::H;  }
 double Ising::getNNCoup() {  return Ising::J;  }
-int Ising::getWidth()     {  return this->Lx;  }
-int Ising::getHeight()    {  return this->Ly;  }
-int Ising::getSize()      {  return this->N;   }
+std::uint16_t Ising::getWidth()     {  return this->Lx;  }
+std::uint16_t Ising::getHeight()    {  return this->Ly;  }
+std::uint16_t Ising::getSize()      {  return this->N;   }
 double Ising::getTemp()   {  return this->T;   }
 
 /**

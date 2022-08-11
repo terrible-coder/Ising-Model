@@ -205,9 +205,9 @@ int main(int argc, char** argv) {
 		return EXIT_FAILURE;
 	}
 
-	int Lx, Ly;
-	snap.read((char*) &Lx, sizeof(int));
-	snap.read((char*) &Ly, sizeof(int));
+	std::uint16_t Lx, Ly;
+	snap.read((char*) &Lx, sizeof(std::uint16_t));
+	snap.read((char*) &Ly, sizeof(std::uint16_t));
 	float scale = (float)sysWidth / Lx;
 
 	std::cout << "Width: " << Lx << "\n";

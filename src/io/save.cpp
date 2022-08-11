@@ -15,10 +15,10 @@ void open(Ising* config, int en, std::string parentDir) {
 		std::cout << "Could not open file: " + path << std::endl;
 		return;
 	}
-	int w = config->getWidth();
-	int h = config->getHeight();
-	evolution.write((char*) &w, sizeof(int));
-	evolution.write((char*) &h, sizeof(int));
+	std::uint16_t w = config->getWidth();
+	std::uint16_t h = config->getHeight();
+	evolution.write((char*) &w, sizeof(std::uint16_t));
+	evolution.write((char*) &h, sizeof(std::uint16_t));
 }
 
 bool snap(Ising* config) {

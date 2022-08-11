@@ -150,8 +150,8 @@ void init_system(std::string filename, Context* ctx) {
 		if (key == "probability") ctx->Transition    = readTrans(value); else
 		if (key == "dynamics"   ) ctx->SpinKinetics  = readKinet(value); else
 		if (key == "temperature") ctx->Temperature   = readTemp (value, &(ctx->_t_points)); else
-		if (key == "Lx"         ) ctx->Lx            = std::stoi(value); else
-		if (key == "Ly"         ) ctx->Ly            = std::stoi(value);
+		if (key == "Lx"         ) ctx->Lx            = (std::uint16_t) std::stoi(value); else
+		if (key == "Ly"         ) ctx->Ly            = (std::uint16_t) std::stoi(value);
 	}
 
 	std::cout << "Lx: " << ctx->Lx << "\n";

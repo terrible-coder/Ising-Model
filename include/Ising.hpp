@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <iostream>
 #include <string>
 #include <random>
@@ -17,8 +18,8 @@ private:
 	static bool _setJ, _setH;
 
 	bool is_generated;
-	int Lx, Ly;
-	int N;
+	std::uint16_t Lx, Ly;
+	std::uint16_t N;
 	double T;
 	bool** initial;
 	bool** lattice;
@@ -38,9 +39,9 @@ public:
 
 	bool operator() (int i, int j);
 
-	int getHeight();
-	int getWidth();
-	int getSize();
+	std::uint16_t getHeight();
+	std::uint16_t getWidth();
+	std::uint16_t getSize();
 	double getTemp();
 
 	void generate();
