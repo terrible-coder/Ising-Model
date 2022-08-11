@@ -11,7 +11,7 @@
 
 #define TEXT_SIZE 16
 #define STAT_BAR_H 20
-#define RUN 5000
+#define RUN 15000
 #define SKIP 10
 
 #define BUFFER 64
