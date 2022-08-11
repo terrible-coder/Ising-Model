@@ -4,5 +4,6 @@ Ising_*
 null.d
 
 # folders
-data
+data/
+graphs/
 bin/*
