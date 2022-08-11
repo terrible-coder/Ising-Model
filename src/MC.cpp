@@ -116,11 +116,11 @@ double pGlauber(double dE, double BETA) {
  * 
  * @param dE The energy change.
  * @param BETA 1/(kT)
- * @param S The system settings.
+ * @param ctx The system settings.
  * @return double 
  */
-double Probability(double dE, const double BETA, Specifications *S) {
-	switch(S->Transition) {
+double Probability(double dE, const double BETA, Context *ctx) {
+	switch(ctx->Transition) {
 	case TransProb::BOLTZMANN:
 		return pBoltz(dE, BETA);
 	case TransProb::GLAUBER:
@@ -133,13 +133,13 @@ double Probability(double dE, const double BETA, Specifications *S) {
  * 
  * @param dE The energy change.
  * @param temperature The temperature.
- * @param S The system settings.
+ * @param ctx The system settings.
  * @return `true` if accepted, `false` if rejected.
  */
-bool acceptance(double dE, double temperature, Specifications *S) {
+bool acceptance(double dE, double temperature, Context *ctx) {
 	if (dE < 0) return true;
-	double BETA = 1 / (S->BoltzConstant * temperature);
-	double prob = Probability(dE, BETA, S);
+	double BETA = 1 / (ctx->BoltzConstant * temperature);
+	double prob = Probability(dE, BETA, ctx);
 	double r = rProbability();
 	return r < prob;
 }
@@ -150,15 +150,15 @@ bool acceptance(double dE, double temperature, Specifications *S) {
  * is read from the system settings.
  * 
  * @param config The Ising model configuration.
- * @param S The system settings.
+ * @param ctx The system settings.
  */
-void dynamics(Ising* config, Specifications* S) {
+void dynamics(Ising* config, Context* ctx) {
 	int ri, rj;
 	getRandomIndices(config->getWidth(), config->getHeight(), &ri, &rj);
 
-	switch(S->SpinKinetics) {
+	switch(ctx->SpinKinetics) {
 	case Dynamics::FLIP:
-		spin_flip(config, ri, rj, S);
+		spin_flip(config, ri, rj, ctx);
 		break;
 	case Dynamics::EXCHANGE:
 		// choose the pair to exchange with
@@ -175,7 +175,7 @@ void dynamics(Ising* config, Specifications* S) {
 		int j1 = (rj <  pairJ) ? rj : pairJ;
 		int i2 = (ri >= pairI) ? ri : pairI;
 		int j2 = (rj >= pairJ) ? rj : pairJ;
-		spin_exchange(config, i1, j1, i2, j2, S);
+		spin_exchange(config, i1, j1, i2, j2, ctx);
 		break;
 	}
 }
@@ -188,7 +188,7 @@ void dynamics(Ising* config, Specifications* S) {
  * @param j The random column index to check.
  * @param specs The system settings.
  */
-void spin_flip(Ising* config, int i, int j, Specifications* specs) {
+void spin_flip(Ising* config, int i, int j, Context* ctx) {
 	Ising c = *config;
 	bool sigma = c(i  , j  ); // We check if this spin should be flip
 
@@ -202,7 +202,7 @@ void spin_flip(Ising* config, int i, int j, Specifications* specs) {
 
 	// The change in energy, if the spin is flipped
 	double dE = 2 * Ising::getField() * s + 2 * Ising::getNNCoup() * s  * S;
-	if (acceptance(dE, c.getTemp(), specs))
+	if (acceptance(dE, c.getTemp(), ctx))
 		c.flip(i, j);
 }
 
@@ -216,7 +216,7 @@ void spin_flip(Ising* config, int i, int j, Specifications* specs) {
  * @param i2 The random row index of spin to exchange with.
  * @param j2 The random column index of spin to exchange with.
  */
-void spin_exchange(Ising *config, int i1, int j1, int i2, int j2, Specifications* specs) {
+void spin_exchange(Ising *config, int i1, int j1, int i2, int j2, Context* ctx) {
 	double S1, S2;
 	Ising c = *config;
 
@@ -258,6 +258,6 @@ void spin_exchange(Ising *config, int i1, int j1, int i2, int j2, Specifications
 	double Si = bool2spin(c(i1, j1)) * S1 + bool2spin(c(i2, j2)) * S2; // The initial value
 	double Sf = bool2spin(c(i1, j1)) * S2 + bool2spin(c(i2, j2)) * S1; // The "exchanged" value
 	double dE = Ising::getNNCoup() * (Sf - Si);
-	if (acceptance(dE, c.getTemp(), specs))
+	if (acceptance(dE, c.getTemp(), ctx))
 		c.exchange(i1, j1, i1, j2);
 }

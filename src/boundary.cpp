@@ -1,0 +1,34 @@
+#include "boundary.hpp"
+
+/**
+ * @brief Takes care of the indexing at the boundary of the lattice.
+ * 
+ * @param ui The row index we "want" to see.
+ * @param uj The column index we "want" to see.
+ * @param ai The row index the lattice site sees.
+ * @param aj The column index the lattice site sees.
+ */
+void imposeBC(int w, int h, int ui, int uj, int* ai, int* aj, BoundaryCondition boundary) {
+	switch (boundary) {
+		case BoundaryCondition::PERIODIC:
+			*ai = (ui + h) % h;			// For periodic boundary condition
+			*aj = (uj + w) % w;			// the lattice is lives on a torus
+			break;
+
+		case BoundaryCondition::SCREW:
+			*ai = (ui + h) % h;					// The lattices sites are on a
+			if (uj >= h || uj < 0) {		// single string. They wrap from
+				*aj = (uj + w) % w;				// end of a row to the start of
+				*ai += uj >= w ? 1 : -1;	// next row
+			}
+			break;
+
+		case BoundaryCondition::FREE:
+			*ai = (ui >= h || ui < 0) ? -1 : ui;		// For free edge boundary
+			*aj = (uj >= w || uj < 0) ? -1 : uj;		// the site sees nothing
+			break;
+
+		default:
+			std::cout << "Unknown boundary condition" << std::endl;
+	}
+}

@@ -1,6 +1,10 @@
+#include <cstdint>
 #include <iostream>
 #include <fstream>
 #include <string.h>
+
+#ifndef CONTEXT_HPP
+#define CONTEXT_HPP
 
 enum TransProb {
 	BOLTZMANN = 'b',
@@ -12,11 +16,10 @@ enum Dynamics {
 	EXCHANGE = true
 };
 
-struct Specifications {
+struct Context {
 	int ENSEMBLE_SIZE;
 
-	int Lx, Ly;
-	int scale;
+	std::uint16_t Lx, Ly;
 	double* Temperature;
 	int _t_points;
 	double BoltzConstant;
@@ -27,4 +30,6 @@ struct Specifications {
 	Dynamics SpinKinetics;
 };
 
-void init_system(std::string filename, Specifications* S);
+void init_system(std::string filename, Context* ctx);
+
+#endif

@@ -1,8 +1,9 @@
 # files
-Ising_model
+Ising_*
 .vscode/*.log
 null.d
 
 # folders
-data
+data/
+graphs/
 bin/*

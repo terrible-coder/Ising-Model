@@ -1,18 +1,30 @@
-BINARY=Ising_model
-CODEDIRS=. ./src
-INCDIRS=./include
+SIM_BIN=Ising_sim
+GPH_BIN=Ising_draw
+
+CODE_SIM=./src ./src/Ising ./src/io ./apps/simulation
+CODE_GPH=./apps/analysis
+INCDIRS=./include ./include/*
 OBJDIR=./bin
 
 CC=c++
-LIBS=-lsfml-graphics -lsfml-window -lsfml-system
 DEPFLAGS=-MP -MD
-CFLAGS=-Wall $(foreach D,$(INCDIRS),-I$(D)) $(DEPFLAGS)
-CFILES=$(foreach D,$(CODEDIRS),$(wildcard $(D)/*.cpp))
-OBJECTS=$(patsubst %.cpp,$(OBJDIR)/%.o,$(CFILES))
-DEPFILES=$(patsubst %.cpp,$(OBJDIR)/%.d,$(CFILES))
+CFLAGS=-Wall -std=c++17 $(foreach D,$(INCDIRS),-I$(D)) $(DEPFLAGS)
 
-$(BINARY): $(OBJECTS)
-	$(CC) $^ $(LIBS) -o $@
+GLIBS=-lsfml-graphics -lsfml-window -lsfml-system
+GCFILES=$(foreach D,$(CODE_GPH),$(wildcard $(D)/*.cpp))
+GOBJECTS=$(patsubst %.cpp,$(OBJDIR)/%.o,$(GCFILES))
+GDEPFILES=$(patsubst %.cpp,$(OBJDIR)/%.d,$(GCFILES))
+
+SLIBS=
+SCFILES=$(foreach D,$(CODE_SIM),$(wildcard $(D)/*.cpp))
+SOBJECTS=$(patsubst %.cpp,$(OBJDIR)/%.o,$(SCFILES))
+SDEPFILES=$(patsubst %.cpp,$(OBJDIR)/%.d,$(SCFILES))
+
+sim: $(SOBJECTS)
+	$(CC) $^ $(SLIBS) -o $(SIM_BIN)
+
+draw: $(GOBJECTS)
+	$(CC) $^ $(GLIBS) -o $(GPH_BIN)
 
 $(OBJDIR)/%.o: %.cpp
 	$(CC) $(CFLAGS) -c -o $@ $<
@@ -20,4 +32,4 @@ $(OBJDIR)/%.o: %.cpp
 -include $(DEPFILES)
 
 clean:
-	@rm $(OBJECTS) $(DEPFILES) $(BINARY)
+	@rm $(SOBJECTS) $(GOBJECTS) $(SDEPFILES) $(GDEPFILES) $(SIM_BIN) $(GPH_BIN) null.d .vscode/*.log

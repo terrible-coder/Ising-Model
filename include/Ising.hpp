@@ -1,16 +1,16 @@
+#pragma once
+
+#include <cstdint>
 #include <iostream>
-#include <string.h>
+#include <string>
 #include <random>
-#include <SFML/Graphics.hpp>
+#include <filesystem>
+#include <fstream>
+
+#include "boundary.hpp"
 
 double bool2spin(bool);
 double bool2spin(int, int);
-
-enum BoundaryCondition {
-	PERIODIC = 0,
-	SCREW,
-	FREE
-};
 
 class Ising {
 private:
@@ -18,14 +18,12 @@ private:
 	static bool _setJ, _setH;
 
 	bool is_generated;
-	int Lx, Ly;
-	int N;
+	std::uint16_t Lx, Ly;
+	std::uint16_t N;
 	double T;
 	bool** initial;
 	bool** lattice;
 	BoundaryCondition boundary;
-
-	void BC(int ui, int uj, int* ai, int* aj);
 
 public:
 
@@ -41,17 +39,13 @@ public:
 
 	bool operator() (int i, int j);
 
-	int getHeight();
-	int getWidth();
-	int getSize();
+	std::uint16_t getHeight();
+	std::uint16_t getWidth();
+	std::uint16_t getSize();
 	double getTemp();
 
 	void generate();
 	void reinit();
-
-	void printLattice();
-
-	void drawLattice(sf::RenderWindow& w, int scale);
 
 	void flip(int i, int j);
 	void exchange(int i1, int j1, int i2, int j2);
