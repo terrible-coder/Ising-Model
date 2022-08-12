@@ -122,8 +122,7 @@ bool readNext(std::ifstream& file, bool** grid, const int w, const int h) {
 		for (k = BUFFER - 1; k >= 0; k--, idx++) {
 			i = idx / w;
 			j = idx % w;
-			std::uint64_t shift = ((std::uint64_t)1) << k;
-			grid[i][j] = (number & shift) >> k;
+			grid[i][j] = (number >> k) & 1;
 		}
 		N -= BUFFER;
 	}
