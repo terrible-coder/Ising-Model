@@ -28,12 +28,29 @@ void Ising::setField(double field) {
 	Ising::H = field;
 }
 
-double Ising::getField()  {  return Ising::H;  }
-double Ising::getNNCoup() {  return Ising::J;  }
-std::uint16_t Ising::getWidth()     {  return this->Lx;  }
-std::uint16_t Ising::getHeight()    {  return this->Ly;  }
-std::uint16_t Ising::getSize()      {  return this->N;   }
-double Ising::getTemp()   {  return this->T;   }
+double Ising::getField() {
+	return Ising::H;
+}
+
+double Ising::getNNCoup() {
+	return Ising::J;
+}
+
+std::uint16_t Ising::getWidth() {
+	return this->Lx;
+}
+
+std::uint16_t Ising::getHeight() {
+	return this->Ly;
+}
+
+std::uint16_t Ising::getSize() {
+	return this->N;
+}
+
+double Ising::getTemp() {
+	return this->T;
+}
 
 /**
  * @brief Lattice point accessor. The index is of the site we "want" to look at.
@@ -46,12 +63,12 @@ double Ising::getTemp()   {  return this->T;   }
  * @return true 
  * @return false 
  */
-bool Ising::operator() (int i, int j) {
+bool Ising::operator() (uint i, uint j) {
 	int ii, jj;
 	imposeBC(this->Lx, this-> Ly, i, j, &ii, &jj, this->boundary);
 
 	if (ii == -1 || jj == -1)
 		return NULL;
-	
-	return this->lattice[ii][jj];
+	uint idx = ii * this->Lx + jj;
+	return (this->lattice[idx / WORD_SIZE] >> (WORD_SIZE - idx%WORD_SIZE - 1)) & 1 ;
 }

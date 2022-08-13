@@ -1,6 +1,6 @@
 #include "Ising.hpp"
 
-Ising::Ising(int w, int h,
+Ising::Ising(uint w, uint h,
 						 double temperature,
 						 BoundaryCondition b) {
 	this->Lx = w;
@@ -33,9 +33,9 @@ void Ising::generate() {
 	}
 	this->is_generated = true;
 
-	this->initial = new bool*[this->Ly];
-	for (int i = 0; i < this->Ly; i++)
-		this->initial[i] = (bool*) malloc(this->Lx * sizeof(bool));
+	this->initial = (uWord_t*) malloc((this->getSize() / WORD_SIZE) * sizeof(uWord_t));
+	for (int i = 0; i < this->getSize()/WORD_SIZE; i++)
+		this->initial[i] = 0;
 
 	// Tie the seed value to the size of the lattice. This ensures the same
 	// initial lattice for every type of experiment.
@@ -44,12 +44,12 @@ void Ising::generate() {
 	std::uniform_int_distribution<int> dist(0, 1);
 
 	for (int i = 0; i < this->Ly; i++)
-		for (int j = 0; j < this->Lx; j++)
-			this->initial[i][j] = (bool) dist(RNG);
+		for (int j = 0; j < this->Lx; j++) {
+			uint idx = (i*this->Lx + j) / WORD_SIZE;
+			this->initial[idx] = (this->initial[idx] << 1) | dist(RNG);
+		}
 
-	this->lattice = new bool*[this->Ly];
-	for (int i = 0; i < this->Ly; i++)
-		this->lattice[i] = (bool*) malloc(this->Lx * sizeof(bool));
+	this->lattice = (uWord_t*) malloc((this->getSize() / WORD_SIZE) * sizeof(uWord_t));
 }
 
 /**
@@ -61,8 +61,7 @@ void Ising::reinit() {
 		return;
 	}
 	// copy initial data into lattice
-	for (int i = 0; i < this->Ly; i++)
-		for (int j = 0; j < this->Lx; j++)
-			this->lattice[i][j] = this->initial[i][j];
+	for (uint i = 0; i < this->getSize() / WORD_SIZE; i++)
+			this->lattice[i] = this->initial[i];
 }
 

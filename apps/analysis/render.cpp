@@ -1,8 +1,5 @@
-#include <iostream>
-#include <string>
 #include <iomanip>
 #include <fstream>
-#include <cstdint>
 #include <exception>
 
 #include <SFML/Graphics.hpp>
@@ -107,19 +104,19 @@ double getTemp(std::string name) {
  * @return true if the read is successful,
  * @return false if the read did not complete
  */
-bool readNext(std::ifstream& file, std::uint64_t* grid, const int w, const int h) {
+bool readNext(std::ifstream& file, uWord_t* grid, const int w, const int h) {
 	int N = w * h;
-	std::uint64_t number;
+	uWord_t number;
 	int idx = 0;
 	while (N > 0) {
-		if (N < BUFFER) {
+		if (N < WORD_SIZE) {
 			std::cout << "Bad file format." << std::endl;
 			return false;
 		}
-		if (!file.read((char*) &number, sizeof(std::uint64_t)))
+		if (!file.read((char*) &number, sizeof(uWord_t)))
 			return false;
 		grid[idx++] = number;
-		N -= BUFFER;
+		N -= WORD_SIZE;
 	}
 
 	if (idx != w*h/64) std::cout << "Bad read" << std::endl;
@@ -225,7 +222,7 @@ int main(int argc, char** argv) {
 	}
 
 	std::cout << "Generating lattice..." << std::endl;
-	std::uint64_t* lattice = (std::uint64_t*) malloc(Lx*Ly * sizeof(std::uint64_t));
+	uWord_t* lattice = (uWord_t*) malloc(Lx*Ly * sizeof(uWord_t));
 
 	sf::RenderWindow window;
 	sf::RenderTexture texture;
@@ -253,8 +250,8 @@ int main(int argc, char** argv) {
 			for (uint x = 0; x < Lx; x++) {
 				sf::RectangleShape sq(sf::Vector2f(scale, scale));
 				uint idx = (y * Lx + x);
-				std::uint64_t number = lattice[idx / 64];
-				bool spin = (number >> (64 - (idx%64) - 1)) & 1;
+				uWord_t number = lattice[idx / WORD_SIZE];
+				bool spin = (number >> (WORD_SIZE - (idx%WORD_SIZE) - 1)) & 1;
 				if ( !spin ) continue;
 				sq.setFillColor(sf::Color::White);
 				sq.setPosition(x*scale, y*scale);
