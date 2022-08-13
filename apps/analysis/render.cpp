@@ -8,8 +8,6 @@
 #include <SFML/Graphics.hpp>
 #include "defaults.hpp"
 
-#define uint unsigned int
-
 #define sysWidth 600
 #define sysHeight 600
 
@@ -227,9 +225,6 @@ int main(int argc, char** argv) {
 	}
 
 	std::cout << "Generating lattice..." << std::endl;
-	// bool** lattice = new bool*[Ly];
-	// for (int i = 0; i < Ly; i++)
-	// 	lattice[i] = (bool*) malloc(Lx * sizeof(bool));
 	std::uint64_t* lattice = (std::uint64_t*) malloc(Lx*Ly * sizeof(std::uint64_t));
 
 	sf::RenderWindow window;
