@@ -8,6 +8,8 @@
 #include <SFML/Graphics.hpp>
 #include "defaults.hpp"
 
+#define uint unsigned int
+
 #define sysWidth 600
 #define sysHeight 600
 
@@ -107,11 +109,10 @@ double getTemp(std::string name) {
  * @return true if the read is successful,
  * @return false if the read did not complete
  */
-bool readNext(std::ifstream& file, bool** grid, const int w, const int h) {
+bool readNext(std::ifstream& file, std::uint64_t* grid, const int w, const int h) {
 	int N = w * h;
 	std::uint64_t number;
 	int idx = 0;
-	int i, j, k;
 	while (N > 0) {
 		if (N < BUFFER) {
 			std::cout << "Bad file format." << std::endl;
@@ -119,15 +120,11 @@ bool readNext(std::ifstream& file, bool** grid, const int w, const int h) {
 		}
 		if (!file.read((char*) &number, sizeof(std::uint64_t)))
 			return false;
-		for (k = BUFFER - 1; k >= 0; k--, idx++) {
-			i = idx / w;
-			j = idx % w;
-			grid[i][j] = (number >> k) & 1;
-		}
+		grid[idx++] = number;
 		N -= BUFFER;
 	}
 
-	if (idx != w*h) std::cout << "Bad read" << std::endl;
+	if (idx != w*h/64) std::cout << "Bad read" << std::endl;
 	return true;
 }
 
@@ -230,9 +227,10 @@ int main(int argc, char** argv) {
 	}
 
 	std::cout << "Generating lattice..." << std::endl;
-	bool** lattice = new bool*[Ly];
-	for (int i = 0; i < Ly; i++)
-		lattice[i] = (bool*) malloc(Lx * sizeof(bool));
+	// bool** lattice = new bool*[Ly];
+	// for (int i = 0; i < Ly; i++)
+	// 	lattice[i] = (bool*) malloc(Lx * sizeof(bool));
+	std::uint64_t* lattice = (std::uint64_t*) malloc(Lx*Ly * sizeof(std::uint64_t));
 
 	sf::RenderWindow window;
 	sf::RenderTexture texture;
@@ -256,10 +254,13 @@ int main(int argc, char** argv) {
 			std::cout << "Terminating at t = " << t << std::endl;
 			return EXIT_FAILURE;
 		}
-		for (int y = 0; y < Ly; y++) {
-			for (int x = 0; x < Lx; x++) {
+		for (uint y = 0; y < Ly; y++) {
+			for (uint x = 0; x < Lx; x++) {
 				sf::RectangleShape sq(sf::Vector2f(scale, scale));
-				if (!lattice[y][x]) continue;
+				uint idx = (y * Lx + x);
+				std::uint64_t number = lattice[idx / 64];
+				bool spin = (number >> (64 - (idx%64) - 1)) & 1;
+				if ( !spin ) continue;
 				sq.setFillColor(sf::Color::White);
 				sq.setPosition(x*scale, y*scale);
 				if (mode) window.draw(sq);
