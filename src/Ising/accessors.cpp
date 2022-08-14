@@ -52,6 +52,10 @@ double Ising::getTemp() {
 	return this->T;
 }
 
+uWord_t* Ising::getRaw() {
+	return this->lattice;
+}
+
 /**
  * @brief Lattice point accessor. The index is of the site we "want" to look at.
  * The function takes care of the appropriate boundary conditions and returns

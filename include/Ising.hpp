@@ -39,6 +39,7 @@ public:
 	std::uint16_t getWidth();
 	std::uint16_t getSize();
 	double getTemp();
+	uWord_t* getRaw();
 
 	void generate();
 	void reinit();
