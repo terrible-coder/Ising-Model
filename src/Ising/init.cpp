@@ -15,7 +15,6 @@ Ising::Ising(uint w, uint h,
 
 Ising::~Ising() {
 	// free(this->lattice);
-	std::cout << "\a" << std::endl;
 }
 
 /**

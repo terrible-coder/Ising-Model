@@ -25,7 +25,7 @@ bool bitFromEnd(uWord_t number, uint a) {
 	return (bool) (number >> (a - 1)) & 1;
 }
 
-bool bitFromBed(uWord_t number, uint a) {
+bool bitFromBeg(uWord_t number, uint a) {
 	return (bool) (number >> (WORD_SIZE - a - 1)) & 1;
 }
 
