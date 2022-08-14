@@ -5,11 +5,8 @@
 #include <fstream>
 #include <bit>
 
-#include "defaults.hpp"
+#include "bitspin.hpp"
 #include "boundary.hpp"
-
-double bool2spin(bool);
-double bool2spin(uint, int);
 
 class Ising {
 private:

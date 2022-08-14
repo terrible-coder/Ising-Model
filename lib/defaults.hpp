@@ -1,5 +1,4 @@
-#ifndef DEFAULTS_HPP
-#define DEFAULTS_HPP
+#pragma once
 
 #include <cstdint>
 #include <iostream>
@@ -20,5 +19,3 @@
 
 #define WORD_SIZE 64
 typedef std::uint64_t uWord_t;
-
-#endif

@@ -1,9 +1,9 @@
 SIM_BIN=Ising_sim
 GPH_BIN=Ising_draw
 
-CODE_SIM=./src ./src/Ising ./src/io ./apps/simulation
+CODE_SIM=./src ./src/libsrc ./src/Ising ./src/io ./apps/simulation
 CODE_GPH=./apps/analysis
-INCDIRS=./include ./include/*
+INCDIRS=./include ./include/* ./lib
 OBJDIR=./bin
 
 CC=c++
