@@ -73,6 +73,6 @@ bool Ising::operator() (uint i, uint j) {
 
 	if (ii == -1 || jj == -1)
 		return NULL;
-	uint idx = ii * this->Lx + jj;
+	uint idx = idx2to1(ii, jj, this->Lx);
 	return (this->lattice[idx / WORD_SIZE] >> (WORD_SIZE - idx%WORD_SIZE - 1)) & 1 ;
 }

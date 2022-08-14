@@ -7,8 +7,9 @@
  * @param j The column index.
  */
 void Ising::flip(uint i, uint j) {
-	uint idx = i * this->Lx + j;
-	this->lattice[idx / WORD_SIZE] ^= ((uWord_t)1) << (WORD_SIZE - idx%WORD_SIZE - 1);
+	uint idx = idx2to1(i, j, this->Lx);
+	uint shift = WORD_SIZE - idx%WORD_SIZE - 1;
+	this->lattice[idx / WORD_SIZE] ^= ((uWord_t)1) << shift;
 }
 
 /**
@@ -25,26 +26,14 @@ void Ising::exchange(uint i1, uint j1, uint i2, uint j2) {
 	imposeBC(this->Lx, this->Ly, i1, j1, &i1a, &j1a, this->boundary);
 	imposeBC(this->Lx, this->Ly, i2, j2, &i2a, &j2a, this->boundary);
 
-	uint idx1 = i1a * this->Lx + j1a; // row major index of spin 1
-	uint idx2 = i2a * this->Lx + j2a; // row major index of spin 2
-	uWord_t n1 = this->lattice[idx1 / WORD_SIZE]; // the word where spin 1 is stored
-	uWord_t n2 = this->lattice[idx2 / WORD_SIZE]; // the word where spin 2 is stored
-	uint a1 = WORD_SIZE - idx1%WORD_SIZE - 1; // shift length
-	uint a2 = WORD_SIZE - idx2%WORD_SIZE - 1; // shift length
-	uWord_t b1 = (n1 >> a1) & 1; // spin 1
-	uWord_t b2 = (n2 >> a2) & 1; // spin 2
-	// swap b1 and b2
-	b1 = b1 ^ b2;
-	b2 = b1 ^ b2;
-	b1 = b1 ^ b2;
-	// put them back in correct place
-	b1 <<= a1;
-	b2 <<= a2;
-	n1 = (n1 & ~b1) | b1; // change the bit in n1
-	n2 = (n2 & ~b2) | b2; // change the bit in n2
-
-	this->lattice[idx1] = n1;
-	this->lattice[idx2] = n2;
+	uint idx1 = idx2to1(i1a, j1a, this->Lx); // row major index of spin 1
+	uint idx2 = idx2to1(i1a, j1a, this->Lx); // row major index of spin 2
+	uWord_t* n1 = &(this->lattice[idx1 / WORD_SIZE]); // the word where spin 1 is stored
+	uWord_t* n2 = &(this->lattice[idx2 / WORD_SIZE]); // the word where spin 2 is stored
+	bool b1 = bitFromBeg(*n1, idx1 % WORD_SIZE); // spin 1
+	bool b2 = bitFromBeg(*n2, idx2 % WORD_SIZE); // spin 2
+	changeBit(n1, idx1 % WORD_SIZE, b2);
+	changeBit(n2, idx2 % WORD_SIZE, b1);
 }
 
 /**

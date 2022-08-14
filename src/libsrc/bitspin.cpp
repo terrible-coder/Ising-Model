@@ -28,3 +28,15 @@ bool bitFromEnd(uWord_t number, uint a) {
 bool bitFromBed(uWord_t number, uint a) {
 	return (bool) (number >> (WORD_SIZE - a - 1)) & 1;
 }
+
+/**
+ * @brief Change the value of a bit at given position.
+ * 
+ * @param number The number in which the bit is to be modified.
+ * @param a The position of the bit from the beginning (0 indexing).
+ * @param bit The value of the updated bit.
+ */
+void changeBit(uWord_t* number, uint a, bool bit) {
+	uWord_t mask = ((uWord_t)1) << (WORD_SIZE - a - 1);
+	*number = (*number & ~mask) | (mask * bit);
+}

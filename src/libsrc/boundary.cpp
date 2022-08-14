@@ -32,3 +32,12 @@ void imposeBC(int w, int h, int ui, int uj, int* ai, int* aj, BoundaryCondition 
 			std::cout << "Unknown boundary condition" << std::endl;
 	}
 }
+
+uint idx2to1(uint i, uint j, uint w) {
+	return i * w + j;
+}
+
+void idx1to2(uint idx, uint w, uint* i, uint* j) {
+	*i = idx / w;
+	*j = idx % w;
+}

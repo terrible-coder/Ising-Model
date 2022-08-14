@@ -15,6 +15,7 @@ Ising::Ising(uint w, uint h,
 
 Ising::~Ising() {
 	// free(this->lattice);
+	std::cout << "\a" << std::endl;
 }
 
 /**
@@ -43,10 +44,12 @@ void Ising::generate() {
 	std::default_random_engine RNG(seed);
 	std::uniform_int_distribution<int> dist(0, 1);
 
+	uint idx = 0, k = 0;
 	for (int i = 0; i < this->Ly; i++)
 		for (int j = 0; j < this->Lx; j++) {
-			uint idx = (i*this->Lx + j) / WORD_SIZE;
 			this->initial[idx] = (this->initial[idx] << 1) | dist(RNG);
+			if (++k % WORD_SIZE == 0)
+				idx++;
 		}
 
 	this->lattice = (uWord_t*) malloc((this->getSize() / WORD_SIZE) * sizeof(uWord_t));
