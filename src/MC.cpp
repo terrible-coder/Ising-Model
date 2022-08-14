@@ -84,8 +84,7 @@ int rIndex(int w, int h) {
  */
 void getRandomIndices(int w, int h, int* i, int* j) {
 	int idx = rIndex(w, h);
-	*j = idx % w;
-	*i = (idx - *j) / h;
+	idx1to2(idx, w, (uint*) i, (uint*) j);
 }
 
 /**
@@ -164,7 +163,7 @@ void dynamics(Ising* config, Context* ctx) {
 		// choose the pair to exchange with
 		// north, south, east, west all have equal chance of being picked
 		int pairI, pairJ;
-		double r = pDist(pRNG);
+		double r = rProbability();
 		if (r < 0.25) {pairI = ri-1; pairJ = rj  ;} else
 		if (r < 0.50) {pairI = ri  ; pairJ = rj+1;} else
 		if (r < 0.75) {pairI = ri+1; pairJ = rj  ;} else
@@ -191,7 +190,6 @@ void dynamics(Ising* config, Context* ctx) {
 void spin_flip(Ising* config, int i, int j, Context* ctx) {
 	Ising c = *config;
 	bool sigma = c(i  , j  ); // We check if this spin should be flip
-
 	bool north = c(i-1, j  );
 	bool east  = c(i  , j+1);
 	bool south = c(i+1, j  );
@@ -201,7 +199,7 @@ void spin_flip(Ising* config, int i, int j, Context* ctx) {
 	double s = bool2spin(sigma);
 
 	// The change in energy, if the spin is flipped
-	double dE = 2 * Ising::getField() * s + 2 * Ising::getNNCoup() * s  * S;
+	double dE = 2 * Ising::getField() * s + 2 * Ising::getNNCoup() * s * S;
 	if (acceptance(dE, c.getTemp(), ctx))
 		c.flip(i, j);
 }
@@ -217,8 +215,10 @@ void spin_flip(Ising* config, int i, int j, Context* ctx) {
  * @param j2 The random column index of spin to exchange with.
  */
 void spin_exchange(Ising *config, int i1, int j1, int i2, int j2, Context* ctx) {
-	double S1, S2;
 	Ising c = *config;
+	uint S1, S2;
+	uint sig1 = 3 * c(i1, j1);
+	uint sig2 = 3 * c(i2, j2);
 
 	/*
 		The spins marked by "x" are the ones which are to be exchanged. The change
@@ -233,11 +233,8 @@ void spin_exchange(Ising *config, int i1, int j1, int i2, int j2, Context* ctx) 
 				*	x	:	x	*
 				.	*	:	*	.
 		*/
-		int s;
-		s = c(i1-1, j1) + c(i1+1, j1) + c(i1, j1-1);
-		S1 = bool2spin(s, 3);
-		s = c(i2-1, j2) + c(i2+1, j2) + c(i2, j2+1);
-		S2 = bool2spin(s, 3);
+		S1 = c(i1-1, j1) + c(i1+1, j1) + c(i1, j1-1);
+		S2 = c(i2-1, j2) + c(i2+1, j2) + c(i2, j2+1);
 	} else if (j1 == j2) {		// The pair is in the same column
 		/*
 				.	*	.
@@ -246,18 +243,15 @@ void spin_exchange(Ising *config, int i1, int j1, int i2, int j2, Context* ctx) 
 				*	x	*
 				.	*	.
 		*/
-		int s;
-		s = c(i1, j1-1) + c(i1, j1+1) + c(i1-1, j1);
-		S1 = bool2spin(s, 3);
-		s = c(i2, j2-1) + c(i2, j2+1) + c(i2+1, j2);
-		S2 = bool2spin(s, 3);
+		S1 = c(i1, j1-1) + c(i1, j1+1) + c(i1-1, j1);
+		S2 = c(i2, j2-1) + c(i2, j2+1) + c(i2+1, j2);
 	} else {
 		std::cout << "Unexpected order of indices." << std::endl;
 		return;
 	}
-	double Si = bool2spin(c(i1, j1)) * S1 + bool2spin(c(i2, j2)) * S2; // The initial value
-	double Sf = bool2spin(c(i1, j1)) * S2 + bool2spin(c(i2, j2)) * S1; // The "exchanged" value
-	double dE = Ising::getNNCoup() * (Sf - Si);
+	uint Si = (~(S1 ^ sig1) & 3) + (~(S2 ^ sig2) & 3); // The initial value
+	uint Sf = (~(S1 ^ sig2) & 3) + (~(S2 ^ sig1) & 3); // The "exchanged" value
+	double dE = Ising::getNNCoup() * (Sf - Si) * 2.;
 	if (acceptance(dE, c.getTemp(), ctx))
 		c.exchange(i1, j1, i1, j2);
 }
