@@ -33,23 +33,18 @@ void Ising::generate() {
 	}
 	this->is_generated = true;
 
-	this->initial = (uWord_t*) malloc((this->getSize() / WORD_SIZE) * sizeof(uWord_t));
-	for (int i = 0; i < this->getSize()/WORD_SIZE; i++)
+	this->initial = (uWord_t*) malloc((this->N / WORD_SIZE) * sizeof(uWord_t));
+	for (int i = 0; i < this->N/WORD_SIZE; i++)
 		this->initial[i] = 0;
 
 	// Tie the seed value to the size of the lattice. This ensures the same
 	// initial lattice for every type of experiment.
-	int seed = this->N + (int)(this->T * 1000. + 0.5);
+	uint seed = this->N + (uint)(this->T * 1000. + 0.5);
 	std::default_random_engine RNG(seed);
-	std::uniform_int_distribution<int> dist(0, 1);
+	std::uniform_int_distribution<uWord_t> dist(0, ~((uWord_t)0));
 
-	uint idx = 0, k = 0;
-	for (int i = 0; i < this->Ly; i++)
-		for (int j = 0; j < this->Lx; j++) {
-			this->initial[idx] = (this->initial[idx] << 1) | dist(RNG);
-			if (++k % WORD_SIZE == 0)
-				idx++;
-		}
+	for (int i = 0; i < this->N/WORD_SIZE; i++)
+		this->initial[i] = dist(RNG);
 
 	this->lattice = (uWord_t*) malloc((this->getSize() / WORD_SIZE) * sizeof(uWord_t));
 }
