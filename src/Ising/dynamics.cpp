@@ -8,8 +8,7 @@
  */
 void Ising::flip(uint i, uint j) {
 	uint idx = idx2to1(i, j, this->Lx);
-	uint shift = WORD_SIZE - idx%WORD_SIZE - 1;
-	this->lattice[idx / WORD_SIZE] ^= ((uWord_t)1) << shift;
+	flipBit(&(this->lattice[idx / WORD_SIZE]), idx % WORD_SIZE);
 }
 
 /**
@@ -32,8 +31,9 @@ void Ising::exchange(uint i1, uint j1, uint i2, uint j2) {
 	uWord_t* n2 = &(this->lattice[idx2 / WORD_SIZE]); // the word where spin 2 is stored
 	bool b1 = bitFromBeg(*n1, idx1 % WORD_SIZE); // spin 1
 	bool b2 = bitFromBeg(*n2, idx2 % WORD_SIZE); // spin 2
-	changeBit(n1, idx1 % WORD_SIZE, b2);
-	changeBit(n2, idx2 % WORD_SIZE, b1);
+	if (b1 == b2) return; // spins are same, no need to do anything
+	flipBit(n1, idx1 % WORD_SIZE);
+	flipBit(n2, idx2 % WORD_SIZE);
 }
 
 /**
