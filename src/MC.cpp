@@ -217,8 +217,10 @@ void spin_flip(Ising* config, int i, int j, Context* ctx) {
 void spin_exchange(Ising *config, int i1, int j1, int i2, int j2, Context* ctx) {
 	Ising c = *config;
 	uint S1, S2;
-	uint sig1 = 3 * c(i1, j1);
-	uint sig2 = 3 * c(i2, j2);
+	uint sig1 = c(i1, j1);
+	uint sig2 = c(i2, j2);
+	if (sig1 == sig2) // the spins are the same, no need to do anything
+		return;
 
 	/*
 		The spins marked by "x" are the ones which are to be exchanged. The change
@@ -249,9 +251,8 @@ void spin_exchange(Ising *config, int i1, int j1, int i2, int j2, Context* ctx) 
 		std::cout << "Unexpected order of indices." << std::endl;
 		return;
 	}
-	uint Si = (~(S1 ^ sig1) & 3) + (~(S2 ^ sig2) & 3); // The initial value
-	uint Sf = (~(S1 ^ sig2) & 3) + (~(S2 ^ sig1) & 3); // The "exchanged" value
-	double dE = Ising::getNNCoup() * (Sf - Si) * 2.;
+	int dSig = sig1? S2 - S1 : S1 - S2;
+	double dE = Ising::getNNCoup() * dSig * 4.;
 	if (acceptance(dE, c.getTemp(), ctx))
 		c.exchange(i1, j1, i1, j2);
 }
