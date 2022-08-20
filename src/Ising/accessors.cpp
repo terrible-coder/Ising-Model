@@ -76,3 +76,35 @@ bool Ising::operator() (uint i, uint j) {
 	uint idx = idx2to1(ii, jj, this->Lx);
 	return (this->lattice[idx / WORD_SIZE] >> (WORD_SIZE - idx%WORD_SIZE - 1)) & 1 ;
 }
+
+void Ising::__leftShift(uWord_t* shifted) {
+	uint rawSize = this->N / WORD_SIZE;
+	bool* MSBs = new bool[rawSize];
+	for (uint idx = 0; idx < rawSize; idx++) {
+		MSBs[idx] = this->lattice[idx] >> (WORD_SIZE - 1);
+		shifted[idx] = this->lattice[idx] << 1;
+	}
+	for (uint idx = 0; idx < this->N; idx += WORD_SIZE) {
+		int i, j;
+		idx1to2(idx, this->Lx, (uint*)(&i), (uint*)(&j));
+		imposeBC(this->Lx, this->Ly, i, j-1, &i, &j, this->boundary);
+		if (i == -1 || j == -1) // for free boundary condition
+			continue;
+		shifted[idx2to1(i, j, this->Lx) / WORD_SIZE] |= MSBs[idx / WORD_SIZE];
+	}
+}
+
+void Ising::__downShift(uWord_t* shifted) {
+	uint rawX = this->Lx / WORD_SIZE;
+	uint rawY = this->Ly;
+	for (uint i = rawX; i < rawY; i++)
+		shifted[rawX] = this->lattice[i - rawX];
+	int k, _;
+	imposeBC(this->Lx, this->Ly, -1, 0, &k, &_, this->boundary);
+	if (k == -1) // for free boundary condition
+		for (uint i = 0; i < rawX; i++)
+			shifted[i] = 0;
+	else
+		for (uint i = 0; i < rawX; i++)
+			shifted[i] = this->lattice[idx2to1(k, i, rawX)];
+}

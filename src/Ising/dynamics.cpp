@@ -45,14 +45,18 @@ double Ising::Hamiltonian() {
 
 	// Two spin interaction terms
 	uint SS = 0;
-	for (int i = 0; i < this->Ly; i++)
-		for (int j = 0; j < this->Lx; j++) {
-			bool sigma = (*this)(i  , j  );
-			bool north = (*this)(i-1, j  );
-			bool east  = (*this)(i  , j+1);
+	uWord_t* shift = new uWord_t[this->N / WORD_SIZE];
 
-			SS += (sigma == north) + (sigma == east);
-		}
+	this->__leftShift(shift); // east
+	for (int i = 0; i < this->N / WORD_SIZE; i++)
+		SS += std::__popcount(~(this->lattice[i] ^ shift[i]));
+
+	this->__downShift(shift); // north
+	for (int i = 0; i < this->N / WORD_SIZE; i++)
+		SS += std::__popcount(~(this->lattice[i] ^ shift[i]));
+
+	free(shift);
+
 	E -= Ising::getNNCoup() * bool2spin(SS, 2*this->N);
 	return E;
 }
