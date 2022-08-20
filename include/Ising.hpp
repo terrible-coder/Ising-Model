@@ -16,6 +16,8 @@ private:
 	bool is_generated;
 	std::uint16_t Lx, Ly;
 	std::uint16_t N;
+	std::uint16_t rawX, rawY;
+	std::uint16_t rawN;
 	double T;
 	uWord_t* initial;
 	uWord_t* lattice;

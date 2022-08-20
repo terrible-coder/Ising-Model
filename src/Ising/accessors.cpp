@@ -78,9 +78,8 @@ bool Ising::operator() (uint i, uint j) {
 }
 
 void Ising::__leftShift(uWord_t* shifted) {
-	uint rawSize = this->N / WORD_SIZE;
-	bool* MSBs = new bool[rawSize];
-	for (uint idx = 0; idx < rawSize; idx++) {
+	bool* MSBs = new bool[this->rawN];
+	for (uint idx = 0; idx < this->rawN; idx++) {
 		MSBs[idx] = this->lattice[idx] >> (WORD_SIZE - 1);
 		shifted[idx] = this->lattice[idx] << 1;
 	}
@@ -95,16 +94,14 @@ void Ising::__leftShift(uWord_t* shifted) {
 }
 
 void Ising::__downShift(uWord_t* shifted) {
-	uint rawX = this->Lx / WORD_SIZE;
-	uint rawY = this->Ly;
-	for (uint i = rawX; i < rawY; i++)
-		shifted[rawX] = this->lattice[i - rawX];
+	for (uint i = this->rawX; i < this->rawY; i++)
+		shifted[i] = this->lattice[i - this->rawX];
 	int k, _;
 	imposeBC(this->Lx, this->Ly, -1, 0, &k, &_, this->boundary);
 	if (k == -1) // for free boundary condition
 		for (uint i = 0; i < rawX; i++)
 			shifted[i] = 0;
 	else
-		for (uint i = 0; i < rawX; i++)
-			shifted[i] = this->lattice[idx2to1(k, i, rawX)];
+		for (uint i = 0; i < this->rawX; i++)
+			shifted[i] = this->lattice[idx2to1(k, i, this->rawX)];
 }

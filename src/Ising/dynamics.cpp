@@ -45,14 +45,14 @@ double Ising::Hamiltonian() {
 
 	// Two spin interaction terms
 	uint SS = 0;
-	uWord_t* shift = new uWord_t[this->N / WORD_SIZE];
+	uWord_t* shift = new uWord_t[this->rawN];
 
 	this->__leftShift(shift); // east
-	for (int i = 0; i < this->N / WORD_SIZE; i++)
+	for (int i = 0; i < this->rawN; i++)
 		SS += std::__popcount(~(this->lattice[i] ^ shift[i]));
 
 	this->__downShift(shift); // north
-	for (int i = 0; i < this->N / WORD_SIZE; i++)
+	for (int i = 0; i < this->rawN; i++)
 		SS += std::__popcount(~(this->lattice[i] ^ shift[i]));
 
 	free(shift);
@@ -68,7 +68,7 @@ double Ising::Hamiltonian() {
  */
 double Ising::Magnetisation() {
 	uint M = 0;
-	for (std::uint16_t i = 0; i < this->N / WORD_SIZE; i++)
+	for (std::uint16_t i = 0; i < this->rawN; i++)
 		M += std::__popcount(this->lattice[i]);
 	return bool2spin(M, this->N);
 }
