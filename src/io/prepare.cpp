@@ -1,7 +1,16 @@
 #include "io/prepare.hpp"
 
-std::string parentDir(int w, int h, int en) {
-	return DATA_DIR_PREFIX
+std::string parentDir(int w, int h, int en, Dynamics d) {
+	std::string kinVal;
+	switch (d) {
+		case Dynamics::EXCHANGE:
+			kinVal = "exchange";
+			break;
+		case Dynamics::FLIP:
+			kinVal = "flip";
+			break;
+	}
+	return "data/" + kinVal
 			 + std::to_string(w) + "x" + std::to_string(h)
 			 + "en" + std::to_string(en) + "/";
 }
@@ -13,7 +22,7 @@ bool safeCreate(std::string path) {
 std::string prepExperiment(Context* ctx) {
 	bool success = true;
 
-	std::string parent = parentDir(ctx->Lx, ctx->Ly, ctx->ENSEMBLE_SIZE);
+	std::string parent = parentDir(ctx->Lx, ctx->Ly, ctx->ENSEMBLE_SIZE, ctx->SpinKinetics);
 	std::string snaps = "snaps/";
 	std::string frame = "frames/";
 

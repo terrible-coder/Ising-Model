@@ -26,7 +26,7 @@ void Ising::exchange(uint i1, uint j1, uint i2, uint j2) {
 	imposeBC(this->Lx, this->Ly, i2, j2, &i2a, &j2a, this->boundary);
 
 	uint idx1 = idx2to1(i1a, j1a, this->Lx); // row major index of spin 1
-	uint idx2 = idx2to1(i1a, j1a, this->Lx); // row major index of spin 2
+	uint idx2 = idx2to1(i2a, j2a, this->Lx); // row major index of spin 2
 	uWord_t* n1 = &(this->lattice[idx1 / WORD_SIZE]); // the word where spin 1 is stored
 	uWord_t* n2 = &(this->lattice[idx2 / WORD_SIZE]); // the word where spin 2 is stored
 	flipBit(n1, idx1 % WORD_SIZE); // this function gets called only if the

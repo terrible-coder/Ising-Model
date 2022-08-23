@@ -110,6 +110,17 @@ double pGlauber(double dE, double BETA) {
 }
 
 /**
+ * @brief The Suzuki-Kubo probability distribution.
+ * 
+ * @param dE The energy change.
+ * @param BETA 1/(kT)
+ * @return double 
+ */
+double pSuKu(double dE, double BETA) {
+	return 0.5 * (1 - tanh(0.5 * BETA * dE));
+}
+
+/**
  * @brief The probability value for accept-reject algorithm. The type of
  * probability distribution to choose from is read from the system settings.
  * 
@@ -124,6 +135,8 @@ double Probability(double dE, const double BETA, Context *ctx) {
 		return pBoltz(dE, BETA);
 	case TransProb::GLAUBER:
 		return pGlauber(dE, BETA);
+	case TransProb::SUZU_KUBO:
+		return pSuKu(dE, BETA);
 	}
 }
 
@@ -169,11 +182,10 @@ void dynamics(Ising* config, Context* ctx) {
 		if (r < 0.75) {pairI = ri+1; pairJ = rj  ;} else
 		              {pairI = ri  ; pairJ = rj-1;}
 
-		// make sure the values are in the order the exchange function expects
-		int i1 = (ri <  pairI) ? ri : pairI;
-		int j1 = (rj <  pairJ) ? rj : pairJ;
-		int i2 = (ri >= pairI) ? ri : pairI;
-		int j2 = (rj >= pairJ) ? rj : pairJ;
+		int i1 = std::min(ri, pairI);
+		int j1 = std::min(rj, pairJ);
+		int i2 = std::max(ri, pairI);
+		int j2 = std::max(rj, pairJ);
 		spin_exchange(config, i1, j1, i2, j2, ctx);
 		break;
 	}
@@ -251,8 +263,8 @@ void spin_exchange(Ising *config, int i1, int j1, int i2, int j2, Context* ctx) 
 		std::cout << "Unexpected order of indices." << std::endl;
 		return;
 	}
-	int dSig = sig1? S2 - S1 : S1 - S2;
+	int dSig = sig1? S1 - S2 : S2 - S1;
 	double dE = Ising::getNNCoup() * dSig * 4.;
 	if (acceptance(dE, c.getTemp(), ctx))
-		c.exchange(i1, j1, i1, j2);
+		c.exchange(i1, j1, i2, j2);
 }

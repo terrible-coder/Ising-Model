@@ -42,6 +42,7 @@ void extract_values(std::string txt, std::string* first, std::string* second) {
 TransProb readTrans(std::string str) {
 	if (str == "boltzmann") return TransProb::BOLTZMANN;
 	if (str == "glauber"  ) return TransProb::GLAUBER;
+	if (str == "suku"     ) return TransProb::SUZU_KUBO;
 }
 
 /**
