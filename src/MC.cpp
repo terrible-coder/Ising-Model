@@ -164,9 +164,9 @@ bool acceptance(double dE, double temperature, Context *ctx) {
  * @param config The Ising model configuration.
  * @param ctx The system settings.
  */
-void dynamics(Ising* config, Context* ctx) {
+void dynamics(Ising& config, Context* ctx) {
 	int ri, rj;
-	getRandomIndices(config->getWidth(), config->getHeight(), &ri, &rj);
+	getRandomIndices(config.getWidth(), config.getHeight(), &ri, &rj);
 
 	switch(ctx->SpinKinetics) {
 	case Dynamics::FLIP:
@@ -199,8 +199,7 @@ void dynamics(Ising* config, Context* ctx) {
  * @param j The random column index to check.
  * @param specs The system settings.
  */
-void spin_flip(Ising* config, int i, int j, Context* ctx) {
-	Ising c = *config;
+void spin_flip(Ising& c, int i, int j, Context* ctx) {
 	bool sigma = c(i  , j  ); // We check if this spin should be flip
 	bool north = c(i-1, j  );
 	bool east  = c(i  , j+1);
@@ -220,14 +219,13 @@ void spin_flip(Ising* config, int i, int j, Context* ctx) {
  * @brief Perform the spin-exchange dynamics algorithm.
  * The function assumes `i1 <= i2` and `j1 <= j2`.
  * 
- * @param config The Ising model configuration.
+ * @param c The Ising model configuration.
  * @param i1 The random row index of spin to exchange.
  * @param j1 The random column index of spin to exchange.
  * @param i2 The random row index of spin to exchange with.
  * @param j2 The random column index of spin to exchange with.
  */
-void spin_exchange(Ising *config, int i1, int j1, int i2, int j2, Context* ctx) {
-	Ising c = *config;
+void spin_exchange(Ising& c, int i1, int j1, int i2, int j2, Context* ctx) {
 	uint S1, S2;
 	uint sig1 = c(i1, j1);
 	uint sig2 = c(i2, j2);

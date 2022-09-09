@@ -17,7 +17,8 @@ Ising::Ising(uint w, uint h,
 }
 
 Ising::~Ising() {
-	// free(this->lattice);
+	delete this->lattice;
+	delete this->initial;
 }
 
 /**
