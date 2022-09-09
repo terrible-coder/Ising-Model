@@ -1,11 +1,14 @@
 #include "Ising.hpp"
 
-Ising::Ising(int w, int h,
+Ising::Ising(uint w, uint h,
 						 double temperature,
 						 BoundaryCondition b) {
 	this->Lx = w;
 	this->Ly = h;
 	this->N  = w * h;
+	this->rawX = w / WORD_SIZE;
+	this->rawY = h;
+	this->rawN = this->N / WORD_SIZE;
 	this->T  = temperature;
 	this->boundary = b;
 	this->is_generated = false;
@@ -14,7 +17,8 @@ Ising::Ising(int w, int h,
 }
 
 Ising::~Ising() {
-	// free(this->lattice);
+	delete this->lattice;
+	delete this->initial;
 }
 
 /**
@@ -33,23 +37,18 @@ void Ising::generate() {
 	}
 	this->is_generated = true;
 
-	this->initial = new bool*[this->Ly];
-	for (int i = 0; i < this->Ly; i++)
-		this->initial[i] = (bool*) malloc(this->Lx * sizeof(bool));
+	this->initial = new uWord_t[this->rawN];
 
 	// Tie the seed value to the size of the lattice. This ensures the same
 	// initial lattice for every type of experiment.
-	int seed = this->N + (int)(this->T * 1000. + 0.5);
+	uint seed = this->N + (uint)(this->T * 1000. + 0.5);
 	std::default_random_engine RNG(seed);
-	std::uniform_int_distribution<int> dist(0, 1);
+	std::uniform_int_distribution<uWord_t> dist(0, ~((uWord_t)0));
 
-	for (int i = 0; i < this->Ly; i++)
-		for (int j = 0; j < this->Lx; j++)
-			this->initial[i][j] = (bool) dist(RNG);
+	for (int i = 0; i < this->rawN; i++)
+		this->initial[i] = dist(RNG);
 
-	this->lattice = new bool*[this->Ly];
-	for (int i = 0; i < this->Ly; i++)
-		this->lattice[i] = (bool*) malloc(this->Lx * sizeof(bool));
+	this->lattice = new uWord_t[this->rawN];
 }
 
 /**
@@ -61,8 +60,7 @@ void Ising::reinit() {
 		return;
 	}
 	// copy initial data into lattice
-	for (int i = 0; i < this->Ly; i++)
-		for (int j = 0; j < this->Lx; j++)
-			this->lattice[i][j] = this->initial[i][j];
+	for (uint i = 0; i < this->rawN; i++)
+		this->lattice[i] = this->initial[i];
 }
 

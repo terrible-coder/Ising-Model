@@ -1,5 +1,8 @@
-#ifndef DEFAULTS_HPP
-#define DEFAULTS_HPP
+#pragma once
+
+#include <cstdint>
+#include <iostream>
+#include <string>
 
 #define FONTS "./assets/font/times new roman.ttf"
 #define DATA_EXT ".csv"
@@ -14,6 +17,5 @@
 #define RUN 15000
 #define SKIP 10
 
-#define BUFFER 64
-
-#endif
+#define WORD_SIZE 64
+typedef std::uint64_t uWord_t;

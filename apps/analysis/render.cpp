@@ -1,8 +1,5 @@
-#include <iostream>
-#include <string>
 #include <iomanip>
 #include <fstream>
-#include <cstdint>
 #include <exception>
 
 #include <SFML/Graphics.hpp>
@@ -107,28 +104,22 @@ double getTemp(std::string name) {
  * @return true if the read is successful,
  * @return false if the read did not complete
  */
-bool readNext(std::ifstream& file, bool** grid, const int w, const int h) {
+bool readNext(std::ifstream& file, uWord_t* grid, const int w, const int h) {
 	int N = w * h;
-	std::uint64_t number;
+	uWord_t number;
 	int idx = 0;
-	int i, j, k;
 	while (N > 0) {
-		if (N < BUFFER) {
+		if (N < WORD_SIZE) {
 			std::cout << "Bad file format." << std::endl;
 			return false;
 		}
-		if (!file.read((char*) &number, sizeof(std::uint64_t)))
+		if (!file.read((char*) &number, sizeof(uWord_t)))
 			return false;
-		for (k = BUFFER - 1; k >= 0; k--, idx++) {
-			i = idx / w;
-			j = idx % w;
-			std::uint64_t shift = ((std::uint64_t)1) << k;
-			grid[i][j] = (number & shift) >> k;
-		}
-		N -= BUFFER;
+		grid[idx++] = number;
+		N -= WORD_SIZE;
 	}
 
-	if (idx != w*h) std::cout << "Bad read" << std::endl;
+	if (idx != w*h/64) std::cout << "Bad read" << std::endl;
 	return true;
 }
 
@@ -231,9 +222,7 @@ int main(int argc, char** argv) {
 	}
 
 	std::cout << "Generating lattice..." << std::endl;
-	bool** lattice = new bool*[Ly];
-	for (int i = 0; i < Ly; i++)
-		lattice[i] = (bool*) malloc(Lx * sizeof(bool));
+	uWord_t* lattice = (uWord_t*) malloc(Lx*Ly * sizeof(uWord_t));
 
 	sf::RenderWindow window;
 	sf::RenderTexture texture;
@@ -257,10 +246,13 @@ int main(int argc, char** argv) {
 			std::cout << "Terminating at t = " << t << std::endl;
 			return EXIT_FAILURE;
 		}
-		for (int y = 0; y < Ly; y++) {
-			for (int x = 0; x < Lx; x++) {
+		for (uint y = 0; y < Ly; y++) {
+			for (uint x = 0; x < Lx; x++) {
 				sf::RectangleShape sq(sf::Vector2f(scale, scale));
-				if (!lattice[y][x]) continue;
+				uint idx = (y * Lx + x);
+				uWord_t number = lattice[idx / WORD_SIZE];
+				bool spin = (number >> (WORD_SIZE - (idx%WORD_SIZE) - 1)) & 1;
+				if ( !spin ) continue;
 				sq.setFillColor(sf::Color::White);
 				sq.setPosition(x*scale, y*scale);
 				if (mode) window.draw(sq);

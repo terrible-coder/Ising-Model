@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <string>
 #include <exception>
@@ -67,21 +68,21 @@ int main(int argc, char** argv) {
 		openLogger(parentDir, T);
 		std::cout << SEPARATOR;
 
-		Ising config(CTX.Lx, CTX.Ly, T, BoundaryCondition::PERIODIC);
-		config.generate();
+		Ising* config = new Ising(CTX.Lx, CTX.Ly, T, BoundaryCondition::PERIODIC);
+		config->generate();
 
 		for (int ensemble = 0; ensemble < CTX.ENSEMBLE_SIZE; ensemble++) {
 			// std::cout << "Ensemble member " << ensemble+1 << "\n";
 			print_progress(ensemble+1, CTX.ENSEMBLE_SIZE);
-			config.reinit();
-			open(&config, ensemble+1, parentDir);
+			config->reinit();
+			open(config, ensemble+1, parentDir);
 
 			for (int k = 0; k < RUN; k++) {
 				for (int i = 0; i < BIN; i++)
-					dynamics(&config, &CTX);
-				logData(config.Hamiltonian() / config.getSize(),
-								config.Magnetisation() / config.getSize());
-				if (!snap(&config))
+					dynamics(*config, &CTX);
+				logData(config->Hamiltonian() / config->getSize(),
+								config->Magnetisation() / config->getSize());
+				if (!snap(config))
 					return EXIT_FAILURE;
 			}
 			// next ensemble
@@ -89,7 +90,9 @@ int main(int argc, char** argv) {
 			close();
 		}
 		closeLogger();
+		delete config;
 	}
+	delete CTX.Temperature;
 
 	return EXIT_SUCCESS;
 }

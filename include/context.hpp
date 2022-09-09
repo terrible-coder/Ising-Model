@@ -8,7 +8,8 @@
 
 enum TransProb {
 	BOLTZMANN = 'b',
-	GLAUBER		= 'g'
+	GLAUBER		= 'g',
+	SUZU_KUBO = 's'
 };
 
 enum Dynamics {

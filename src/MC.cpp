@@ -84,8 +84,7 @@ int rIndex(int w, int h) {
  */
 void getRandomIndices(int w, int h, int* i, int* j) {
 	int idx = rIndex(w, h);
-	*j = idx % w;
-	*i = (idx - *j) / h;
+	idx1to2(idx, w, (uint*) i, (uint*) j);
 }
 
 /**
@@ -111,6 +110,17 @@ double pGlauber(double dE, double BETA) {
 }
 
 /**
+ * @brief The Suzuki-Kubo probability distribution.
+ * 
+ * @param dE The energy change.
+ * @param BETA 1/(kT)
+ * @return double 
+ */
+double pSuKu(double dE, double BETA) {
+	return 0.5 * (1 - tanh(0.5 * BETA * dE));
+}
+
+/**
  * @brief The probability value for accept-reject algorithm. The type of
  * probability distribution to choose from is read from the system settings.
  * 
@@ -125,6 +135,8 @@ double Probability(double dE, const double BETA, Context *ctx) {
 		return pBoltz(dE, BETA);
 	case TransProb::GLAUBER:
 		return pGlauber(dE, BETA);
+	case TransProb::SUZU_KUBO:
+		return pSuKu(dE, BETA);
 	}
 }
 
@@ -152,9 +164,9 @@ bool acceptance(double dE, double temperature, Context *ctx) {
  * @param config The Ising model configuration.
  * @param ctx The system settings.
  */
-void dynamics(Ising* config, Context* ctx) {
+void dynamics(Ising& config, Context* ctx) {
 	int ri, rj;
-	getRandomIndices(config->getWidth(), config->getHeight(), &ri, &rj);
+	getRandomIndices(config.getWidth(), config.getHeight(), &ri, &rj);
 
 	switch(ctx->SpinKinetics) {
 	case Dynamics::FLIP:
@@ -164,17 +176,16 @@ void dynamics(Ising* config, Context* ctx) {
 		// choose the pair to exchange with
 		// north, south, east, west all have equal chance of being picked
 		int pairI, pairJ;
-		double r = pDist(pRNG);
+		double r = rProbability();
 		if (r < 0.25) {pairI = ri-1; pairJ = rj  ;} else
 		if (r < 0.50) {pairI = ri  ; pairJ = rj+1;} else
 		if (r < 0.75) {pairI = ri+1; pairJ = rj  ;} else
 		              {pairI = ri  ; pairJ = rj-1;}
 
-		// make sure the values are in the order the exchange function expects
-		int i1 = (ri <  pairI) ? ri : pairI;
-		int j1 = (rj <  pairJ) ? rj : pairJ;
-		int i2 = (ri >= pairI) ? ri : pairI;
-		int j2 = (rj >= pairJ) ? rj : pairJ;
+		int i1 = std::min(ri, pairI);
+		int j1 = std::min(rj, pairJ);
+		int i2 = std::max(ri, pairI);
+		int j2 = std::max(rj, pairJ);
 		spin_exchange(config, i1, j1, i2, j2, ctx);
 		break;
 	}
@@ -188,10 +199,8 @@ void dynamics(Ising* config, Context* ctx) {
  * @param j The random column index to check.
  * @param specs The system settings.
  */
-void spin_flip(Ising* config, int i, int j, Context* ctx) {
-	Ising c = *config;
+void spin_flip(Ising& c, int i, int j, Context* ctx) {
 	bool sigma = c(i  , j  ); // We check if this spin should be flip
-
 	bool north = c(i-1, j  );
 	bool east  = c(i  , j+1);
 	bool south = c(i+1, j  );
@@ -201,7 +210,7 @@ void spin_flip(Ising* config, int i, int j, Context* ctx) {
 	double s = bool2spin(sigma);
 
 	// The change in energy, if the spin is flipped
-	double dE = 2 * Ising::getField() * s + 2 * Ising::getNNCoup() * s  * S;
+	double dE = 2 * Ising::getField() * s + 2 * Ising::getNNCoup() * s * S;
 	if (acceptance(dE, c.getTemp(), ctx))
 		c.flip(i, j);
 }
@@ -210,15 +219,18 @@ void spin_flip(Ising* config, int i, int j, Context* ctx) {
  * @brief Perform the spin-exchange dynamics algorithm.
  * The function assumes `i1 <= i2` and `j1 <= j2`.
  * 
- * @param config The Ising model configuration.
+ * @param c The Ising model configuration.
  * @param i1 The random row index of spin to exchange.
  * @param j1 The random column index of spin to exchange.
  * @param i2 The random row index of spin to exchange with.
  * @param j2 The random column index of spin to exchange with.
  */
-void spin_exchange(Ising *config, int i1, int j1, int i2, int j2, Context* ctx) {
-	double S1, S2;
-	Ising c = *config;
+void spin_exchange(Ising& c, int i1, int j1, int i2, int j2, Context* ctx) {
+	uint S1, S2;
+	uint sig1 = c(i1, j1);
+	uint sig2 = c(i2, j2);
+	if (sig1 == sig2) // the spins are the same, no need to do anything
+		return;
 
 	/*
 		The spins marked by "x" are the ones which are to be exchanged. The change
@@ -233,11 +245,8 @@ void spin_exchange(Ising *config, int i1, int j1, int i2, int j2, Context* ctx) 
 				*	x	:	x	*
 				.	*	:	*	.
 		*/
-		int s;
-		s = c(i1-1, j1) + c(i1+1, j1) + c(i1, j1-1);
-		S1 = bool2spin(s, 3);
-		s = c(i2-1, j2) + c(i2+1, j2) + c(i2, j2+1);
-		S2 = bool2spin(s, 3);
+		S1 = c(i1-1, j1) + c(i1+1, j1) + c(i1, j1-1);
+		S2 = c(i2-1, j2) + c(i2+1, j2) + c(i2, j2+1);
 	} else if (j1 == j2) {		// The pair is in the same column
 		/*
 				.	*	.
@@ -246,18 +255,14 @@ void spin_exchange(Ising *config, int i1, int j1, int i2, int j2, Context* ctx) 
 				*	x	*
 				.	*	.
 		*/
-		int s;
-		s = c(i1, j1-1) + c(i1, j1+1) + c(i1-1, j1);
-		S1 = bool2spin(s, 3);
-		s = c(i2, j2-1) + c(i2, j2+1) + c(i2+1, j2);
-		S2 = bool2spin(s, 3);
+		S1 = c(i1, j1-1) + c(i1, j1+1) + c(i1-1, j1);
+		S2 = c(i2, j2-1) + c(i2, j2+1) + c(i2+1, j2);
 	} else {
 		std::cout << "Unexpected order of indices." << std::endl;
 		return;
 	}
-	double Si = bool2spin(c(i1, j1)) * S1 + bool2spin(c(i2, j2)) * S2; // The initial value
-	double Sf = bool2spin(c(i1, j1)) * S2 + bool2spin(c(i2, j2)) * S1; // The "exchanged" value
-	double dE = Ising::getNNCoup() * (Sf - Si);
+	int dSig = sig1? S1 - S2 : S2 - S1;
+	double dE = Ising::getNNCoup() * dSig * 4.;
 	if (acceptance(dE, c.getTemp(), ctx))
-		c.exchange(i1, j1, i1, j2);
+		c.exchange(i1, j1, i2, j2);
 }

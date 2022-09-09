@@ -3,7 +3,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "../defaults.hpp"
+#include "defaults.hpp"
 #include "../Ising.hpp"
 
 #define snaps "snaps/"

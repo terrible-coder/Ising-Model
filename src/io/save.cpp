@@ -22,20 +22,16 @@ void open(Ising* config, int en, std::string parentDir) {
 }
 
 bool snap(Ising* config) {
-	int k = 0;
-	std::uint64_t number;
-	for (int i = 0; i < config->getHeight(); i++) {
-		for (int j = 0; j < config->getWidth(); j++) {
-			number = (number << 1) | (*config)(i, j);
-			k++;
-			if (k % BUFFER == 0) {
-				evolution.write((char*) &number, sizeof(std::uint64_t));
-				number = 0;
-			}
-		}
+	uint i;
+	uWord_t* rawSpins = config->getRaw();
+	uWord_t number;
+	for(i = 0; i < config->getSize() / WORD_SIZE; i++) {
+		number = rawSpins[i];
+		if (!evolution.write((char*) &number, sizeof(uWord_t)))
+			break;
 	}
-	if (k != config->getWidth() * config->getHeight()) {
-		std::cout << "something is not write" << std::endl;
+	if (i < config->getSize() / WORD_SIZE) {
+		std::cout << "Something went wrong in writing." << std::endl;
 		return false;
 	}
 	return true;

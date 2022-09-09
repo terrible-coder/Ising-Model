@@ -1,9 +1,9 @@
 SIM_BIN=Ising_sim
 GPH_BIN=Ising_draw
 
-CODE_SIM=./src ./src/Ising ./src/io ./apps/simulation
+CODE_SIM=./src ./src/libsrc ./src/Ising ./src/io ./apps/simulation
 CODE_GPH=./apps/analysis
-INCDIRS=./include ./include/*
+INCDIRS=./include ./include/* ./lib
 OBJDIR=./bin
 
 CC=c++
@@ -21,13 +21,13 @@ SOBJECTS=$(patsubst %.cpp,$(OBJDIR)/%.o,$(SCFILES))
 SDEPFILES=$(patsubst %.cpp,$(OBJDIR)/%.d,$(SCFILES))
 
 sim: $(SOBJECTS)
-	$(CC) $^ $(SLIBS) -o $(SIM_BIN)
+	$(CC) $^ $(SLIBS) -O3 -o $(SIM_BIN)
 
 draw: $(GOBJECTS)
 	$(CC) $^ $(GLIBS) -o $(GPH_BIN)
 
 $(OBJDIR)/%.o: %.cpp
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) -c -O3 -o $@ $<
 
 -include $(DEPFILES)
 

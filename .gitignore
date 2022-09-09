@@ -1,4 +1,5 @@
 # files
+input.txt
 Ising_*
 .vscode/*.log
 null.d

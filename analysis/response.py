@@ -9,7 +9,7 @@ EVERY = 50
 SKIP = 5
 
 def readData(temperature:float, size:int, ensemble:int, qty):
-	datafile = f"../data/data{size}x{size}en{ensemble}/Temp{temperature}00000/{qty}.csv"
+	datafile = f"../data/exchange{size}x{size}en{ensemble}/Temp{temperature}00000/{qty}.csv"
 	data:pd.DataFrame = pd.read_csv(datafile, header=None, usecols=dataIdxRange)
 	return data
 
@@ -21,8 +21,9 @@ def calcMean(data:pd.DataFrame):
 
 SZ = 64
 EN = 25
-temperature = np.arange(1.0, 7.0, 0.2)
-Tc = 1 / np.log(1 + np.sqrt(2))
+q = 4
+temperature = np.arange(1.0, 5.0, 0.2)
+Tc = q / np.log(1 + np.sqrt(2))
 
 avgE = []
 Cv = []
@@ -30,11 +31,13 @@ tempStr = [
 	"1.0", "1.2", "1.4", "1.6", "1.8",
 	"2.0", "2.2", "2.4", "2.6", "2.8",
 	"3.0", "3.2", "3.4", "3.6", "3.8",
-	"4.0", "4.2", "4.4", "4.6", "4.8",
+	"4.0", "4.2", "4.4", "4.6", "4.8"
+]
+""",
 	"5.0", "5.2", "5.4", "5.6", "5.8",
 	"6.0", "6.2", "6.4", "6.6", "6.8",
-]
-print(tempStr)
+]"""
+print(Tc)
 
 for t in tempStr:
 	eData = readData(float(t), SZ, EN, "energy")
@@ -42,7 +45,6 @@ for t in tempStr:
 	avgE.append(U)
 	Cv.append(stU)
 avgE = np.array(avgE)
-temperature /= 4
 
 plt.figure()
 plt.plot(temperature, avgE, "rx")
