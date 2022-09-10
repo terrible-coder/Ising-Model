@@ -52,6 +52,10 @@ double Ising::getTemp() {
 	return this->T;
 }
 
+uWord_t* Ising::getInit() {
+	return this->initial;
+}
+
 uWord_t* Ising::getRaw() {
 	return this->lattice;
 }

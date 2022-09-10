@@ -2,7 +2,7 @@
 
 uint trimTrailingZeros(uint* n) {
 	uint k = 6; // This is hard coded for now, needs to be changed later
-	while (*n & 1 == 0) {
+	while ((*n & 1) == 0) {
 		*n >>= 1;
 		k--;
 	}
@@ -28,7 +28,7 @@ uint randIntP(uint p, uint n, std::uniform_int_distribution<uWord_t>& dist, std:
 	for (uint j = 1; j < n; j++) {
 		p = p >> 1;
 		xk = dist(rng);
-		if (p & 1 == 1)
+		if ((p & 1) == 1)
 			yk = yk | xk;
 		else
 		 yk = yk & xk;

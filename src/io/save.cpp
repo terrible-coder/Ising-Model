@@ -40,3 +40,30 @@ bool snap(Ising* config) {
 void close() {
 	evolution.close();
 }
+
+bool saveInit(Ising* config, std::string parentDir) {
+	std::string T = "Temp" + std::to_string(config->getTemp()) + "/";
+	std::string path = parentDir + T + "initial" + BIN_EXT;
+	std::ofstream initial(path, std::ios::binary);
+	if (!initial) {
+		std::cout << "Could not open file: " + path << std::endl;
+		return false;
+	}
+	std::uint16_t w = config->getWidth();
+	std::uint16_t h = config->getHeight();
+	initial.write((char*) &w, sizeof(std::uint16_t));
+	initial.write((char*) &h, sizeof(std::uint16_t));
+	uint i;
+	uWord_t* rawSpins = config->getInit();
+	uWord_t number;
+	for(i = 0; i < config->getSize() / WORD_SIZE; i++) {
+		number = rawSpins[i];
+		if (!initial.write((char*) &number, sizeof(uWord_t)))
+			break;
+	}
+	if (i < config->getSize() / WORD_SIZE) {
+		std::cout << "Something went wrong in writing." << std::endl;
+		return false;
+	}
+	return true;
+}

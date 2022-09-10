@@ -42,6 +42,7 @@ public:
 	std::uint16_t getWidth();
 	std::uint16_t getSize();
 	double getTemp();
+	uWord_t* getInit();
 	uWord_t* getRaw();
 	void __leftShift(uWord_t* shifted);
 	void __downShift(uWord_t* shifted);
