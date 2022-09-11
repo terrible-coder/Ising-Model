@@ -3,8 +3,10 @@ input.txt
 Ising_*
 .vscode/*.log
 null.d
+lib*.so*
 
 # folders
 data/
 graphs/
-bin/*
+include/lib/
+**/bin/*
