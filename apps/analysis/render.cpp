@@ -166,6 +166,7 @@ int main(int argc, char** argv) {
 	std::string exT;
 	std::string member;
 	std::string dispMode = "draw";
+	std::string source = "en";
 	if (argc < 2) {
 		std::cout << "No file given." << std::endl;
 		return EXIT_FAILURE;
@@ -184,6 +185,60 @@ int main(int argc, char** argv) {
 			std::cout << "Unknown mode." << std::endl;
 		} else
 		mode = dispMode == "draw";
+		if (argc > 4) {
+			source = argv[4];
+			if (source != "en" && source != "ini") {
+				std::cout << "Unknown source." << std::endl;
+				source = "ini";
+			}
+		}
+	}
+
+	if (source == "ini") {
+		std::string path = exT + "initial" + BIN_EXT;
+		std::ifstream iniCon(path);
+		std::ofstream frame(exT + "initial" + IMG_EXT);
+		std::uint16_t Lx, Ly;
+		iniCon.read((char*) &Lx, sizeof(std::uint16_t));
+		iniCon.read((char*) &Ly, sizeof(std::uint16_t));
+		float scale = (float)sysWidth / Lx;
+
+		sf::Text statusBar;
+		try { getStatusBar(&statusBar, 5, sysHeight); }
+		catch (std::exception) {
+			std::cout << "Something went wrong." << std::endl;
+			return EXIT_FAILURE;
+		}
+		statusBar.setString("Initial condition "
+												+ std::to_string(Lx) + "x" + std::to_string(Ly)
+												+ "\tTemperature: " + std::to_string(getTemp(exT)));
+
+		int wWidth  = sysWidth;
+		int wHeight = sysHeight + STAT_BAR_H;
+		sf::RenderTexture texture;
+		texture.create(wWidth, wHeight);
+		texture.clear();
+
+		uWord_t* lattice = new uWord_t[Lx*Ly * sizeof(uWord_t)];
+		if (!readNext(iniCon, lattice, Lx, Ly)) {
+			std::cout << "Could not read initial frame." << std::endl;
+			return EXIT_FAILURE;
+		}
+
+		for (uint y = 0; y < Ly; y++) {
+			for (uint x = 0; x < Lx; x++) {
+				sf::RectangleShape sq(sf::Vector2f(scale, scale));
+				uint idx = (y * Lx + x);
+				uWord_t number = lattice[idx / WORD_SIZE];
+				bool spin = (number >> (WORD_SIZE - (idx%WORD_SIZE) - 1)) & 1;
+				if ( !spin ) continue;
+				sq.setFillColor(sf::Color::White);
+				sq.setPosition(x*scale, y*scale);
+				texture.draw(sq);
+			}
+		}
+		texture.getTexture().copyToImage().saveToFile(exT + "initial" + IMG_EXT);
+		return EXIT_SUCCESS;
 	}
 
 	std::string snapsPath = exT + "snaps/En" + member + BIN_EXT;
