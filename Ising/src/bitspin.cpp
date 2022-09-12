@@ -42,11 +42,16 @@ uint trimTrailingZeros(uint* n) {
 	return k;
 }
 
-uint randIntP(uint density, uint seed) {
+uint _last_seed = -1;
+uWord_t randIntP(uint density, uint seed) {
 	// we are working with fraction (in binary), trailing zeroes don't matter
 	uint n = trimTrailingZeros(&density);
-	std::default_random_engine rng(seed);
-	std::uniform_int_distribution<uWord_t> dist(0, ~((uWord_t)0));
+	static std::default_random_engine rng;
+	if (seed != _last_seed) {
+		rng.seed(seed);
+		_last_seed = seed;
+	}
+	static std::uniform_int_distribution<uWord_t> dist(0, ~((uWord_t)0));
 
 	/* Assumption: In a random number each bit is set (1) with probability 0.5
 	 * X1 AND X2 : each bit is set with probability p1.p2

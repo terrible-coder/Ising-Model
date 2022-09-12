@@ -313,7 +313,7 @@ int main(int argc, char** argv) {
 	}
 
 	int t = 0;
-	while (true) { // (mode && window.isOpen()) || !mode
+	while ((mode && window.isOpen()) || !mode) { 
 		if (mode) handleEvents(window);
 		if (pause) continue;
 		if (!readNext(snap, lattice, Lx, Ly)) {

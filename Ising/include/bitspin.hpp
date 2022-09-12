@@ -61,4 +61,4 @@ void flipBit(uWord_t* number, uint a);
  * @param seed The seed value for the random number generator.
  * @return uint 
  */
-uint randIntP(uint density, uint seed);
+uWord_t randIntP(uint density, uint seed);
