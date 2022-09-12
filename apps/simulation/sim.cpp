@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
 		openLogger(parentDir, T);
 		std::cout << SEPARATOR;
 
-		Ising* config = new Ising(CTX.Lx, CTX.Ly, T, BoundaryCondition::PERIODIC);
+		Ising* config = new Ising(CTX.Lx, CTX.Ly, 32u, T, BoundaryCondition::PERIODIC);
 		config->generate();
 
 		for (int ensemble = 0; ensemble < CTX.ENSEMBLE_SIZE; ensemble++) {

@@ -4,7 +4,7 @@
 #include <fstream>
 
 #include "defaults.hpp"
-#include "../Ising.hpp"
+#include "Ising.hpp"
 
 #define snaps "snaps/"
 #define frames "frames/"
