@@ -70,6 +70,7 @@ int main(int argc, char** argv) {
 
 		Ising* config = new Ising(CTX.Lx, CTX.Ly, 32u, T, BoundaryCondition::PERIODIC);
 		config->generate();
+		saveInit(config, parentDir);
 
 		for (int ensemble = 0; ensemble < CTX.ENSEMBLE_SIZE; ensemble++) {
 			// std::cout << "Ensemble member " << ensemble+1 << "\n";
