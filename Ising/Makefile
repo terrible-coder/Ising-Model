@@ -4,7 +4,7 @@ OBJ_DIR=./bin
 
 CC=c++
 DEPFLAGS=-MD -MP
-CFLAGS=-Wall -std=c++17 $(foreach D,$(INCDIR),-I$(D)) $(DEPFLAGS)
+CPPFLAGS=-Wall -std=c++17 $(foreach D,$(INCDIR),-I$(D)) $(DEPFLAGS)
 LIBS=
 CPPFILES=$(foreach D,$(CODE_DIR),$(wildcard $(D)/*.cpp))
 OBJFILES=$(subst ./src/,,$(patsubst %.cpp,$(OBJ_DIR)/%.o,$(CPPFILES)))
@@ -42,7 +42,7 @@ $(OG_NAME): $(OBJFILES)
 
 $(OBJ_DIR)/%.o: src/%.cpp
 	@echo -n "Compiling \033[0;36m$<\033[0m"
-	@$(CC) $(CFLAGS) -fpic -c -O3 -o $@ $<
+	@$(CC) $(CPPFLAGS) -fpic -c -O3 -o $@ $<
 	@echo "\t\033[1;32m√\033[0m"
 
 copy:

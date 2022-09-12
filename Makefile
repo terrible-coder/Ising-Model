@@ -50,7 +50,8 @@ bin/./apps/analysis/render.o: ./apps/analysis/render.cpp
 clean:
 	@rm $(SOBJECTS) $(GOBJECTS) $(SDEPFILES) $(GDEPFILES) $(SIM_BIN) $(GPH_BIN) null.d .vscode/*.log
 
-env:
-	@echo "Setting environment variable"
-	LD_LIBRARY_PATH=./lib;
-	export LD_LIBRARY_PATH;
+# This does not work, export the variable in the shell separately
+# env:
+# 	@echo "Setting environment variable"
+# 	export LD_LIBRARY_PATH=$(value LD_LIBRARY_PATH):./lib;
+# 	@echo "$(value LD_LIBRARY_PATH)"

@@ -1,11 +1,8 @@
 /**
- * @file Ising_acc.cpp
- * @author your name (you@domain.com)
+ * @file accessors.cpp
+ * @author terrible-coder (github.com/terrible-coder)
  * @brief This file contains the getters and setters for the Ising class.
- * @version 0.1
  * @date 2022-07-24
- * 
- * @copyright Copyright (c) 2022
  * 
  */
 
@@ -60,17 +57,6 @@ uWord_t* Ising::getRaw() {
 	return this->lattice;
 }
 
-/**
- * @brief Lattice point accessor. The index is of the site we "want" to look at.
- * The function takes care of the appropriate boundary conditions and returns
- * the spin value at the actual index in the grid. The function can return `NULL`
- * if the spin is supposed to be interpreted as absent at `(i, j)`.
- * 
- * @param i The row index we "want" to look at.
- * @param j The column index we "want" to look at.
- * @return true 
- * @return false 
- */
 bool Ising::operator() (uint i, uint j) {
 	int ii, jj;
 	imposeBC(this->Lx, this-> Ly, i, j, &ii, &jj, this->boundary);

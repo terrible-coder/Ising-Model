@@ -1,41 +1,5 @@
 #include "Ising.hpp"
 
-uint trimTrailingZeros(uint* n) {
-	uint k = 6; // This is hard coded for now, needs to be changed later
-	while ((*n & 1) == 0) {
-		*n >>= 1;
-		k--;
-	}
-	return k;
-}
-
-/**
- * @brief Generate a random number (bit string). The probability of a bit being
- * `1` is given by p/2^(n).
- * 
- * This is the finite digit algorithm as described in the paper by
- * Watanabe et. al., J. Phys. Soc. Jpn., August 15, 2019.
- * 
- * @param p 
- * @param n 
- * @param dist The distribution to choose random numbers from.
- * @param rng The random number generator engine.
- * @return uint 
- */
-uint randIntP(uint p, uint n, std::uniform_int_distribution<uWord_t>& dist, std::default_random_engine& rng) {
-	uWord_t yk = dist(rng);
-	uWord_t xk;
-	for (uint j = 1; j < n; j++) {
-		p = p >> 1;
-		xk = dist(rng);
-		if ((p & 1) == 1)
-			yk = yk | xk;
-		else
-		 yk = yk & xk;
-	}
-	return yk;
-}
-
 Ising::Ising(uint w, uint h, uint conc,
 						 double temperature,
 						 BoundaryCondition b) {
@@ -79,14 +43,9 @@ void Ising::generate() {
 	// Tie the seed value to the size of the lattice. This ensures the same
 	// initial lattice for every type of experiment.
 	uint seed = this->N + (uint)(this->T * 1000. + 0.5);
-	std::default_random_engine RNG(seed);
-	std::uniform_int_distribution<uWord_t> dist(0, ~((uWord_t)0));
-
-	uint p = this->conc;
-	uint n = trimTrailingZeros(&p);
 
 	for (uint i = 0; i < this->rawN; i++)
-		this->initial[i] = randIntP(p, n, dist, RNG);
+		this->initial[i] = randIntP(this->conc, seed);
 
 	this->lattice = new uWord_t[this->rawN];
 }
