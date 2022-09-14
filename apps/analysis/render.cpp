@@ -131,6 +131,37 @@ std::string frameName(int n, const int maxLen) {
 	return fno;
 }
 
+void drawFrame(uWord_t* grid, std::uint16_t Lx, std::uint16_t Ly, float scale, sf::RenderTexture& target) {
+	for (uint y = 0; y < Ly; y++) {
+		for (uint x = 0; x < Lx; x++) {
+			sf::RectangleShape sq(sf::Vector2f(scale, scale));
+			uint idx = y * Lx + x;
+			uWord_t number = grid[idx / WORD_SIZE];
+			bool spin = (number >> (WORD_SIZE - (idx%WORD_SIZE) - 1)) & 1;
+			if ( !spin ) continue;
+			sq.setFillColor(sf::Color::White);
+			sq.setOutlineThickness(0);
+			sq.setPosition(x*scale, y*scale);
+			target.draw(sq);
+		}
+	}
+}
+void drawFrame(uWord_t* grid, std::uint16_t Lx, std::uint16_t Ly, float scale, sf::RenderWindow& target) {
+	for (uint y = 0; y < Ly; y++) {
+		for (uint x = 0; x < Lx; x++) {
+			sf::RectangleShape sq(sf::Vector2f(scale, scale));
+			uint idx = y * Lx + x;
+			uWord_t number = grid[idx / WORD_SIZE];
+			bool spin = (number >> (WORD_SIZE - (idx%WORD_SIZE) - 1)) & 1;
+			if ( !spin ) continue;
+			sq.setFillColor(sf::Color::White);
+			sq.setOutlineThickness(0);
+			sq.setPosition(x*scale, y*scale);
+			target.draw(sq);
+		}
+	}
+}
+
 /**
  * @brief Print the progress of a process. The function has been taken from
  * https://gist.github.com/juliusikkala/946f505656ed3c35f6c2741f29f26080
@@ -166,6 +197,7 @@ int main(int argc, char** argv) {
 	std::string exT;
 	std::string member;
 	std::string dispMode = "draw";
+	std::string source = "en";
 	if (argc < 2) {
 		std::cout << "No file given." << std::endl;
 		return EXIT_FAILURE;
@@ -184,6 +216,52 @@ int main(int argc, char** argv) {
 			std::cout << "Unknown mode." << std::endl;
 		} else
 		mode = dispMode == "draw";
+		if (argc > 4) {
+			source = argv[4];
+			if (source != "en" && source != "ini") {
+				std::cout << "Unknown source." << std::endl;
+				source = "ini";
+			}
+		}
+	}
+
+	if (source == "ini") {
+		std::string path = exT + "initial" + BIN_EXT;
+		std::ifstream iniCon(path);
+		std::ofstream frame(exT + "initial" + IMG_EXT);
+		std::uint16_t Lx, Ly;
+		iniCon.read((char*) &Lx, sizeof(std::uint16_t));
+		iniCon.read((char*) &Ly, sizeof(std::uint16_t));
+		float scale = (float)sysWidth / Lx;
+
+		sf::Text statusBar;
+		try { getStatusBar(&statusBar, 5, sysHeight); }
+		catch (std::exception) {
+			std::cout << "Something went wrong." << std::endl;
+			return EXIT_FAILURE;
+		}
+		uWord_t* lattice = new uWord_t[Lx*Ly / sizeof(uWord_t)];
+		if (!readNext(iniCon, lattice, Lx, Ly)) {
+			std::cout << "Could not read initial frame." << std::endl;
+			return EXIT_FAILURE;
+		}
+
+		statusBar.setString("Initial condition "
+												+ std::to_string(Lx) + "x" + std::to_string(Ly)
+												+ "\tTemperature: " + std::to_string(getTemp(exT)));
+
+		int wWidth  = sysWidth;
+		int wHeight = sysHeight + STAT_BAR_H;
+		sf::RenderTexture texture;
+		texture.create(wWidth, wHeight);
+		texture.clear();
+
+		drawFrame(lattice, Lx, Ly, scale, texture);
+		texture.draw(statusBar);
+		texture.display();
+		texture.getTexture().copyToImage().saveToFile(exT + "initial" + IMG_EXT);
+		delete lattice;
+		return EXIT_SUCCESS;
 	}
 
 	std::string snapsPath = exT + "snaps/En" + member + BIN_EXT;
@@ -222,7 +300,7 @@ int main(int argc, char** argv) {
 	}
 
 	std::cout << "Generating lattice..." << std::endl;
-	uWord_t* lattice = (uWord_t*) malloc(Lx*Ly * sizeof(uWord_t));
+	uWord_t* lattice = new uWord_t[Lx*Ly / sizeof(uWord_t)];
 
 	sf::RenderWindow window;
 	sf::RenderTexture texture;
@@ -235,44 +313,32 @@ int main(int argc, char** argv) {
 	}
 
 	int t = 0;
-	while ((mode && window.isOpen()) || !mode) {
+	while ((mode && window.isOpen()) || !mode) { 
 		if (mode) handleEvents(window);
 		if (pause) continue;
-		if (mode) window.clear();
-		else texture.clear();
-
 		if (!readNext(snap, lattice, Lx, Ly)) {
 			if (t == RUN) break;
 			std::cout << "Terminating at t = " << t << std::endl;
 			return EXIT_FAILURE;
 		}
-		for (uint y = 0; y < Ly; y++) {
-			for (uint x = 0; x < Lx; x++) {
-				sf::RectangleShape sq(sf::Vector2f(scale, scale));
-				uint idx = (y * Lx + x);
-				uWord_t number = lattice[idx / WORD_SIZE];
-				bool spin = (number >> (WORD_SIZE - (idx%WORD_SIZE) - 1)) & 1;
-				if ( !spin ) continue;
-				sq.setFillColor(sf::Color::White);
-				sq.setPosition(x*scale, y*scale);
-				if (mode) window.draw(sq);
-				else texture.draw(sq);
-			}
-		}
+
 		status.setString(getStatus(++t, member, temp));
 		if (mode) {
+			window.clear();
+			drawFrame(lattice, Lx, Ly, scale, window);
 			window.draw(status);
 			window.display();
 		} else {
+			texture.clear();
+			drawFrame(lattice, Lx, Ly, scale, texture);
 			texture.draw(status);
-			texture.display();
-			sf::Texture img = texture.getTexture();
-			img.copyToImage().saveToFile(framePath+frameName(t, 4)+IMG_EXT);
+			texture.getTexture().copyToImage().saveToFile(framePath+frameName(t, 4)+IMG_EXT);
 		}
 		print_progress(t, RUN);
 	}
 	std::cout << "\nReading done. Closing file." << std::endl;
 	snap.close();
 
+	delete lattice;
 	return EXIT_SUCCESS;
 }

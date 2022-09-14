@@ -1,11 +1,12 @@
 #include "Ising.hpp"
 
-Ising::Ising(uint w, uint h,
+Ising::Ising(uint w, uint h, uint conc,
 						 double temperature,
 						 BoundaryCondition b) {
 	this->Lx = w;
 	this->Ly = h;
 	this->N  = w * h;
+	this->conc = conc;
 	this->rawX = w / WORD_SIZE;
 	this->rawY = h;
 	this->rawN = this->N / WORD_SIZE;
@@ -42,11 +43,9 @@ void Ising::generate() {
 	// Tie the seed value to the size of the lattice. This ensures the same
 	// initial lattice for every type of experiment.
 	uint seed = this->N + (uint)(this->T * 1000. + 0.5);
-	std::default_random_engine RNG(seed);
-	std::uniform_int_distribution<uWord_t> dist(0, ~((uWord_t)0));
 
-	for (int i = 0; i < this->rawN; i++)
-		this->initial[i] = dist(RNG);
+	for (uint i = 0; i < this->rawN; i++)
+		this->initial[i] = randIntP(this->conc, seed);
 
 	this->lattice = new uWord_t[this->rawN];
 }

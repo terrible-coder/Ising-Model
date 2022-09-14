@@ -1,24 +1,10 @@
 #include "Ising.hpp"
 
-/**
- * @brief Flip the spin at the given index.
- * 
- * @param i The row index.
- * @param j The column index.
- */
 void Ising::flip(uint i, uint j) {
 	uint idx = idx2to1(i, j, this->Lx);
 	flipBit(&(this->lattice[idx / WORD_SIZE]), idx % WORD_SIZE);
 }
 
-/**
- * @brief Exchange the spins at the given indices.
- * 
- * @param i1 Row index 1.
- * @param j1 Column index 1.
- * @param i2 Row index 2.
- * @param j2 Column index 2.
- */
 void Ising::exchange(uint i1, uint j1, uint i2, uint j2) {
 	int i1a, j1a;
 	int i2a, j2a;
@@ -33,11 +19,6 @@ void Ising::exchange(uint i1, uint j1, uint i2, uint j2) {
 	flipBit(n2, idx2 % WORD_SIZE); // two spins are not the same
 }
 
-/**
- * @brief Computes the Ising hamiltonian for a given configuration.
- * 
- * @return double 
- */
 double Ising::Hamiltonian() {
 	double E = 0.;
 	// Single spin terms
@@ -47,6 +28,11 @@ double Ising::Hamiltonian() {
 	uint SS = 0;
 	uWord_t* shift = new uWord_t[this->rawN];
 
+	/* Multiplication of spin values (+1 or -1) can be mapped directly to
+	 * multiplication of boolean values.
+	 * A_spin * B_spin \equiv A XNOR B
+	 * The actual value can be achieved using the very useful bool2spin.
+	 */
 	this->__leftShift(shift); // east
 	for (int i = 0; i < this->rawN; i++)
 		SS += std::__popcount(~(this->lattice[i] ^ shift[i]));
@@ -61,11 +47,6 @@ double Ising::Hamiltonian() {
 	return E;
 }
 
-/**
- * @brief Calculate the magnetisation of the configuration.
- * 
- * @return double 
- */
 double Ising::Magnetisation() {
 	uint M = 0;
 	for (std::uint16_t i = 0; i < this->rawN; i++)
