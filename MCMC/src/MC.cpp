@@ -131,22 +131,21 @@ void dynamics(Ising& config, Context* ctx) {
 		// choose the pair to exchange with
 		bool success = false;
 		int pairI, pairJ;
-		while (!success) {
-			getRandomIndices(config.getWidth(), config.getHeight(), &pairI, &pairJ);
-			// std::cout << "Attempt " << ri << ", " << rj << " ";
-			// std::cout << "and " << pairI << ", " << pairJ;
-			int i1 = std::min(ri, pairI);
-			int j1 = std::min(rj, pairJ);
-			int i2 = std::max(ri, pairI);
-			int j2 = std::max(rj, pairJ);
-			spin_exchange(config, i1, j1, i2, j2, ctx, &success);
-			// if (success) {
-			// 	std::cout << "Attempt " << ri << ", " << rj << " ";
-			// 	std::cout << "and " << pairI << ", " << pairJ;
-			// 	std::cout << "\taccepted\n";
-			// }
-			// else std::cout << std::endl;
+		bool flag = true;
+		while (flag) {
+			bool sigma = config(ri  ,rj  );
+			if (config(ri-1, rj  ) ^ sigma) { pairI = ri-1; pairJ = rj  ; flag=false; } else
+			if (config(ri  , rj+1) ^ sigma) { pairI = ri  ; pairJ = rj+1; flag=false; } else
+			if (config(ri+1, rj  ) ^ sigma) { pairI = ri+1; pairJ = rj  ; flag=false; } else
+			if (config(ri  , rj-1) ^ sigma) { pairI = ri  ; pairJ = rj-1; flag=false; }
+			else
+				getRandomIndices(config.getWidth(), config.getHeight(), &ri, &rj);
 		}
+		int i1 = std::min(ri, pairI);
+		int j1 = std::min(rj, pairJ);
+		int i2 = std::max(ri, pairI);
+		int j2 = std::max(rj, pairJ);
+		spin_exchange(config, i1, j1, i2, j2, ctx, &success);
 		break;
 	}
 }
