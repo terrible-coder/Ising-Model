@@ -28,7 +28,7 @@ struct PotEx {
  * @param ctx 
  * @return struct PotEx* 
  */
-PotEx* createPotEx(Ising& config, int i1, int j1, int i2, int j2, Context* ctx);
+PotEx createPotEx(Ising& config, int i1, int j1, int i2, int j2, Context* ctx);
 
 /**
  * @brief Calculates the change in energy (in units of J) for flipping of

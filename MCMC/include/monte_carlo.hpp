@@ -1,3 +1,4 @@
+#include <cmath>
 #include "Ising.hpp"
 #include "context.hpp"
 #include "transition.hpp"

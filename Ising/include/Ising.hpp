@@ -74,6 +74,14 @@ public:
 	 */
 	bool operator() (uint i, uint j);
 
+	/**
+	 * @brief Convert given lattice coordinates to equivalent positive coordinates.
+	 *
+	 * @param i
+	 * @param j
+	 */
+	void equiv(int* i, int* j);
+
 	std::uint16_t getHeight();
 	std::uint16_t getWidth();
 	std::uint16_t getSize();

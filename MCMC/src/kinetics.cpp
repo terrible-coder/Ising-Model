@@ -44,21 +44,25 @@ void createList(Ising& config, Context* ctx) {
 	for (uint i = 0; i < config.getHeight(); i++) {
 		for (uint j = 0; j < config.getWidth(); j++) {
 			bool sigma = config(i, j);
-			if (sigma != config(i-1, j))	// north
-				exchanges.push_back(*createPotEx(config, i  , j  , i-1, j  , ctx));
-			if (sigma != config(i, j+1))	// east
-				exchanges.push_back(*createPotEx(config, i  , j  , i  , j+1, ctx));
+			if (sigma != config(i-1, j  ))	// north
+				exchanges.push_back(createPotEx(config, i-1, j  , i  , j  , ctx));
+			if (sigma != config(i  , j+1))	// east
+				exchanges.push_back(createPotEx(config, i  , j  , i  , j+1, ctx));
 		}
 	}
+}
+
+double picking(double dE, double a) {
+	return exp(-a * dE);
 }
 
 void normalise(Ising& config, Context* ctx) {
 	std::list<PotEx>::iterator it;
 	double probSum = 0.;
 	for (it = exchanges.begin(); it != exchanges.end(); it++)
-		probSum += it->transition;
+		probSum += picking(it->delE, 1.);
 	for (it = exchanges.begin(); it != exchanges.end(); it++)
-		it->normP = it->transition / probSum;
+		it->normP = (picking(it->delE, 1.)) / probSum;
 }
 
 static bool _firstEx = true;
@@ -71,29 +75,29 @@ void spin_exchange(Ising& c, Context* ctx) {
 	// sample i1, j1 and i2, j2 from the list
 	exchanges.sort(compareExchange);
 	normalise(c, ctx);
-	const double p = rProbability();
-	double sum = 0.;
+	double p = rProbability();
 	std::list<PotEx>::iterator it;
 	for (it = exchanges.begin(); it != exchanges.end(); it++) {
-		sum += it->normP;
-		if (p < sum) break;
+		p -= it->normP;
+		if (p < 0) break;
 	}
-	double minE = 100.;
-	PotEx minPE;
-	for (auto ptr = exchanges.begin(); ptr != exchanges.end(); ptr++) {
-		if (ptr->delE < 0) {
-			std::cout << ptr->delE << "\t" << ptr->normP << "\t";
-			std::cout << ptr->i1 << ", " << ptr->j1 << "\t\t";
-			std::cout << ptr->i2 << ", " << ptr->j2 << std::endl;
-		}
-		if (minE > ptr->delE) {
-			minE = ptr->delE;
-			minPE = *ptr;
-		}
-	}
-	std::cout << "size: " << exchanges.size() << std::endl;
-	std::cout << it->delE << "\t" << minPE.delE << "\t\t";
-	std::cout << it->normP << "\t" << minPE.normP << std::endl;
+	// for (auto ptr = exchanges.begin(); ptr != exchanges.end(); ptr++) {
+	// 	if (ptr->delE < 0) {
+	// 		std::cout << ptr->delE << "\t" << ptr->normP << "\t";
+	// 		std::cout << ptr->i1 << ", " << ptr->j1 << "\t\t";
+	// 		std::cout << ptr->i2 << ", " << ptr->j2 << "\t";
+	// 		std::cout << c(ptr->i1, ptr->j1) << " " << c(ptr->i2, ptr->j2) << std::endl;
+	// 	}
+	// 	if (c(ptr->i1, ptr->j1) == c(ptr->i2, ptr->j2)) {
+	// 		std::cout << "WHATTTT" << std::endl;
+	// 		break;
+	// 	}
+	// }
+	// std::cout << "Exchanged: " << it->i1 << ", " << it->j1 << "\t";
+	// std::cout << it->i2 << ", " << it->j2 << std::endl;
+	std::cout << "size: " << exchanges.size() << "\t" << exchanges.begin()->delE << std::endl;
+	// std::cout << it->delE << "\t" << exchanges.begin()->delE << "\t\t";
+	// std::cout << it->normP << "\t" << exchanges.begin()->normP << std::endl;
 	int i1 = it->i1, j1 = it->j1;
 	int i2 = it->i2, j2 = it->j2;
 	c.exchange(i1, j1, i2, j2);
@@ -107,34 +111,34 @@ void spin_exchange(Ising& c, Context* ctx) {
 	});
 
 	// scan the rectangle of neighbours to construct the new exchanges
-	exchanges.push_back(*createPotEx(c, i1, j1, i2, j2, ctx)); // this will always stay
+	exchanges.push_back(createPotEx(c, i1, j1, i2, j2, ctx)); // this will always stay
 	bool sigma = c(i1, j1);
-	if (i1 == i2) {
+	if (i1 == i2) {		// exchange happened in same row
 		if (sigma != c(i1-1, j1))
-			exchanges.push_back(*createPotEx(c, i1, j1, i1-1, j1  , ctx));
-		if (sigma == c(i2-1, j2))
-			exchanges.push_back(*createPotEx(c, i2, j2, i2-1, j2  , ctx));
+			exchanges.push_back(createPotEx(c, i1-1, j1  , i1  , j1  , ctx));
 		if (sigma != c(i1+1, j1))
-			exchanges.push_back(*createPotEx(c, i1, j1, i1+1, j1  , ctx));
-		if (sigma == c(i2+1, j2))
-			exchanges.push_back(*createPotEx(c, i2, j2, i2+1, j2  , ctx));
+			exchanges.push_back(createPotEx(c, i1  , j1  , i1+1, j1  , ctx));
 		if (sigma != c(i1, j1-1))
-			exchanges.push_back(*createPotEx(c, i1, j1, i1  , j1-1, ctx));
+			exchanges.push_back(createPotEx(c, i1  , j1-1, i1  , j1  , ctx));
+		if (sigma == c(i2-1, j2))
+			exchanges.push_back(createPotEx(c, i2-1, j2  , i2  , j2  , ctx));
+		if (sigma == c(i2+1, j2))
+			exchanges.push_back(createPotEx(c, i2  , j2  , i2+1, j2  , ctx));
 		if (sigma == c(i2, j2+1))
-			exchanges.push_back(*createPotEx(c, i2, j2, i2  , j2+1, ctx));
+			exchanges.push_back(createPotEx(c, i2  , j2  , i2  , j2+1, ctx));
 	} else
-	if (j1 == j2) {
+	if (j1 == j2) {		// exchange happened in same column
 		if (sigma != c(i1, j1+1))
-			exchanges.push_back(*createPotEx(c, i1, j1, i1  , j1+1, ctx));
-		if (sigma == c(i2, j2+1))
-			exchanges.push_back(*createPotEx(c, i2, j2, i2  , j2+1, ctx));
+			exchanges.push_back(createPotEx(c, i1  , j1  , i1  , j1+1, ctx));
 		if (sigma != c(i1, j1-1))
-			exchanges.push_back(*createPotEx(c, i1, j1, i1  , j1-1, ctx));
-		if (sigma == c(i2, j2-1))
-			exchanges.push_back(*createPotEx(c, i2, j2, i2  , j2-1, ctx));
+			exchanges.push_back(createPotEx(c, i1  , j1-1, i1  , j1  , ctx));
 		if (sigma != c(i1-1, j1))
-			exchanges.push_back(*createPotEx(c, i1, j1, i1-1, j1  , ctx));
+			exchanges.push_back(createPotEx(c, i1-1, j1  , i1  , j1  , ctx));
+		if (sigma == c(i2, j2+1))
+			exchanges.push_back(createPotEx(c, i2  , j2  , i2  , j2+1, ctx));
+		if (sigma == c(i2, j2-1))
+			exchanges.push_back(createPotEx(c, i2  , j2-1, i2  , j2  , ctx));
 		if (sigma == c(i2+1, j2))
-			exchanges.push_back(*createPotEx(c, i2, j2, i2+1, j2  , ctx));
+			exchanges.push_back(createPotEx(c, i2  , j2  , i2+1, j2  , ctx));
 	}
 }

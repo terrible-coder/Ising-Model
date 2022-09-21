@@ -52,13 +52,15 @@ double exchangeChange(Ising& c, int i1, int j1, int i2, int j2) {
 	return 0.;
 }
 
-PotEx* createPotEx(Ising& config, int i1, int j1, int i2, int j2, Context* ctx) {
+PotEx createPotEx(Ising& config, int i1, int j1, int i2, int j2, Context* ctx) {
 	const double BETA = 1 / (ctx->BoltzConstant * config.getTemp());
-	PotEx* ptr = new PotEx;
-	ptr->i1 = i1; ptr->j1 = j1;
-	ptr->i2 = i2; ptr->j2 = j2;
-	ptr->delE = exchangeChange(config, i1, j1, i2, j2);
-	ptr->transition = Probability(ptr->delE, BETA, ctx);
-	ptr->normP = 0.;
+	PotEx ptr;
+	config.equiv(&i1, &j1);
+	config.equiv(&i2, &j2);
+	ptr.i1 = i1; ptr.j1 = j1;
+	ptr.i2 = i2; ptr.j2 = j2;
+	ptr.delE = exchangeChange(config, i1, j1, i2, j2);
+	ptr.transition = Probability(ptr.delE, BETA, ctx);
+	ptr.normP = 0.;
 	return ptr;
 }
