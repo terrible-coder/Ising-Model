@@ -23,7 +23,11 @@ void spin_flip(Ising& c, Context* ctx) {
 }
 
 double picking(double dE) {
-	return exp(-dE);
+	// return 0.01 * exp(-dE);
+	// return 12 - dE + 1;
+	// return 0.5 * exp(-dE / 4) + exp(-dE*dE / 16);
+	// return (dE < 0) ? 0.5 * exp(-dE/4) + 0.5 : 1;
+	return (dE < 0) ? 0.5 * exp(-dE / 4) + 1.5 : -0.125 * dE + 2;
 }
 
 /**

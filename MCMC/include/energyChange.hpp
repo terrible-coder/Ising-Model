@@ -14,8 +14,7 @@ struct PotEx {
 	int i1, j1;
 	int i2, j2;
 	double delE;
-	double transition;
-	double normP;
+	// double transition;
 };
 
 /**
@@ -73,6 +72,7 @@ private:
 	std::list<PotEx> dEp12;
 
 	double pickingProb[7];
+	double normProb[7];
 	bool isCreated;
 
 public:

@@ -32,7 +32,7 @@ void logData(double energy, double magnet) {
 		return;
 	}
 	energyData << energy << ",";
-	magnetData << magnet << ",";
+	// magnetData << magnet << ",";
 }
 
 void nextEnsemble() {

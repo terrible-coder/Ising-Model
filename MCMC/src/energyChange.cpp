@@ -60,8 +60,7 @@ PotEx createPotEx(Ising& config, int i1, int j1, int i2, int j2, Context* ctx) {
 	ptr.i1 = i1; ptr.j1 = j1;
 	ptr.i2 = i2; ptr.j2 = j2;
 	ptr.delE = exchangeChange(config, i1, j1, i2, j2);
-	ptr.transition = Probability(ptr.delE, BETA, ctx);
-	ptr.normP = 0.;
+	// ptr.transition = Probability(ptr.delE, BETA, ctx);
 	return ptr;
 }
 
@@ -70,8 +69,10 @@ ExchangeList::ExchangeList() {}
 ExchangeList::ExchangeList(std::function<double(double)> pick) {
 	this->isCreated = false;
 	double a = 4. * Ising::getNNCoup();
-	for (int i = 0; i < 7; i++)
+	for (int i = 0; i < 7; i++) {
 		this->pickingProb[i] = pick((i-3) * a);
+		this->normProb[i] = 0.;
+	}
 }
 
 void ExchangeList::push_back(const PotEx& exchange) {
@@ -110,62 +111,46 @@ void ExchangeList::remove_if(const std::function<bool(const PotEx&)>& f) {
 
 void ExchangeList::normalise() {
 	double probSum = 0.;
-	if (this->dEn12.size() > 0) probSum += this->pickingProb[0];
-	if (this->dEn08.size() > 0) probSum += this->pickingProb[1];
-	if (this->dEn04.size() > 0) probSum += this->pickingProb[2];
-	if (this->dE000.size() > 0) probSum += this->pickingProb[3];
-	if (this->dEp04.size() > 0) probSum += this->pickingProb[4];
-	if (this->dEp08.size() > 0) probSum += this->pickingProb[5];
-	if (this->dEp12.size() > 0) probSum += this->pickingProb[6];
+	probSum += (this->dEn12.size() > 0) * this->pickingProb[0];
+	probSum += (this->dEn08.size() > 0) * this->pickingProb[1];
+	probSum += (this->dEn04.size() > 0) * this->pickingProb[2];
+	probSum += (this->dE000.size() > 0) * this->pickingProb[3];
+	probSum += (this->dEp04.size() > 0) * this->pickingProb[4];
+	probSum += (this->dEp08.size() > 0) * this->pickingProb[5];
+	probSum += (this->dEp12.size() > 0) * this->pickingProb[6];
 
-	double A;
-	std::list<PotEx>::iterator it;
+	this->normProb[0] = (this->dEn12.size() > 0) * this->pickingProb[0] / probSum;
+	this->normProb[1] = (this->dEn08.size() > 0) * this->pickingProb[1] / probSum;
+	this->normProb[2] = (this->dEn04.size() > 0) * this->pickingProb[2] / probSum;
+	this->normProb[3] = (this->dE000.size() > 0) * this->pickingProb[3] / probSum;
+	this->normProb[4] = (this->dEp04.size() > 0) * this->pickingProb[4] / probSum;
+	this->normProb[5] = (this->dEp08.size() > 0) * this->pickingProb[5] / probSum;
+	this->normProb[6] = (this->dEp12.size() > 0) * this->pickingProb[6] / probSum;
+}
 
-	A = probSum * this->dEn12.size();
-	for (it = this->dEn12.begin(); it != this->dEn12.end(); it++)
-		it->normP = pickingProb[0] / A;
-
-	A = probSum * this->dEn08.size();
-	for (it = this->dEn08.begin(); it != this->dEn08.end(); it++)
-		it->normP = pickingProb[1] / A;
-
-	A = probSum * this->dEn04.size();
-	for (it = this->dEn04.begin(); it != this->dEn04.end(); it++)
-		it->normP = pickingProb[2] / A;
-
-	A = probSum * this->dE000.size();
-	for (it = this->dE000.begin(); it != this->dE000.end(); it++)
-		it->normP = pickingProb[3] / A;
-
-	A = probSum * this->dEp04.size();
-	for (it = this->dEp04.begin(); it != this->dEp04.end(); it++)
-		it->normP = pickingProb[4] / A;
-
-	A = probSum * this->dEp08.size();
-	for (it = this->dEp08.begin(); it != this->dEp08.end(); it++)
-		it->normP = pickingProb[5] / A;
-
-	A = probSum * this->dEp12.size();
-	for (it = this->dEp12.begin(); it != this->dEp12.end(); it++)
-		it->normP = pickingProb[6] / A;
+PotEx& findInList(std::list<PotEx>& enList, double p, double r) {
+	int a = (int) (enList.size() * p / r);
+	std::list<PotEx>::iterator it = enList.begin();
+	std::advance(it, a);
+	return *it;
 }
 
 PotEx& ExchangeList::pickEx(double p) {
-	std::list<PotEx>::iterator it;
-	for (it = this->dEn12.begin(); it != this->dEn12.end(); it ++)
-		if ( (p -= it->normP) < 0 ) return *it;
-	for (it = this->dEn08.begin(); it != this->dEn08.end(); it ++)
-		if ( (p -= it->normP) < 0 ) return *it;
-	for (it = this->dEn04.begin(); it != this->dEn04.end(); it ++)
-		if ( (p -= it->normP) < 0 ) return *it;
-	for (it = this->dE000.begin(); it != this->dE000.end(); it ++)
-		if ( (p -= it->normP) < 0 ) return *it;
-	for (it = this->dEp04.begin(); it != this->dEp04.end(); it ++)
-		if ( (p -= it->normP) < 0 ) return *it;
-	for (it = this->dEp08.begin(); it != this->dEp08.end(); it ++)
-		if ( (p -= it->normP) < 0 ) return *it;
-	for (it = this->dEp12.begin(); it != this->dEp12.end(); it ++)
-		if ( (p -= it->normP) < 0 ) return *it;
+	if (p < normProb[0]) return findInList(dEn12, p, normProb[0]);
+	else p -= normProb[0];
+	if (p < normProb[1]) return findInList(dEn08, p, normProb[1]);
+	else p -= normProb[1];
+	if (p < normProb[2]) return findInList(dEn04, p, normProb[2]);
+	else p -= normProb[2];
+	if (p < normProb[3]) return findInList(dE000, p, normProb[3]);
+	else p -= normProb[3];
+	if (p < normProb[4]) return findInList(dEp04, p, normProb[4]);
+	else p -= normProb[4];
+	if (p < normProb[5]) return findInList(dEp08, p, normProb[5]);
+	else p -= normProb[5];
+//if (p < normProb[6])
+		return findInList(dEp12, p, normProb[6]);
+//else p -= this->normProb[6];
 }
 
 void ExchangeList::update(Ising& c, PotEx& exchange, Context* ctx) {
