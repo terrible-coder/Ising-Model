@@ -27,10 +27,8 @@ void trim(std::string& str) {
  */
 void extract_values(std::string txt, std::string* first, std::string* second) {
 	int ePos = txt.find("=");
-	*first = txt.substr(0, ePos);
-	trim(*first);
-	*second = txt.substr(ePos+1);
-	trim(*second);
+	*first = txt.substr(0, ePos); trim(*first);
+	*second = txt.substr(ePos+1); trim(*second);
 }
 
 /**
@@ -65,20 +63,17 @@ Dynamics readKinet(std::string str) {
 int countOccurrence(std::string str, char c) {
 	int count = 0;
 	for (char ch : str)
-		if (ch == c)
-			count++;
-
+		count += (ch == c);
 	return count;
 }
 
 /**
  * @brief Interpret the temperature range from given string.
  * 
- * @param str The string to interpret.
- * @param p The number of temperature values.
- * @return double* 
+ * @param str The string to interpret. 
+ * @return std::vector<double> 
  */
-double* readTemp(std::string str, int* p) {
+std::vector<double> readTemp(std::string str) {
 	double Ti, Tf, interval;
 	// interpret above values from str using : delimiter
 	int points;
@@ -109,11 +104,11 @@ double* readTemp(std::string str, int* p) {
 		Tf = std::stod(third);
 		points = (int) ((Tf - Ti) / interval + 0.5);
 	}
-	*p = points;
+	std::vector<double> T;
+	T.reserve(points);
 
-	double* T = (double*) malloc(points * sizeof(double));
 	for (int i = 0; i < points; i++)
-		T[i] = Ti + i * interval;
+		T.push_back(Ti + i * interval);
 	return T;
 }
 
@@ -149,7 +144,7 @@ void init_system(std::string filename, Context* ctx) {
 		if (key == "Field"      ) ctx->Field         = std::stod(value); else
 		if (key == "probability") ctx->Transition    = readTrans(value); else
 		if (key == "dynamics"   ) ctx->SpinKinetics  = readKinet(value); else
-		if (key == "temperature") ctx->Temperature   = readTemp (value, &(ctx->_t_points)); else
+		if (key == "temperature") ctx->Temperature   = readTemp (value); else
 		if (key == "Lx"         ) ctx->Lx            = (std::uint16_t) std::stoi(value); else
 		if (key == "Ly"         ) ctx->Ly            = (std::uint16_t) std::stoi(value);
 	}
@@ -157,7 +152,7 @@ void init_system(std::string filename, Context* ctx) {
 	std::cout << "Lx: " << ctx->Lx << "\n";
 	std::cout << "Ly: " << ctx->Ly << "\n";
 	std::cout << "Coupling: " << ctx->Coupling << "\n";
-	std::cout << "Temperature points: " << ctx->_t_points << "\n";
+	std::cout << "Temperature points: " << ctx->Temperature.size() << "\n";
 	std::cout << std::endl;
 
 	input_file.close();

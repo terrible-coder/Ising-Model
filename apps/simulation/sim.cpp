@@ -62,8 +62,8 @@ int main(int argc, char** argv) {
 	Ising::setCoupling(CTX.Coupling);
 	Ising::setField(CTX.Field);
 
-	for (int tp = 0; tp < CTX._t_points; tp++) {
-		double T = CTX.Temperature[tp];
+	for (auto tp = CTX.Temperature.begin(); tp != CTX.Temperature.end(); tp++) {
+		double T = *tp;
 		// new temperature
 		openLogger(parentDir, T);
 		std::cout << SEPARATOR;
@@ -93,7 +93,6 @@ int main(int argc, char** argv) {
 		closeLogger();
 		delete config;
 	}
-	delete CTX.Temperature;
 
 	return EXIT_SUCCESS;
 }

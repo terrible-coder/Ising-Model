@@ -1,10 +1,10 @@
 #include <cstdint>
 #include <iostream>
 #include <fstream>
-#include <string.h>
+#include <string>
+#include <vector>
 
-#ifndef CONTEXT_HPP
-#define CONTEXT_HPP
+#pragma once
 
 enum TransProb {
 	BOLTZMANN = 'b',
@@ -20,8 +20,7 @@ struct Context {
 	int ENSEMBLE_SIZE;
 
 	std::uint16_t Lx, Ly;
-	double* Temperature;
-	int _t_points;
+	std::vector<double> Temperature;
 	double BoltzConstant;
 	double Coupling;
 	double Field;
@@ -31,5 +30,3 @@ struct Context {
 };
 
 void init_system(std::string filename, Context* ctx);
-
-#endif
