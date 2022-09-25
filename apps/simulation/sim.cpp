@@ -8,7 +8,7 @@
 #include "io/data_logger.hpp"
 #include "io/save.hpp"
 #include "io/prepare.hpp"
-#include "MC.hpp"
+#include "monte_carlo.hpp"
 
 static Context CTX;
 

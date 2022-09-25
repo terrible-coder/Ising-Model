@@ -6,8 +6,8 @@ void Ising::flip(uint i, uint j) {
 }
 
 void Ising::exchange(uint i1, uint j1, uint i2, uint j2) {
-	int i1a, j1a;
-	int i2a, j2a;
+	int i1a = i1, j1a = j1;
+	int i2a = i2, j2a = j2;
 	imposeBC(this->Lx, this->Ly, i1, j1, &i1a, &j1a, this->boundary);
 	imposeBC(this->Lx, this->Ly, i2, j2, &i2a, &j2a, this->boundary);
 

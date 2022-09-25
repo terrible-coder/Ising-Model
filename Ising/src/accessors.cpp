@@ -59,12 +59,16 @@ uWord_t* Ising::getRaw() {
 
 bool Ising::operator() (uint i, uint j) {
 	int ii, jj;
-	imposeBC(this->Lx, this-> Ly, i, j, &ii, &jj, this->boundary);
+	imposeBC(this->Lx, this->Ly, i, j, &ii, &jj, this->boundary);
 
 	if (ii == -1 || jj == -1)
 		return NULL;
 	uint idx = idx2to1(ii, jj, this->Lx);
 	return (this->lattice[idx / WORD_SIZE] >> (WORD_SIZE - idx%WORD_SIZE - 1)) & 1 ;
+}
+
+void Ising::equiv(int* i, int* j) {
+	imposeBC(this->Lx, this->Ly, *i, *j, i, j, this->boundary);
 }
 
 void Ising::__leftShift(uWord_t* shifted) {
