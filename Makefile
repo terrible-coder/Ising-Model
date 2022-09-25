@@ -1,54 +1,24 @@
-SIM_BIN=Ising_sim
-GPH_BIN=Ising_draw
+INCDIRS=./include ./include/io ./include/lib
 
-CODE_SIM=./src ./src/io ./apps/simulation
-CODE_GPH=./apps/analysis
-INCDIRS=./include ./include/* ./include/lib
-LIBDIRS=./lib
-OBJDIR=./bin
+sim:
+	@make -f sim.mk
 
-LIBS=$(foreach D,$(LIBDIRS),-L$(D))
-INCS=$(foreach D,$(INCDIRS),-I$(D))
+draw:
+	@make -f gph.mk
 
-CC=c++
-DEPFLAGS=-MP -MD
-CFLAGS=-Wall -std=c++17 $(INCS) $(LIBS) $(DEPFLAGS)
+ising:
+	@make -C Ising/
 
-GLIBS=-lmcmc -lising -lsfml-graphics -lsfml-window -lsfml-system
-GCFILES=$(foreach D,$(CODE_GPH),$(wildcard $(D)/*.cpp))
-GOBJECTS=$(subst ./src/,, $(patsubst %.cpp,$(OBJDIR)/%.o,$(GCFILES)))
-GDEPFILES=$(subst ./src/,, $(patsubst %.cpp,$(OBJDIR)/%.d,$(GCFILES)))
+mcmc:
+	@make -C MCMC/
 
-SLIBS=-lmcmc -lising
-SCFILES=$(foreach D,$(CODE_SIM),$(wildcard $(D)/*.cpp))
-SOBJECTS=$(subst ./src/,, $(patsubst %.cpp,$(OBJDIR)/%.o,$(SCFILES)))
-SDEPFILES=$(subst ./src/,, $(patsubst %.cpp,$(OBJDIR)/%.d,$(SCFILES)))
-
-sim: $(SOBJECTS)
-	@echo -n "Compiling \033[0;36msim binary\033[0m"
-	@$(CC) $^ $(LIBS) $(SLIBS) -O3 -o $(SIM_BIN)
-	@echo "\t\033[1;32m√\033[0m"
-
-draw: $(GOBJECTS)
-	@echo -n "Compiling \033[0;36mrender binary\033[0m"
-	@$(CC) $^ $(LIBS) $(GLIBS) -o $(GPH_BIN)
-	@echo "\t\033[1;32m√\033[0m"
-
-$(OBJDIR)/%.o: src/%.cpp
-	@echo -n "Compiling \033[0;36m$<\033[0m"
-	@$(CC) $(CFLAGS) -c -O3 -o $@ $<
-	@echo "\t\033[1;32m√\033[0m"
-
-bin/./apps/simulation/sim.o: ./apps/simulation/sim.cpp
-	@$(CC) $(CFLAGS) -c -O3 -o $@ $^
-
-bin/./apps/analysis/render.o: ./apps/analysis/render.cpp
-	@$(CC) $(CFLAGS) -c -O3 -o $@ $^
-
--include $(DEPFILES)
+copy:
+	@make -C Ising/ copy
+	@make -C MCMC/ copy
 
 clean:
-	@rm $(SOBJECTS) $(GOBJECTS) $(SDEPFILES) $(GDEPFILES) $(SIM_BIN) $(GPH_BIN) null.d .vscode/*.log
+	@make -f sim.mk clean
+	@make -f gph.mk clean
 
 # This does not work, export the variable in the shell separately
 # env:
