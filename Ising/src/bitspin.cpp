@@ -10,20 +10,20 @@ double bool2spin(uint S, int n) {
 	return 2.*S - n;
 }
 
-bool bitFromEnd(uWord_t number, uint a) {
+bool bitFromEnd(uWord number, uint a) {
 	return (bool) (number >> (a - 1)) & 1;
 }
 
-bool bitFromBeg(uWord_t number, uint a) {
+bool bitFromBeg(uWord number, uint a) {
 	return (bool) (number >> (WORD_SIZE - a - 1)) & 1;
 }
 
-void flipBit(uWord_t* number, uint a) {
+void flipBit(uWord* number, uint a) {
 	/* 
 	 * A XOR 1 = A'
 	 * A XOR 0 = A
 	 */
-	uWord_t mask = ((uWord_t)1) << (WORD_SIZE - a - 1);
+	uWord mask = ((uWord)1) << (WORD_SIZE - a - 1);
 	*number ^= mask;
 }
 
@@ -43,7 +43,7 @@ uint trimTrailingZeros(uint* n) {
 }
 
 uint _last_seed = -1;
-uWord_t randIntP(uint density, uint seed) {
+uWord randIntP(uint density, uint seed) {
 	// we are working with fraction (in binary), trailing zeroes don't matter
 	uint n = trimTrailingZeros(&density);
 	static std::default_random_engine rng;
@@ -51,7 +51,7 @@ uWord_t randIntP(uint density, uint seed) {
 		rng.seed(seed);
 		_last_seed = seed;
 	}
-	static std::uniform_int_distribution<uWord_t> dist(0, ~((uWord_t)0));
+	static std::uniform_int_distribution<uWord> dist(0, ~((uWord)0));
 
 	/* Assumption: In a random number each bit is set (1) with probability 0.5
 	 * X1 AND X2 : each bit is set with probability p1.p2
@@ -59,8 +59,8 @@ uWord_t randIntP(uint density, uint seed) {
 	 * Starting from LSB of target density, we perform OR for every `1` in density
 	 * and perform AND for every `0` in density.
 	 */
-	uWord_t yk = dist(rng);
-	uWord_t xk;
+	uWord yk = dist(rng);
+	uWord xk;
 	for (uint j = 1; j < n; j++) {
 		density = density >> 1;
 		xk = dist(rng);

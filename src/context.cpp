@@ -120,6 +120,7 @@ std::vector<double> readTemp(std::string str) {
  * @param filename The input file path.
  * @param ctx The system settings to initialise.
  */
+/*
 void init_system(std::string filename, Context* ctx) {
 	// allow system to be initialised only once. any second attempt to initialise
 	// system variables during the run will simply be ignored.
@@ -138,7 +139,7 @@ void init_system(std::string filename, Context* ctx) {
 		// separate parts before and after "="
 		std::string key, value;
 		extract_values(line, &key, &value);
-		if (key == "ensemble"   ) ctx->ENSEMBLE_SIZE = std::stoi(value); else
+		if (key == "ensemble"   ) ctx->Ensemble_Size = std::stoi(value); else
 		if (key == "kB"         ) ctx->BoltzConstant = std::stod(value); else
 		if (key == "Coupling"   ) ctx->Coupling      = std::stod(value); else
 		if (key == "Field"      ) ctx->Field         = std::stod(value); else
@@ -149,11 +150,12 @@ void init_system(std::string filename, Context* ctx) {
 		if (key == "Ly"         ) ctx->Ly            = (std::uint16_t) std::stoi(value);
 	}
 
-	std::cout << "Lx: " << ctx->Lx << "\n";
-	std::cout << "Ly: " << ctx->Ly << "\n";
+	std::cout << "Lx: " << ctx->size.x << "\n";
+	std::cout << "Ly: " << ctx->size.y << "\n";
 	std::cout << "Coupling: " << ctx->Coupling << "\n";
 	std::cout << "Temperature points: " << ctx->Temperature.size() << "\n";
 	std::cout << std::endl;
 
 	input_file.close();
 }
+*/

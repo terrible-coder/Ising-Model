@@ -1,35 +1,38 @@
 #include "boundary.hpp"
 
-void imposeBC(int w, int h, int ui, int uj, int* ai, int* aj, BoundaryCondition boundary) {
+uint imposeBC(const uint len, const int uIdx, BoundaryCondition boundary) {
 	switch (boundary) {
-		case BoundaryCondition::PERIODIC:
-			*ai = (ui + h) % h;			// For periodic boundary condition
-			*aj = (uj + w) % w;			// the lattice is lives on a torus
-			break;
-
-		case BoundaryCondition::SCREW:
-			*ai = (ui + h) % h;					// The lattices sites are on a
-			if (uj >= h || uj < 0) {		// single string. They wrap from
-				*aj = (uj + w) % w;				// end of a row to the start of
-				*ai += uj >= w ? 1 : -1;	// next row
-			}
-			break;
-
-		case BoundaryCondition::FREE:
-			*ai = (ui >= h || ui < 0) ? -1 : ui;		// For free edge boundary
-			*aj = (uj >= w || uj < 0) ? -1 : uj;		// the site sees nothing
-			break;
-
-		default:
-			std::cout << "Unknown boundary condition" << std::endl;
+	case BoundaryCondition::PERIODIC:
+		// for periodic boundary condition the lattice points circle back
+		return (uIdx + len) % len;
+	case BoundaryCondition::FREE:
+		// for free boundary condition the edges are sharply defined
+		// the lattice points on the edges see no neighbour
+		return (uIdx < len && uIdx >= 0)? uIdx : len;
+	default: std::cout << "Unknown boundary condition.";
 	}
 }
 
-uint idx2to1(uint i, uint j, uint w) {
-	return i * w + j;
+void imposeBC(const vec3<uIndx>& len, const vec3<int>& uIdx, vec3<int>* aIdx, vec3<BoundaryCondition>& boundary) {
+	aIdx->x = imposeBC(len.x, uIdx.x, boundary.x);
+	aIdx->y = imposeBC(len.y, uIdx.y, boundary.y);
+	aIdx->z = imposeBC(len.z, uIdx.z, boundary.z);
 }
 
-void idx1to2(uint idx, uint w, uint* i, uint* j) {
-	*i = idx / w;
-	*j = idx % w;
+uSize idx3to1(pos& p, vec3<uIndx>& L) {
+	uSize x = (uSize) p.x;
+	uSize y = (uSize) p.y;
+	uSize z = (uSize) p.z;
+	return z * L.x*L.y + y * L.x + x;
+}
+
+void idx1to3(uSize idx, vec3<uIndx>& L, pos* p) {
+	uSize _2D_size = (uSize) L.x * L.y;
+	p->z = idx / _2D_size;
+	p->y = (idx % _2D_size) / L.x;
+	p->x = (idx % _2D_size) % L.x;
+}
+
+bool outOfBounds(vec3<uIndx>& L, pos& idx) {
+	return (idx.x == L.x) || (idx.y == L.y) || (idx.z == L.z);
 }

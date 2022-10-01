@@ -29,7 +29,7 @@ double bool2spin(uint, int);
  * @return true 
  * @return false 
  */
-bool bitFromEnd(uWord_t number, uint a);
+bool bitFromEnd(uWord number, uint a);
 
 /**
  * @brief Gets the bit value (1 or 0) `a` positions from the beginning (MSB is
@@ -40,7 +40,7 @@ bool bitFromEnd(uWord_t number, uint a);
  * @return true 
  * @return false 
  */
-bool bitFromBeg(uWord_t number, uint a);
+bool bitFromBeg(uWord number, uint a);
 
 /**
  * @brief Change the value of a bit at given position.
@@ -48,7 +48,7 @@ bool bitFromBeg(uWord_t number, uint a);
  * @param number The number in which the bit is to be modified.
  * @param a The position of the bit from the beginning (0 indexing).
  */
-void flipBit(uWord_t* number, uint a);
+void flipBit(uWord* number, uint a);
 
 /**
  * @brief Generate a random number (bit string). The probability of a bit being
@@ -61,4 +61,4 @@ void flipBit(uWord_t* number, uint a);
  * @param seed The seed value for the random number generator.
  * @return uint 
  */
-uWord_t randIntP(uint density, uint seed);
+uWord randIntP(uint density, uint seed);
