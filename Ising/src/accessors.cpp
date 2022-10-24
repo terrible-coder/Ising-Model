@@ -8,18 +8,19 @@
 
 #include "Ising.hpp"
 
-double Ising::H;
+std::function<double(const pos& i, const pos& j)> Ising::J;
+std::function<double(const pos& i)> Ising::H;
 
 void Ising::setCoupling(std::function<double(const pos& i, const pos& j)>& coupling) {
 	Ising::J = coupling;
 }
 
-void Ising::setField(double field) {
+void Ising::setField(std::function<double(const pos& i)>& field) {
 	Ising::H = field;
 }
 
-double Ising::getField() {
-	return Ising::H;
+double Ising::getField(const pos& i) {
+	return Ising::H(i);
 }
 
 double Ising::getNNCoup(const pos& i, const pos& j) {
@@ -111,7 +112,7 @@ void Ising::__nYShift(uWord* shifted) {
 }
 
 void Ising::__nZShift(uWord* shifted) {
-	uIndx z, i, idx, xy_size = this->raw.x * this->raw.y;
+	uIndx i, idx, xy_size = this->raw.x * this->raw.y;
 	uIndx offset = this->rawN - xy_size;
 	for (i = xy_size; i < this->rawN; i += 1u)
 		shifted[i - xy_size] = this->lattice[i];

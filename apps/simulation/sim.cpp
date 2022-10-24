@@ -43,20 +43,19 @@ void print_progress(int p, int total, int width = 80) {
 	if(p == total) std::cout << std::endl;
 }
 
-
 int main(int argc, char** argv) {
 	std::string filename;
 	if (argc > 1) filename = argv[1];
 	else          filename = INPUT_FILE;
 
 	std::cout << "Initialising system..." << std::endl;
-	init_system(filename, &CTX);
+	// init_system(filename, &CTX);
+	CTX.size = { 64u, 64u, 1u };
 	const std::string parentDir = prepExperiment(&CTX);
-	if (parentDir == "")
-		return EXIT_FAILURE;
+	if (parentDir == "") return EXIT_FAILURE;
 
 	std::cout << parentDir << std::endl;
-	const int BIN = CTX.Lx * CTX.Ly;
+	const uint BIN = CTX.size.x * CTX.size.y * CTX.size.z;
 
 	std::cout << "Setting global values..." << std::endl;
 	Ising::setCoupling(CTX.Coupling);
@@ -68,13 +67,15 @@ int main(int argc, char** argv) {
 		openLogger(parentDir, T);
 		std::cout << SEPARATOR;
 
-		Ising* config = new Ising(CTX.Lx, CTX.Ly, 32u, T, BoundaryCondition::PERIODIC);
+		Ising* config = new Ising(
+			CTX.size, CTX.Concentration,
+			T, CTX.boundary);
 		config->generate();
 		saveInit(config, parentDir);
 
-		for (int ensemble = 0; ensemble < CTX.ENSEMBLE_SIZE; ensemble++) {
+		for (int ensemble = 0; ensemble < CTX.Ensemble_Size; ensemble++) {
 			// std::cout << "Ensemble member " << ensemble+1 << "\n";
-			print_progress(ensemble+1, CTX.ENSEMBLE_SIZE);
+			print_progress(ensemble+1, CTX.Ensemble_Size);
 			config->reinit();
 			open(config, ensemble+1, parentDir);
 

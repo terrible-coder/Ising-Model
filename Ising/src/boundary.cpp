@@ -8,8 +8,10 @@ uint imposeBC(const uint len, const int uIdx, BoundaryCondition boundary) {
 	case BoundaryCondition::FREE:
 		// for free boundary condition the edges are sharply defined
 		// the lattice points on the edges see no neighbour
-		return (uIdx < len && uIdx >= 0)? uIdx : len;
-	default: std::cout << "Unknown boundary condition.";
+		return (uIdx < 0 || (uint)uIdx >= len)? len : uIdx;
+	default:
+		std::cout << "Unknown boundary condition.";
+		return -1;
 	}
 }
 

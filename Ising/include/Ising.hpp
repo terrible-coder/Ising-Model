@@ -9,10 +9,12 @@
 #include "boundary.hpp"
 #include "context.hpp"
 
+#define BC BoundaryCondition
+
 class Ising {
 private:
 	static std::function<double(const pos& i, const pos& j)> J; // Coupling constant
-	static double H;		// The external magnetic field.
+	static std::function<double(const pos& i)> H;							  // The external magnetic field.
 
 	bool is_generated;	// Guard for generation of initial configuration.
 	vec3<uIndx> L;			// The size of the physical lattice.
@@ -24,19 +26,21 @@ private:
 	double T;						// The temperature of the ensemble.
 	uWord* initial;			// The initial condition. Must create before simulation.
 	uWord* lattice;			// The current configuration of the lattice.
-	vec3<BoundaryCondition> boundary; // The boundary conditions.
+	vec3<BC> boundary;	// The boundary conditions.
+
+	double partialEnergy(uWord* shifted, uSize beg, vec3<int> off);
 
 public:
 
 	Ising(vec3<uIndx>& size, uIndx conc,
 				double temperature,
-				const vec3<BoundaryCondition>& b);
+				const vec3<BC>& b);
 	~Ising();
 
 	static void setCoupling(std::function<double(const pos& i, const pos& j)>& coupling);
 	static double getNNCoup(const pos& i, const pos& j);
-	static void setField(double field);
-	static double getField();
+	static void setField(std::function<double(const pos& i)>& field);
+	static double getField(const pos& i);
 
 	/**
 	 * @brief Lattice point accessor. The index is of the site we "want" to look at.
@@ -72,7 +76,7 @@ public:
 	uIndx getSizeX();
 	uIndx getSizeY();
 	uIndx getSizeZ();
-	std::uint32_t getSize();
+	uSize getSize();
 	double getTemp();
 	uWord* getInit();
 	uWord* getRaw();
@@ -90,13 +94,13 @@ public:
 	 * @param y 
 	 * @param z 
 	 */
-	void flip(uint x, uint y, uint z);
+	void flip(uIndx x, uIndx y, uIndx z);
 	/**
 	 * @brief Flip the spin at the given position.
 	 * 
 	 * @param p 
 	 */
-	void flip(pos p);
+	void flip(pos& p);
 
 	/**
 	 * @brief Exchange the spins at the given indices.
@@ -108,14 +112,14 @@ public:
 	 * @param y2 
 	 * @param z2 
 	 */
-	void exchange(uIndx x1, uIndx y1, uIndx z1, uIndx x2, uIndx y2, uIndx z2);
+	void exchange(int x1, int y1, int z1, int x2, int y2, int z2);
 	/**
 	 * @brief Exchange the spins at the given positions.
 	 * 
 	 * @param p1 
 	 * @param p2 
 	 */
-	void exchange(pos p1, pos p2);
+	void exchange(pos& p1, pos& p2);
 
 	/**
 	 * @brief Computes the Ising hamiltonian for a given configuration.
