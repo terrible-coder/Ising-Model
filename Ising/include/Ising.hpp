@@ -40,7 +40,6 @@ public:
 	vec3<uIndx> L;                     // Dimensions of the system.
 	uSize N;                           // Total number of lattice points.
 	uIndx q;                           // Coordination of lattice.
-	float T;                           // Temperature of the system.
 	vec3<BoundaryCondition> boundary;  // The boundary conditions.
 
 	float Eaa;	// "bulk" interaction energy between A-A particles
@@ -49,14 +48,14 @@ public:
 
 	std::vector<Surface> surfaces;
 
+	ModelParams();
 	/**
 	 * @brief Construct a new Model Params object.
 	 * 
 	 * @param size 
-	 * @param temperature 
 	 * @param bc 
 	 */
-	ModelParams(vec3<uIndx>& size, float temperature, vec3<BoundaryCondition>& bc);
+	ModelParams(vec3<uIndx>& size, vec3<BoundaryCondition>& bc);
 
 	/**
 	 * @brief Set the interaction energy values.
@@ -95,17 +94,21 @@ class Ising {
 private:
 	bool is_generated;	// Guard for generation of initial configuration.
 
-	uIndx conc;					// Concentration of "up" spins, scaled by `WORD_SIZE`.
-	vec3<uIndx> raw;		// The size of the array in memory which stores the spins.
-	uIndx rawN;					// Total number of values needed to represent all spins.
-	uWord* initial;			// The initial condition. Must create before simulation.
-	uWord* lattice;			// The current configuration of the lattice.
+	uIndx conc;         // Concentration of "up" spins, scaled by `WORD_SIZE`.
+	ModelParams p;      // Parameters of the problem.
+	float T;            // Temperature of the system.
+	uWord* initial;     // The initial condition. Must create before simulation.
+	uWord* lattice;     // The current configuration of the lattice.
+	vec3<uIndx> raw;    // The size of the array in memory which stores the spins.
+	uIndx rawN;         // Total number of values needed to represent all spins.
 
-	double partialEnergy(uWord* shifted, uSize beg, vec3<int> off);
+	float __M;    // Cheat for constant magnetisation.
+
+	float partialEnergy(uWord* shifted, uSize beg, vec3<int> off);
 
 public:
 
-	Ising(uIndx conc, ModelParams& params);
+	Ising(uIndx conc, ModelParams& params, float temperature);
 	~Ising();
 
 	double getNNCoup(const pos& i, const pos& j);
@@ -203,12 +206,12 @@ public:
 	 * 
 	 * @return double 
 	 */
-	double Hamiltonian();
+	float Hamiltonian();
 
 	/**
 	 * @brief Calculate the magnetisation of the configuration.
 	 * 
 	 * @return double 
 	 */
-	double Magnetisation();
+	float Magnetisation();
 };

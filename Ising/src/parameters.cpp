@@ -18,9 +18,9 @@ Edge onEdge(pos& i, vec3<uIndx>& s) {
 	return Edge::NONE;
 }
 
-ModelParams::ModelParams(vec3<uIndx>& size, float temperature, vec3<BoundaryCondition>& bc) {
+ModelParams::ModelParams() {}
+ModelParams::ModelParams(vec3<uIndx>& size, vec3<BoundaryCondition>& bc) {
 	this->L = size;
-	this->T = temperature;
 	this->boundary = bc;
 
 	this->N = (uSize)size.x * size.y * size.z;
