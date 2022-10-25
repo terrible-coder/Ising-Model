@@ -20,7 +20,7 @@ uIndx Ising::getSizeZ() {
 	return this->p.L.z;
 }
 
-std::uint32_t Ising::getSize() {
+uSize Ising::getSize() {
 	return this->p.N;
 }
 

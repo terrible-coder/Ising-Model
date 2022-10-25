@@ -4,7 +4,7 @@ float Ising::partialEnergy(uWord* shifted, uSize beg, vec3<int> off) {
 	uSize realI;
 	pos ps, pn;
 	uWord sigma, prod;
-	double E = 0.;
+	float E = 0.f;
 
 	/* Multiplication of spin values (+1 or -1) can be mapped directly to
 	 * multiplication of boolean values.
@@ -61,12 +61,32 @@ float Ising::Hamiltonian() {
 	float E = 0.;
 	uWord* shift = new uWord[this->rawN];
 
-	this->__nXShift(shift);	E += this->partialEnergy(shift, WORD_SIZE-1, {1, 0, 0});
-	this->__nYShift(shift);	E += this->partialEnergy(shift, WORD_SIZE-1, {0, -1, 0});
-	this->__nZShift(shift);	E += this->partialEnergy(shift, 0, {0, 0, 1});
+	if (!this->p.__static_bulk) {
+		this->__nXShift(shift);	E += this->partialEnergy(shift, WORD_SIZE-1, {1, 0, 0});
+		this->__nYShift(shift);	E += this->partialEnergy(shift, WORD_SIZE-1, {0, -1, 0});
+		this->__nZShift(shift);	E += this->partialEnergy(shift, 0, {0, 0, 1});
 
-	delete shift;
-	return E;
+		delete shift;
+		return E;
+	}
+
+	uSize SS = 0;
+	static pos P{this->getSizeX()/2, this->getSizeY()/2, this->getSizeZ()/2};
+	static float J = this->getNNCoup(P, P);
+	static float H = this->getField(P);
+
+	this->__nXShift(shift);
+	for (uIndx i = 0; i < this->rawN; i += 1u)
+		SS += std::__popcount(~(lattice[i] ^ shift[i]));
+	this->__nYShift(shift);
+	for (uIndx i = 0; i < this->rawN; i += 1u)
+		SS += std::__popcount(~(lattice[i] ^ shift[i]));
+	this->__nZShift(shift);
+	for (uIndx i = 0; i < this->rawN; i += 1u)
+		SS += std::__popcount(~(lattice[i] ^ shift[i]));
+
+	// surface interaction is not implemented, this is incomplete
+	return -J * bool2spin(SS, this->p.N) - H*this->Magnetisation();
 }
 
 float Ising::Magnetisation() {

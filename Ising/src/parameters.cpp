@@ -28,6 +28,7 @@ ModelParams::ModelParams(vec3<uIndx>& size, vec3<BoundaryCondition>& bc) {
 	if (size.x > 1)	this->q *= 2;
 	if (size.y > 1)	this->q *= 2;
 	if (size.z > 1)	this->q *= 2;
+	this->__static_bulk = true;
 }
 
 void ModelParams::setInteractions(float aa, float bb, float ab) {

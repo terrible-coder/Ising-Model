@@ -1,13 +1,16 @@
 #include "bitspin.hpp"
 
-double bool2spin(bool s) {
+float bool2spin(bool s) {
 	return 2.*s - 1.;
 }
-double bool2spin(uint S, int n) {
+float bool2spin(uint S, uSize n) {
 	/* This comes from applying the single bool2spin function on a sum of spins
 	 * (2s_1 - 1) + 2(s_2 - 1) + ... + 2(s_n - 1) = 2(s_1 + s_2 + ... + s_n) - n
 	 */
-	return 2.*S - n;
+	return 2.f * S - n;
+}
+float bool2spin(float J, float n) {
+	return 2.f * J - n;
 }
 
 bool bitFromEnd(uWord number, uint a) {

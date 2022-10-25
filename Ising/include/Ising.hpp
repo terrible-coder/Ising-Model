@@ -30,6 +30,7 @@ struct Surface {
 	float Eaa;	// interaction energy between A-A particles at surface
 	float Ebb;	// interaction energy between B-B particles at surface
 	float Eab;	// interaction energy between A-B particles at surface
+	bool __static_surf;
 };
 
 /**
@@ -45,6 +46,7 @@ public:
 	float Eaa;	// "bulk" interaction energy between A-A particles
 	float Ebb;	// "bulk" interaction energy between B-B particles
 	float Eab;	// "bulk" interaction energy between A-B particles
+	bool __static_bulk;
 
 	std::vector<Surface> surfaces;
 
@@ -111,8 +113,8 @@ public:
 	Ising(uIndx conc, ModelParams& params, float temperature);
 	~Ising();
 
-	double getNNCoup(const pos& i, const pos& j);
-	double getField(const pos& i);
+	float getNNCoup(const pos& i, const pos& j);
+	float getField(const pos& i);
 
 	/**
 	 * @brief Lattice point accessor. The index is of the site we "want" to look at.
