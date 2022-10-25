@@ -15,22 +15,24 @@ void open(Ising* config, int en, std::string parentDir) {
 		std::cout << "Could not open file: " + path << std::endl;
 		return;
 	}
-	std::uint16_t w = config->getWidth();
-	std::uint16_t h = config->getHeight();
-	evolution.write((char*) &w, sizeof(std::uint16_t));
-	evolution.write((char*) &h, sizeof(std::uint16_t));
+	uIndx Lx = config->getSizeX();
+	uIndx Ly = config->getSizeY();
+	uIndx Lz = config->getSizeZ();
+	evolution.write((char*) &Lx, sizeof(uIndx));
+	evolution.write((char*) &Ly, sizeof(uIndx));
+	evolution.write((char*) &Lz, sizeof(uIndx));
 }
 
 bool snap(Ising* config) {
-	uint i;
-	uWord_t* rawSpins = config->getRaw();
-	uWord_t number;
-	for(i = 0; i < config->getSize() / WORD_SIZE; i++) {
+	uIndx i, rawSize = (uIndx)(config->getSize() / WORD_SIZE);
+	uWord* rawSpins = config->getRaw();
+	uWord number;
+	for(i = 0; i < rawSize; i += 1u) {
 		number = rawSpins[i];
-		if (!evolution.write((char*) &number, sizeof(uWord_t)))
+		if (!evolution.write((char*) &number, sizeof(uWord)))
 			break;
 	}
-	if (i < config->getSize() / WORD_SIZE) {
+	if (i < rawSize) {
 		std::cout << "Something went wrong in writing." << std::endl;
 		return false;
 	}
@@ -49,16 +51,18 @@ bool saveInit(Ising* config, std::string parentDir) {
 		std::cout << "Could not open file: " + path << std::endl;
 		return false;
 	}
-	std::uint16_t w = config->getWidth();
-	std::uint16_t h = config->getHeight();
-	initial.write((char*) &w, sizeof(std::uint16_t));
-	initial.write((char*) &h, sizeof(std::uint16_t));
+	uIndx Lx = config->getSizeX();
+	uIndx Ly = config->getSizeY();
+	uIndx Lz = config->getSizeZ();
+	initial.write((char*) &Lx, sizeof(uIndx));
+	initial.write((char*) &Ly, sizeof(uIndx));
+	initial.write((char*) &Lz, sizeof(uIndx));
 	uint i;
-	uWord_t* rawSpins = config->getInit();
-	uWord_t number;
+	uWord* rawSpins = config->getInit();
+	uWord number;
 	for(i = 0; i < config->getSize() / WORD_SIZE; i++) {
 		number = rawSpins[i];
-		if (!initial.write((char*) &number, sizeof(uWord_t)))
+		if (!initial.write((char*) &number, sizeof(uWord)))
 			break;
 	}
 	if (i < config->getSize() / WORD_SIZE) {
