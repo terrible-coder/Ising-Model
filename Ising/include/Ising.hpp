@@ -4,43 +4,112 @@
 #include <filesystem>
 #include <fstream>
 #include <bit>
+#include <functional>
+#include <vector>
 
 #include "bitspin.hpp"
 #include "boundary.hpp"
 #include "context.hpp"
 
-#define BC BoundaryCondition
+/**
+ * @brief Enumerates the edges of the lattice.
+ */
+enum Edge {
+	NONE = 0,
+	X_BEG = 1, X_END = 2,
+	Y_BEG = 4, Y_END = 8,
+	Z_BEG = 16, Z_END = 32
+};
+
+/**
+ * @brief Represents a surface at one of the edges of the lattice.
+ */
+struct Surface {
+	Edge loc;   // location of the surface on the lattice
+
+	float Eaa;	// interaction energy between A-A particles at surface
+	float Ebb;	// interaction energy between B-B particles at surface
+	float Eab;	// interaction energy between A-B particles at surface
+};
+
+/**
+ * @brief Deals with the parameters of the simulation system.
+ */
+class ModelParams {
+public:
+	vec3<uIndx> L;                     // Dimensions of the system.
+	uSize N;                           // Total number of lattice points.
+	uIndx q;                           // Coordination of lattice.
+	float T;                           // Temperature of the system.
+	vec3<BoundaryCondition> boundary;  // The boundary conditions.
+
+	float Eaa;	// "bulk" interaction energy between A-A particles
+	float Ebb;	// "bulk" interaction energy between B-B particles
+	float Eab;	// "bulk" interaction energy between A-B particles
+
+	std::vector<Surface> surfaces;
+
+	/**
+	 * @brief Construct a new Model Params object.
+	 * 
+	 * @param size 
+	 * @param temperature 
+	 * @param bc 
+	 */
+	ModelParams(vec3<uIndx>& size, float temperature, vec3<BoundaryCondition>& bc);
+
+	/**
+	 * @brief Set the interaction energy values.
+	 * 
+	 * @param aa 
+	 * @param bb 
+	 * @param ab 
+	 */
+	void setInteractions(float aa, float bb, float ab);
+
+	/**
+	 * @brief Introduce a surface at one of the edges.
+	 */
+	void create_surface(Surface& s);
+	void create_surface(Edge loc, float aa, float bb, float ab);
+
+	/**
+	 * @brief The interaction energy between two lattice points.
+	 * 
+	 * @param i Lattice point index.
+	 * @param j Lattice point index.
+	 * @return float 
+	 */
+	float J(pos& i, pos& j);
+
+	/**
+	 * @brief The "bulk" magnetic field energy.
+	 * 
+	 * @param i Lattice point index.
+	 * @return float 
+	 */
+	float H(pos& i);
+};
 
 class Ising {
 private:
-	static std::function<double(const pos& i, const pos& j)> J; // Coupling constant
-	static std::function<double(const pos& i)> H;							  // The external magnetic field.
-
 	bool is_generated;	// Guard for generation of initial configuration.
-	vec3<uIndx> L;			// The size of the physical lattice.
-	uSize N;						// Total number of spins in the system.
 
 	uIndx conc;					// Concentration of "up" spins, scaled by `WORD_SIZE`.
 	vec3<uIndx> raw;		// The size of the array in memory which stores the spins.
 	uIndx rawN;					// Total number of values needed to represent all spins.
-	double T;						// The temperature of the ensemble.
 	uWord* initial;			// The initial condition. Must create before simulation.
 	uWord* lattice;			// The current configuration of the lattice.
-	vec3<BC> boundary;	// The boundary conditions.
 
 	double partialEnergy(uWord* shifted, uSize beg, vec3<int> off);
 
 public:
 
-	Ising(vec3<uIndx>& size, uIndx conc,
-				double temperature,
-				const vec3<BC>& b);
+	Ising(uIndx conc, ModelParams& params);
 	~Ising();
 
-	static void setCoupling(std::function<double(const pos& i, const pos& j)>& coupling);
-	static double getNNCoup(const pos& i, const pos& j);
-	static void setField(std::function<double(const pos& i)>& field);
-	static double getField(const pos& i);
+	double getNNCoup(const pos& i, const pos& j);
+	double getField(const pos& i);
 
 	/**
 	 * @brief Lattice point accessor. The index is of the site we "want" to look at.
@@ -56,6 +125,7 @@ public:
 	 */
 	bool operator() (int x, int y, int z);
 	bool operator() (vec3<int>& p);
+	bool operator() (pos& p);
 
 	/**
 	 * @brief Convert given lattice coordinates to equivalent positive coordinates.
@@ -113,6 +183,13 @@ public:
 	 * @param z2 
 	 */
 	void exchange(int x1, int y1, int z1, int x2, int y2, int z2);
+	/**
+	 * @brief Exchange the spins at the given positions.
+	 * 
+	 * @param p1 
+	 * @param p2 
+	 */
+	void exchange(vec3<int>& p1, vec3<int>& p2);
 	/**
 	 * @brief Exchange the spins at the given positions.
 	 * 
