@@ -7,89 +7,82 @@
 
 #include "bitspin.hpp"
 #include "boundary.hpp"
+#include "context.hpp"
+
+#define BC BoundaryCondition
 
 class Ising {
 private:
-	static double J, H;
-	static bool _setJ, _setH;
+	static std::function<double(const pos& i, const pos& j)> J; // Coupling constant
+	static std::function<double(const pos& i)> H;							  // The external magnetic field.
 
-	/**
-	 * @brief Guard for generation of initial configuration.
-	 */
-	bool is_generated;
-	/**
-	 * @brief The size of the physical lattice.
-	 */
-	std::uint16_t Lx, Ly;
-	/**
-	 * @brief Total number of spins in the system.
-	 */
-	std::uint16_t N;
-	/**
-	 * @brief Concentration of "up" spins, scaled by `WORD_SIZE`.
-	 */
-	uint conc;
-	/**
-	 * @brief The size of the array in memory which stores the spins.
-	 */
-	std::uint16_t rawX, rawY;
-	/**
-	 * @brief Total number of values needed to represent all spins.
-	 */
-	std::uint16_t rawN;
-	/**
-	 * @brief The temperature of the ensemble.
-	 */
-	double T;
-	/**
-	 * @brief The initial configuration. This must be created before performing
-	 * any simulations.
-	 */
-	uWord_t* initial;
-	uWord_t* lattice;
-	BoundaryCondition boundary;
+	bool is_generated;	// Guard for generation of initial configuration.
+	vec3<uIndx> L;			// The size of the physical lattice.
+	uSize N;						// Total number of spins in the system.
+
+	uIndx conc;					// Concentration of "up" spins, scaled by `WORD_SIZE`.
+	vec3<uIndx> raw;		// The size of the array in memory which stores the spins.
+	uIndx rawN;					// Total number of values needed to represent all spins.
+	double T;						// The temperature of the ensemble.
+	uWord* initial;			// The initial condition. Must create before simulation.
+	uWord* lattice;			// The current configuration of the lattice.
+	vec3<BC> boundary;	// The boundary conditions.
+
+	double partialEnergy(uWord* shifted, uSize beg, vec3<int> off);
 
 public:
 
-	Ising(uint w, uint h, uint conc,
+	Ising(vec3<uIndx>& size, uIndx conc,
 				double temperature,
-				BoundaryCondition b);
+				const vec3<BC>& b);
 	~Ising();
 
-	static void setCoupling(double coupling);
-	static double getNNCoup();
-	static void setField(double field);
-	static double getField();
+	static void setCoupling(std::function<double(const pos& i, const pos& j)>& coupling);
+	static double getNNCoup(const pos& i, const pos& j);
+	static void setField(std::function<double(const pos& i)>& field);
+	static double getField(const pos& i);
 
 	/**
 	 * @brief Lattice point accessor. The index is of the site we "want" to look at.
 	 * The function takes care of the appropriate boundary conditions and returns
 	 * the spin value at the actual index in the grid. The function can return `NULL`
-	 * if the spin is supposed to be interpreted as absent at `(i, j)`.
+	 * if the spin is supposed to be interpreted as absent at `(x, y, z)`.
 	 * 
-	 * @param i The row index we "want" to look at.
-	 * @param j The column index we "want" to look at.
+	 * @param x 
+	 * @param y 
+	 * @param z
 	 * @return true 
 	 * @return false 
 	 */
-	bool operator() (uint i, uint j);
+	bool operator() (int x, int y, int z);
+	bool operator() (vec3<int>& p);
 
 	/**
 	 * @brief Convert given lattice coordinates to equivalent positive coordinates.
 	 *
-	 * @param i
-	 * @param j
+	 * @param x
+	 * @param y
+	 * @param z
 	 */
-	void equiv(int* i, int* j);
+	void equiv(int* x, int* y, int* z);
+	/**
+	 * @brief Convert given lattice coordinates to equivalent positive coordinates.
+	 * 
+	 * @param idx 
+	 * @return pos& 
+	 */
+	pos& equiv(vec3<int>& idx);
 
-	std::uint16_t getHeight();
-	std::uint16_t getWidth();
-	std::uint16_t getSize();
+	uIndx getSizeX();
+	uIndx getSizeY();
+	uIndx getSizeZ();
+	uSize getSize();
 	double getTemp();
-	uWord_t* getInit();
-	uWord_t* getRaw();
-	void __leftShift(uWord_t* shifted);
-	void __downShift(uWord_t* shifted);
+	uWord* getInit();
+	uWord* getRaw();
+	void __nXShift(uWord* shifted);
+	void __nYShift(uWord* shifted);
+	void __nZShift(uWord* shifted);
 
 	void generate();
 	void reinit();
@@ -97,20 +90,36 @@ public:
 	/**
 	 * @brief Flip the spin at the given index.
 	 * 
-	 * @param i The row index.
-	 * @param j The column index.
+	 * @param x 
+	 * @param y 
+	 * @param z 
 	 */
-	void flip(uint i, uint j);
+	void flip(uIndx x, uIndx y, uIndx z);
+	/**
+	 * @brief Flip the spin at the given position.
+	 * 
+	 * @param p 
+	 */
+	void flip(pos& p);
 
 	/**
 	 * @brief Exchange the spins at the given indices.
 	 * 
-	 * @param i1 Row index 1.
-	 * @param j1 Column index 1.
-	 * @param i2 Row index 2.
-	 * @param j2 Column index 2.
+	 * @param x1 
+	 * @param y1 
+	 * @param z1 
+	 * @param x2 
+	 * @param y2 
+	 * @param z2 
 	 */
-	void exchange(uint i1, uint j1, uint i2, uint j2);
+	void exchange(int x1, int y1, int z1, int x2, int y2, int z2);
+	/**
+	 * @brief Exchange the spins at the given positions.
+	 * 
+	 * @param p1 
+	 * @param p2 
+	 */
+	void exchange(pos& p1, pos& p2);
 
 	/**
 	 * @brief Computes the Ising hamiltonian for a given configuration.

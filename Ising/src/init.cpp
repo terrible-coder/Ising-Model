@@ -1,16 +1,15 @@
 #include "Ising.hpp"
 
-Ising::Ising(uint w, uint h, uint conc,
+Ising::Ising(vec3<uIndx>& size, uIndx conc,
 						 double temperature,
-						 BoundaryCondition b) {
-	this->Lx = w;
-	this->Ly = h;
-	this->N  = w * h;
+						 const vec3<BoundaryCondition>& b) {
+	this->L = size;
+	this->N = size.x * size.y * size.z;
 	this->conc = conc;
-	this->rawX = w / WORD_SIZE;
-	this->rawY = h;
+	this->raw = size;
+	this->raw.x /= WORD_SIZE;
 	this->rawN = this->N / WORD_SIZE;
-	this->T  = temperature;
+	this->T = temperature;
 	this->boundary = b;
 	this->is_generated = false;
 
@@ -38,16 +37,16 @@ void Ising::generate() {
 	}
 	this->is_generated = true;
 
-	this->initial = new uWord_t[this->rawN];
+	this->initial = new uWord[this->rawN];
 
 	// Tie the seed value to the size of the lattice. This ensures the same
 	// initial lattice for every type of experiment.
 	uint seed = this->N + (uint)(this->T * 1000. + 0.5);
 
-	for (uint i = 0; i < this->rawN; i++)
+	for (uSize i = 0; i < this->rawN; i+=1u)
 		this->initial[i] = randIntP(this->conc, seed);
 
-	this->lattice = new uWord_t[this->rawN];
+	this->lattice = new uWord[this->rawN];
 }
 
 /**

@@ -18,4 +18,6 @@
 #define SKIP 10
 
 #define WORD_SIZE 64
-typedef std::uint64_t uWord_t;
+typedef std::uint64_t uWord;
+typedef std::uint16_t uIndx;
+typedef std::uint32_t uSize;

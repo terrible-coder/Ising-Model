@@ -1,30 +1,26 @@
 #include <iostream>
 
-enum BoundaryCondition {
-	PERIODIC = 0,
-	SCREW,
-	FREE
-};
+#include "defaults.hpp"
+#include "context.hpp"
 
 /**
  * @brief Takes care of the indexing at the boundary of the lattice.
  * 
- * @param ui The row index we "want" to see.
- * @param uj The column index we "want" to see.
- * @param ai The row index the lattice site sees.
- * @param aj The column index the lattice site sees.
+ * @param len The size of the lattice.
+ * @param uIdx 
+ * @param aIdx 
+ * @param boundary 
  */
-void imposeBC(int w, int h, int ui, int uj, int* ai, int* aj, BoundaryCondition boundary);
+void imposeBC(vec3<uIndx>& len, const vec3<int>& uIdx, vec3<uIndx>* aIdx, vec3<BoundaryCondition>& boundary);
 
 /**
  * @brief Transform from double index to a row major indexing.
  * 
- * @param i The row index.
- * @param j The column index.
- * @param w The width of the lattice.
+ * @param p 
+ * @param len
  * @return uint 
  */
-uint idx2to1(uint i, uint j, uint w);
+uSize idx3to1(pos& p, vec3<uIndx>& L);
 
 /**
  * @brief Transform from a row major index to double indexing.
@@ -34,4 +30,14 @@ uint idx2to1(uint i, uint j, uint w);
  * @param i The row index.
  * @param j The column index.
  */
-void idx1to2(uint idx, uint w, uint* i, uint* j);
+void idx1to3(uSize idx, vec3<uIndx>& L, pos* p);
+
+/**
+ * @brief Check if the index is valid.
+ * 
+ * @param L 
+ * @param idx 
+ * @return true 
+ * @return false 
+ */
+bool outOfBounds(vec3<uIndx>& L, pos& idx);

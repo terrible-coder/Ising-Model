@@ -1,55 +1,78 @@
 #include "Ising.hpp"
 
-void Ising::flip(uint i, uint j) {
-	uint idx = idx2to1(i, j, this->Lx);
-	flipBit(&(this->lattice[idx / WORD_SIZE]), idx % WORD_SIZE);
-}
-
-void Ising::exchange(uint i1, uint j1, uint i2, uint j2) {
-	int i1a = i1, j1a = j1;
-	int i2a = i2, j2a = j2;
-	imposeBC(this->Lx, this->Ly, i1, j1, &i1a, &j1a, this->boundary);
-	imposeBC(this->Lx, this->Ly, i2, j2, &i2a, &j2a, this->boundary);
-
-	uint idx1 = idx2to1(i1a, j1a, this->Lx); // row major index of spin 1
-	uint idx2 = idx2to1(i2a, j2a, this->Lx); // row major index of spin 2
-	uWord_t* n1 = &(this->lattice[idx1 / WORD_SIZE]); // the word where spin 1 is stored
-	uWord_t* n2 = &(this->lattice[idx2 / WORD_SIZE]); // the word where spin 2 is stored
-	flipBit(n1, idx1 % WORD_SIZE); // this function gets called only if the
-	flipBit(n2, idx2 % WORD_SIZE); // two spins are not the same
-}
-
-double Ising::Hamiltonian() {
+double Ising::partialEnergy(uWord* shifted, uSize beg, vec3<int> off) {
+	uSize realI;
+	pos ps, pn;
+	uWord sigma, prod;
 	double E = 0.;
-	// Single spin terms
-	E = -Ising::getField() * this->Magnetisation();
-
-	// Two spin interaction terms
-	uint SS = 0;
-	uWord_t* shift = new uWord_t[this->rawN];
 
 	/* Multiplication of spin values (+1 or -1) can be mapped directly to
 	 * multiplication of boolean values.
 	 * A_spin * B_spin \equiv A XNOR B
 	 * The actual value can be achieved using the very useful bool2spin.
 	 */
-	this->__leftShift(shift); // east
-	for (int i = 0; i < this->rawN; i++)
-		SS += std::__popcount(~(this->lattice[i] ^ shift[i]));
+	realI = beg;
+	for (uIndx i = 0; i < this->rawN; i++, realI += WORD_SIZE) {
+		sigma = this->lattice[i];
+		prod = ~(this->lattice[i] ^ shifted[i]);
 
-	this->__downShift(shift); // north
-	for (int i = 0; i < this->rawN; i++)
-		SS += std::__popcount(~(this->lattice[i] ^ shift[i]));
+		idx1to3(realI, this->L, &ps);
+		pn = pos{ps.x, ps.y, ps.z};
+		pn.x += off.x; // neighbour along x
+		pn.y += off.y; // neighbour along y
+		pn.z += off.z; // neighbour along z
+		for (uIndx j = 0; j < WORD_SIZE; j += 1u) {
+			E -= this->getField(ps) * bool2spin(sigma & 1);
+			E -= this->getNNCoup(ps, pn) * bool2spin(prod & 1);
+			prod >>= 1;	sigma >>= 1;
+			ps.x -= 1u;	pn.x -= 1u;
+		}
+	}
+	return E;
+}
 
-	free(shift);
+void Ising::flip(uIndx x, uIndx y, uIndx z) {
+	pos p{x, y, z};
+	uSize idx = idx3to1(p, this->L);
+	flipBit(&(this->lattice[idx / WORD_SIZE]), idx % WORD_SIZE);
+}
+void Ising::flip(pos& p) {
+	uSize idx = idx3to1(p, this->L);
+	flipBit(&(this->lattice[idx / WORD_SIZE]), idx % WORD_SIZE);
+}
 
-	E -= Ising::getNNCoup() * bool2spin(SS, 2*this->N);
+void Ising::exchange(int x1, int y1, int z1, int x2, int y2, int z2) {
+	vec3<int> p1{x1, y1, z1}; pos a1;
+	vec3<int> p2{x2, y2, z2}; pos a2;
+	imposeBC(this->L, p1, &a1, this->boundary);
+	imposeBC(this->L, p2, &a2, this->boundary);
+
+	this->exchange(a1, a2);
+}
+void Ising::exchange(pos& p1, pos& p2) {
+	uSize idx1 = idx3to1(p1, this->L); // row major index of spin 1
+	uSize idx2 = idx3to1(p2, this->L); // row major index of spin 2
+	uWord* n1 = &(this->lattice[idx1 / WORD_SIZE]); // the word where spin 1 is stored
+	uWord* n2 = &(this->lattice[idx2 / WORD_SIZE]); // the word where spin 2 is stored
+	flipBit(n1, idx1 % WORD_SIZE); // this function gets called only if the
+	flipBit(n2, idx2 % WORD_SIZE); // two spins are not the same
+}
+
+double Ising::Hamiltonian() {
+	double E = 0.;
+	uWord* shift = new uWord[this->rawN];
+
+	this->__nXShift(shift);	E += this->partialEnergy(shift, WORD_SIZE-1, {1, 0, 0});
+	this->__nYShift(shift);	E += this->partialEnergy(shift, WORD_SIZE-1, {0, -1, 0});
+	this->__nZShift(shift);	E += this->partialEnergy(shift, 0, {0, 0, 1});
+
+	delete shift;
 	return E;
 }
 
 double Ising::Magnetisation() {
 	uint M = 0;
-	for (std::uint16_t i = 0; i < this->rawN; i++)
+	for (uIndx i = 0; i < this->rawN; i++)
 		M += std::__popcount(this->lattice[i]);
 	return bool2spin(M, this->N);
 }
