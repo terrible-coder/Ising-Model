@@ -52,20 +52,11 @@ struct Context {
 	vec3<uIndx> size;				// The dimensions of the lattice.
 	uIndx Concentration;		// Concentration in units of 1/WORD_SIZE
 	vec3<BoundaryCondition> boundary;	// Boundary conditions
-	std::vector<double> Temperature;	// The temperature range of the simulation.
-	double BoltzConstant;		// The numerical value of the Boltzmann factor.
-	std::function<double(const pos& i, const pos& j)> Coupling;	// The coupling constant.
-	std::function<double(const pos& i)> Field;						// The external field applied.
+	std::vector<float> Temperature;	// The temperature range of the simulation.
+	float BoltzConstant;		// The numerical value of the Boltzmann factor.
+	std::function<float(const pos& i, const pos& j)> Coupling;	// The coupling constant.
+	std::function<float(const pos& i)> Field;						// The external field applied.
 	TransProb Transition;		// The form of the transition rate to use.
 	Dynamics SpinKinetics;	// The kind of kinetics to be used.
 	std::string saveDir;	// Directory to save all data to.
 };
-
-/**
- * @brief Initialise the simulation. The context settings are read from a file
- * containing key-value pairs representing the values to be used.
- * 
- * @param filename 
- * @param ctx 
- */
-void init_system(std::string filename, Context* ctx);
