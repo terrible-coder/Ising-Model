@@ -18,7 +18,7 @@ float bool2spin(bool s);
  * @param n Number of spins that have been summed.
  * @return float 
  */
-float bool2spin(uint S, uSize n);
+float bool2spin(uSize S, uSize n);
 /**
  * @brief Converts sum of spins in boolean representation to integer representation.
  * 

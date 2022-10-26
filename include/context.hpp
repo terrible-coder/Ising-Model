@@ -43,6 +43,23 @@ struct vec3 {
 	T x, y, z;
 };
 
+template<typename T>
+bool operator==(vec3<T> const& lhs, vec3<T> const& rhs);
+
+template<typename T>
+vec3<T> operator+(vec3<T> const& lhs, vec3<T> const& rhs);
+template<typename T>
+vec3<int> operator+(vec3<T> const& lhs, vec3<int> const& rhs);
+template<typename T>
+vec3<int> operator+(vec3<int> const& lhs, vec3<T> const& rhs);
+
+template<typename T>
+vec3<int> operator-(vec3<T> const& lhs, vec3<T> const& rhs);
+template<typename T>
+vec3<int> operator-(vec3<T> const& lhs, vec3<int> const& rhs);
+template<typename T>
+vec3<int> operator-(vec3<int> const& lhs, vec3<T> const& rhs);
+
 typedef vec3<uIndx> pos;
 
 // template<typename T>

@@ -112,6 +112,22 @@ std::vector<double> readTemp(std::string str) {
 	return T;
 }
 
+template<typename T>
+bool operator==(vec3<T> const& a, vec3<T> const& b) {
+	return (a.x == b.x) && (a.y == b.y) && (a.z == b.z);
+}
+
+template<typename T>
+vec3<T> operator+(vec3<T> const& a, vec3<T> const& b) {
+	return {a.x + b.x, a.y + b.y, a.z + b.z};
+}
+
+template<typename T>
+vec3<T> operator-(vec3<T> const& a, vec3<T> const& b) {
+	return {a.x - b.x, a.y - b.y, a.z - b.z};
+}
+
+
 /**
  * @brief Initialise a system from input file. This function should be called at
  * before initialising any configurations and this function should be called

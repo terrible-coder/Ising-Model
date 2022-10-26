@@ -3,7 +3,7 @@
 float bool2spin(bool s) {
 	return 2.*s - 1.;
 }
-float bool2spin(uint S, uSize n) {
+float bool2spin(uSize S, uSize n) {
 	/* This comes from applying the single bool2spin function on a sum of spins
 	 * (2s_1 - 1) + 2(s_2 - 1) + ... + 2(s_n - 1) = 2(s_1 + s_2 + ... + s_n) - n
 	 */

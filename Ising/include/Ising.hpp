@@ -129,8 +129,8 @@ public:
 	 * @return false 
 	 */
 	bool operator() (int x, int y, int z);
-	bool operator() (vec3<int>& p);
-	bool operator() (pos& p);
+	bool operator() (vec3<int> const& p);
+	bool operator() (pos const& p);
 
 	/**
 	 * @brief Convert given lattice coordinates to equivalent positive coordinates.
@@ -146,8 +146,9 @@ public:
 	 * @param idx 
 	 * @return pos& 
 	 */
-	pos& equiv(vec3<int>& idx);
+	pos& equiv(vec3<int> const& idx);
 
+	vec3<uIndx> getVecSize();
 	uIndx getSizeX();
 	uIndx getSizeY();
 	uIndx getSizeZ();
