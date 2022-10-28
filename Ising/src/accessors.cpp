@@ -53,10 +53,57 @@ void Ising::equiv(int* x, int* y, int* z) {
 	*y = aIdx.y;
 	*z = aIdx.z;
 }
-pos& Ising::equiv(vec3<int>& idx) {
+pos& Ising::equiv(vec3<int> const& idx) {
 	pos aIdx;
 	imposeBC(this->p.L, idx, &aIdx, this->p.boundary);
 	return aIdx;
+}
+
+uIndx Ising::sumNeighbours(pos const& i) {
+	Edge e = onEdge(i, this->p.L);
+	vec3<uIndx> offX = {1, 0, 0};
+	vec3<uIndx> offY = {0, 1, 0};
+	vec3<uIndx> offZ = {0, 0, 1};
+
+	switch (e) {
+	case Edge::NONE:
+		return   this->operator()(i+offX) + this->operator()(i-offX);
+		       + this->operator()(i+offY) + this->operator()(i-offY);
+		       + this->operator()(i+offZ) + this->operator()(i-offZ);
+
+	case Edge::X_BEG:
+		return   this->operator()(i+offX);
+		       + this->operator()(i+offY) + this->operator()(i-offY);
+		       + this->operator()(i+offZ) + this->operator()(i-offZ);
+
+	case Edge::X_END:
+		return   this->operator()(i-offX);
+		       + this->operator()(i+offY) + this->operator()(i-offY);
+		       + this->operator()(i+offZ) + this->operator()(i-offZ);
+
+	case Edge::Y_BEG:
+		return   this->operator()(i+offX) + this->operator()(i-offX);
+		       + this->operator()(i+offY);
+		       + this->operator()(i+offZ) + this->operator()(i-offZ);
+
+	case Edge::Y_END:
+		return   this->operator()(i+offX) + this->operator()(i-offX);
+		       + this->operator()(i-offY);
+		       + this->operator()(i+offZ) + this->operator()(i-offZ);
+
+	case Edge::Z_BEG:
+		return   this->operator()(i+offX) + this->operator()(i-offX);
+		       + this->operator()(i+offY) + this->operator()(i-offY);
+		       + this->operator()(i+offZ);
+
+	case Edge::Z_END:
+		return   this->operator()(i+offX) + this->operator()(i-offX);
+		       + this->operator()(i+offY) + this->operator()(i-offY);
+		       + this->operator()(i-offZ);
+	}
+}
+uIndx Ising::sumNeighbours(pos const& i, pos const& except) {
+	return this->sumNeighbours(i) - this->operator()(except);
 }
 
 void Ising::__nXShift(uWord* shifted) {

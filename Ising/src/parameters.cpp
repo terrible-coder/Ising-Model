@@ -8,7 +8,7 @@ float field(float aa, float bb) {
 	return 0.25f * (aa - bb);
 }
 
-Edge onEdge(pos& i, vec3<uIndx>& s) {
+Edge onEdge(pos const& i, vec3<uIndx>& s) {
 	if (i.x == 0)     return Edge::X_BEG;
 	if (i.x == s.x-1) return Edge::X_END;
 	if (i.y == 0)     return Edge::Y_BEG;
@@ -42,6 +42,13 @@ void ModelParams::create_surface(Surface& s) {
 }
 void ModelParams::create_surface(Edge loc, float aa, float bb, float ab) {
 	this->surfaces.push_back({loc, aa, bb, ab});
+}
+
+bool ModelParams::isSurface(Edge e) {
+	for (auto it = this->surfaces.begin(); it != this->surfaces.end(); it++)
+		if (it->loc == e)
+			return true;
+	return false;
 }
 
 float ModelParams::J(pos& i, pos& j) {

@@ -22,6 +22,20 @@ enum Edge {
 };
 
 /**
+ * @brief Find the edge on which the lattice point is on.
+ * 
+ * @param i The lattice point to check.
+ * @param s The dimensions of the lattice.
+ * @return Edge 
+ */
+Edge onEdge(pos const& i, vec3<uIndx>& s);
+
+/*
+At some later point the Surface struct maybe modified to allow non-constant
+values at the edge. That would require inheritance. 
+*/
+
+/**
  * @brief Represents a surface at one of the edges of the lattice.
  */
 struct Surface {
@@ -32,6 +46,11 @@ struct Surface {
 	float Eab;	// interaction energy between A-B particles at surface
 	bool __static_surf;
 };
+
+/*
+Along with non-constant values at edges, the bulk values would also be allowed
+to take non-constant functions.
+*/
 
 /**
  * @brief Deals with the parameters of the simulation system.
@@ -73,6 +92,15 @@ public:
 	 */
 	void create_surface(Surface& s);
 	void create_surface(Edge loc, float aa, float bb, float ab);
+
+	/**
+	 * @brief Check if a given edge has a surface.
+	 * 
+	 * @param e 
+	 * @return true 
+	 * @return false 
+	 */
+	bool isSurface(Edge e);
 
 	/**
 	 * @brief The interaction energy between two lattice points.
@@ -156,6 +184,24 @@ public:
 	double getTemp();
 	uWord* getInit();
 	uWord* getRaw();
+
+	/**
+	 * @brief Returns the sum of spin of all the neighbours of the given spin.
+	 * 
+	 * @param i 
+	 * @return uIndx 
+	 */
+	uIndx sumNeighbours(pos const& i);
+	/**
+	 * @brief Returns the sum of spin of all the neighbours of the given spin
+	 * except the one specified.
+	 * 
+	 * @param i 
+	 * @param except 
+	 * @return uIndx 
+	 */
+	uIndx sumNeighbours(pos const& i, pos const& except);
+
 	void __nXShift(uWord* shifted);
 	void __nYShift(uWord* shifted);
 	void __nZShift(uWord* shifted);
