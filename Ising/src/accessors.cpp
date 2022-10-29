@@ -65,42 +65,64 @@ uIndx Ising::sumNeighbours(pos const& i) {
 	vec3<uIndx> offY = {0, 1, 0};
 	vec3<uIndx> offZ = {0, 0, 1};
 
+	uIndx SS;
 	switch (e) {
 	case Edge::NONE:
-		return   this->operator()(i+offX) + this->operator()(i-offX);
-		       + this->operator()(i+offY) + this->operator()(i-offY);
-		       + this->operator()(i+offZ) + this->operator()(i-offZ);
+		SS =  this->operator()(i+offX) + this->operator()(i-offX)
+		    + this->operator()(i+offY) + this->operator()(i-offY)
+		    + this->operator()(i+offZ) + this->operator()(i-offZ);
+		break;
 
 	case Edge::X_BEG:
-		return   this->operator()(i+offX);
-		       + this->operator()(i+offY) + this->operator()(i-offY);
-		       + this->operator()(i+offZ) + this->operator()(i-offZ);
+		SS =  this->operator()(i+offX)
+		    + this->operator()(i+offY) + this->operator()(i-offY)
+		    + this->operator()(i+offZ) + this->operator()(i-offZ);
+		if (this->p.boundary.x == BoundaryCondition::PERIODIC)
+			SS += this->operator()(i-offX);
+		break;
 
 	case Edge::X_END:
-		return   this->operator()(i-offX);
-		       + this->operator()(i+offY) + this->operator()(i-offY);
-		       + this->operator()(i+offZ) + this->operator()(i-offZ);
+		SS =  this->operator()(i-offX)
+		    + this->operator()(i+offY) + this->operator()(i-offY)
+		    + this->operator()(i+offZ) + this->operator()(i-offZ);
+		if (this->p.boundary.x == BoundaryCondition::PERIODIC)
+			SS += this->operator()(i-offX);
+		break;
 
 	case Edge::Y_BEG:
-		return   this->operator()(i+offX) + this->operator()(i-offX);
-		       + this->operator()(i+offY);
-		       + this->operator()(i+offZ) + this->operator()(i-offZ);
+		SS =  this->operator()(i+offX) + this->operator()(i-offX)
+		    + this->operator()(i+offY)
+		    + this->operator()(i+offZ) + this->operator()(i-offZ);
+		if (this->p.boundary.y == BoundaryCondition::PERIODIC)
+			SS += this->operator()(i-offY);
+		break;
 
 	case Edge::Y_END:
-		return   this->operator()(i+offX) + this->operator()(i-offX);
-		       + this->operator()(i-offY);
-		       + this->operator()(i+offZ) + this->operator()(i-offZ);
+		SS =  this->operator()(i+offX) + this->operator()(i-offX)
+		    + this->operator()(i-offY)
+		    + this->operator()(i+offZ) + this->operator()(i-offZ);
+		if (this->p.boundary.y == BoundaryCondition::PERIODIC)
+			SS += this->operator()(i+offY);
+		break;
 
 	case Edge::Z_BEG:
-		return   this->operator()(i+offX) + this->operator()(i-offX);
-		       + this->operator()(i+offY) + this->operator()(i-offY);
-		       + this->operator()(i+offZ);
+		SS =  this->operator()(i+offX) + this->operator()(i-offX)
+		    + this->operator()(i+offY) + this->operator()(i-offY)
+		    + this->operator()(i+offZ);
+		if (this->p.boundary.z == BoundaryCondition::PERIODIC)
+			SS += this->operator()(i-offZ);
+		break;
 
 	case Edge::Z_END:
-		return   this->operator()(i+offX) + this->operator()(i-offX);
-		       + this->operator()(i+offY) + this->operator()(i-offY);
-		       + this->operator()(i-offZ);
+		SS =  this->operator()(i+offX) + this->operator()(i-offX)
+		    + this->operator()(i+offY) + this->operator()(i-offY)
+		    + this->operator()(i-offZ);
+		if (this->p.boundary.z == BoundaryCondition::PERIODIC)
+			SS += this->operator()(i+offZ);
+		break;
 	}
+
+	return SS;
 }
 uIndx Ising::sumNeighbours(pos const& i, pos const& except) {
 	return this->sumNeighbours(i) - this->operator()(except);
