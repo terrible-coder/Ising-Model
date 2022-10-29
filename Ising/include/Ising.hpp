@@ -21,6 +21,9 @@ enum Edge {
 	Z_BEG = 16, Z_END = 32
 };
 
+float coupling(float aa, float bb, float ab);
+float field(float aa, float bb);
+
 /**
  * @brief Find the edge on which the lattice point is on.
  * 
