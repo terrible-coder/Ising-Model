@@ -188,21 +188,46 @@ public:
 	uWord* getRaw();
 
 	/**
-	 * @brief Returns the sum of spin of all the neighbours of the given spin.
+	 * @brief Returns the sum of spins of all the neighbours of the given spin.
+	 * This method takes care of the boundary conditions and the dimensionality
+	 * of the lattice.
 	 * 
 	 * @param i 
 	 * @return uIndx 
 	 */
 	uIndx sumNeighbours(pos const& i);
 	/**
-	 * @brief Returns the sum of spin of all the neighbours of the given spin
-	 * except the one specified.
+	 * @brief Calculate the sum of spins of neighbours ONLY in the indicated
+	 * directions. The direction must have unsigned integer values. This method
+	 * will check in both +ve and -ve directions for the indicated axes.
+	 * 
+	 * @param i 
+	 * @param dir 
+	 * @return uIndx 
+	 */
+	uIndx sumNeighbours(pos const& i, vec3<uIndx> const& dir);
+	/**
+	 * @brief Returns the sum of spins of all the neighbours of the given spin
+	 * except the one specified. This method takes care of the boundary conditions
+	 * and the dimensionality of the lattice.
 	 * 
 	 * @param i 
 	 * @param except 
 	 * @return uIndx 
 	 */
 	uIndx sumNeighbours(pos const& i, pos const& except);
+	/**
+	 * @brief Calculates the sum of the spins of neighbours ONLY in the indicated
+	 * directions, except the one specified. The direction must have unsigned
+	 * integer values. This method takes care of the boundary conditions and the
+	 * dimensionality of the lattice.
+	 * 
+	 * @param i 
+	 * @param dir 
+	 * @param except 
+	 * @return uIndx 
+	 */
+	uIndx sumNeighbours(pos const& i, vec3<uIndx> const& dir, pos const& except);
 
 	void __nXShift(uWord* shifted);
 	void __nYShift(uWord* shifted);
