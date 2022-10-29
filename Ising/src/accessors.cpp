@@ -24,7 +24,7 @@ uSize Ising::getSize() {
 	return this->p.N;
 }
 
-double Ising::getTemp() {
+float Ising::getTemp() {
 	return this->T;
 }
 

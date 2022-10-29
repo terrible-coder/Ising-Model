@@ -46,46 +46,45 @@ void ModelParams::create_surface(Edge loc, float aa, float bb, float ab) {
 
 bool ModelParams::isSurface(Edge e) {
 	for (auto it = this->surfaces.begin(); it != this->surfaces.end(); it++)
-		if (it->loc == e)
-			return true;
+		if (it->loc == e) return true;
 	return false;
+}
+
+std::vector<Surface>::iterator ModelParams::whichSurface(Edge e) {
+	return std::find_if(
+		surfaces.begin(),
+		surfaces.end(),
+		[e](Surface& s) { return s.loc == e; }
+	);
 }
 
 float ModelParams::J(pos& i, pos& j) {
 	if (this->surfaces.size() == 0)
 		return coupling(this->Eaa, this->Ebb, this->Eab);
 
-	std::vector<Surface>::iterator it;
-	Edge e;
-	auto sCond = [e](Surface& s) {
-		return s.loc == e;
-	};
-
+	std::vector<Surface>::iterator it = this->surfaces.end();
 	Edge iE = onEdge(i, this->L);
 	Edge jE = onEdge(j, this->L);
-	if (iE == jE && jE != Edge::NONE) {    // points lie on the same edge
-		e = iE;
+	if (iE == jE && jE != Edge::NONE)    // points lie on the same edge
 		// find out if there is a surface at Edge e
-		it = std::find_if(this->surfaces.begin(), this->surfaces.end(), sCond);
-	} else it = this->surfaces.end();
+		it = this->whichSurface(iE);
 
-	if (it != this->surfaces.end())
-		return coupling(it->Eaa, it->Ebb, it->Eab);
-	return coupling(this->Eaa, this->Ebb, this->Eab);
+	if (it == this->surfaces.end())    // no surface on this edge
+		return coupling(this->Eaa, this->Ebb, this->Eab);
+	return coupling(it->Eaa, it->Ebb, it->Eab);
 }
 
 float ModelParams::H(pos& i) {
 	if (this->surfaces.size() == 0)
 		return	this->q * field(this->Eaa, this->Ebb);
+
+	std::vector<Surface>::iterator it = this->surfaces.end();
 	Edge iE = onEdge(i, this->L);
 	if (iE == Edge::NONE)    // point is not on an edge
-		return	this->q * field(this->Eaa, this->Ebb);
+		return	q * field(this->Eaa, this->Ebb);
 
-	auto sCond = [iE](Surface& s) {
-		return s.loc == iE;
-	};
-	auto it = std::find_if(this->surfaces.begin(), this->surfaces.end(), sCond);
-	if (it != this->surfaces.end())
-		return	q * field(this->Eaa, this->Ebb);	// cheat, act as if the free edge opposite the surface is not free
-	return 0.5 * q * field(this->Eaa, this->Ebb) + field(it->Eaa, it->Ebb);
+	it = this->whichSurface(iE);
+	if (it == this->surfaces.end())    // no surface on this edge
+		return q * field(this->Eaa, this->Ebb);
+	return (q-2) * field(it->Eaa, it->Ebb) + field(this->Eaa, this->Ebb);
 }

@@ -102,6 +102,8 @@ public:
 	 */
 	bool isSurface(Edge e);
 
+	std::vector<Surface>::iterator whichSurface(Edge e);
+
 	/**
 	 * @brief The interaction energy between two lattice points.
 	 * 
@@ -181,7 +183,7 @@ public:
 	uIndx getSizeY();
 	uIndx getSizeZ();
 	uSize getSize();
-	double getTemp();
+	float getTemp();
 	uWord* getInit();
 	uWord* getRaw();
 
