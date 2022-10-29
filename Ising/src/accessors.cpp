@@ -74,50 +74,68 @@ uIndx Ising::sumNeighbours(pos const& i) {
 		break;
 
 	case Edge::X_BEG:
-		SS =  this->operator()(i+offX)
-		    + this->operator()(i+offY) + this->operator()(i-offY)
+		SS =  this->operator()(i+offY) + this->operator()(i-offY)
 		    + this->operator()(i+offZ) + this->operator()(i-offZ);
-		if (this->p.boundary.x == BoundaryCondition::PERIODIC)
+
+		// make sure of the lattice dimensionality in x direction
+		if (this->p.L.x == 1) break;
+		SS += this->operator()(i+offX);
+		if (this->p.L.x > 2 && this->p.boundary.x == BoundaryCondition::PERIODIC)
 			SS += this->operator()(i-offX);
 		break;
 
 	case Edge::X_END:
-		SS =  this->operator()(i-offX)
-		    + this->operator()(i+offY) + this->operator()(i-offY)
+		SS =  this->operator()(i+offY) + this->operator()(i-offY)
 		    + this->operator()(i+offZ) + this->operator()(i-offZ);
-		if (this->p.boundary.x == BoundaryCondition::PERIODIC)
-			SS += this->operator()(i-offX);
+
+		// make sure of the lattice dimensionality in x direction
+		if (this->p.L.x == 1) break;
+		SS += this->operator()(i-offX);
+		if (this->p.L.x > 2 && this->p.boundary.x == BoundaryCondition::PERIODIC)
+			SS += this->operator()(i+offX);
 		break;
 
 	case Edge::Y_BEG:
 		SS =  this->operator()(i+offX) + this->operator()(i-offX)
-		    + this->operator()(i+offY)
 		    + this->operator()(i+offZ) + this->operator()(i-offZ);
-		if (this->p.boundary.y == BoundaryCondition::PERIODIC)
+
+		// make sure of the lattice dimensionality in y direction
+		if (this->p.L.y == 1) break;
+		this->operator()(i+offY);
+		if (this->p.L.y > 2 && this->p.boundary.y == BoundaryCondition::PERIODIC)
 			SS += this->operator()(i-offY);
 		break;
 
 	case Edge::Y_END:
 		SS =  this->operator()(i+offX) + this->operator()(i-offX)
-		    + this->operator()(i-offY)
 		    + this->operator()(i+offZ) + this->operator()(i-offZ);
-		if (this->p.boundary.y == BoundaryCondition::PERIODIC)
+
+		// make sure of the lattice dimensionality in y direction
+		if (this->p.L.y == 1) break;
+		SS += this->operator()(i-offY);
+		if (this->p.L.y > 2 && this->p.boundary.y == BoundaryCondition::PERIODIC)
 			SS += this->operator()(i+offY);
 		break;
 
 	case Edge::Z_BEG:
 		SS =  this->operator()(i+offX) + this->operator()(i-offX)
-		    + this->operator()(i+offY) + this->operator()(i-offY)
-		    + this->operator()(i+offZ);
-		if (this->p.boundary.z == BoundaryCondition::PERIODIC)
+		    + this->operator()(i+offY) + this->operator()(i-offY);
+
+		// make sure of the lattice dimensionality in z direction
+		if (this->p.L.z == 1) break;
+		SS += this->operator()(i+offZ);
+		if (this->p.L.z > 2 && this->p.boundary.z == BoundaryCondition::PERIODIC)
 			SS += this->operator()(i-offZ);
 		break;
 
 	case Edge::Z_END:
 		SS =  this->operator()(i+offX) + this->operator()(i-offX)
-		    + this->operator()(i+offY) + this->operator()(i-offY)
-		    + this->operator()(i-offZ);
-		if (this->p.boundary.z == BoundaryCondition::PERIODIC)
+		    + this->operator()(i+offY) + this->operator()(i-offY);
+
+		// make sure of the lattice dimensionality in z direction
+		if (this->p.L.z == 1) break;
+		SS += this->operator()(i-offZ);
+		if (this->p.L.z > 2 && this->p.boundary.z == BoundaryCondition::PERIODIC)
 			SS += this->operator()(i+offZ);
 		break;
 	}
