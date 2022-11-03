@@ -21,7 +21,7 @@ void imposeBC(const vec3<uIndx>& len, const vec3<int>& uIdx, vec3<int>* aIdx, ve
 	aIdx->z = imposeBC(len.z, uIdx.z, boundary.z);
 }
 
-uSize idx3to1(pos& p, vec3<uIndx>& L) {
+uSize idx3to1(pos const& p, vec3<uIndx> const& L) {
 	uSize x = (uSize) p.x;
 	uSize y = (uSize) p.y;
 	uSize z = (uSize) p.z;
@@ -35,6 +35,6 @@ void idx1to3(uSize idx, vec3<uIndx>& L, pos* p) {
 	p->x = (idx % _2D_size) % L.x;
 }
 
-bool outOfBounds(vec3<uIndx>& L, pos& idx) {
+bool outOfBounds(vec3<uIndx> const& L, pos const& idx) {
 	return (idx.x == L.x) || (idx.y == L.y) || (idx.z == L.z);
 }

@@ -20,7 +20,7 @@ void imposeBC(vec3<uIndx>& len, const vec3<int>& uIdx, vec3<uIndx>* aIdx, vec3<B
  * @param len
  * @return uint 
  */
-uSize idx3to1(pos& p, vec3<uIndx>& L);
+uSize idx3to1(pos const& p, vec3<uIndx> const& L);
 
 /**
  * @brief Transform from a row major index to double indexing.
@@ -40,4 +40,4 @@ void idx1to3(uSize idx, vec3<uIndx>& L, pos* p);
  * @return true 
  * @return false 
  */
-bool outOfBounds(vec3<uIndx>& L, pos& idx);
+bool outOfBounds(vec3<uIndx> const& L, pos const& idx);

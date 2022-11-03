@@ -91,6 +91,7 @@ float Ising::Hamiltonian() {
 	// FBC and FBC+Surface corrections
 	uSize S_beg, S_end;   // sum of spins
 	uSize SS_fbc, SS_sur;  // sum of spin spin product
+	uSize ns;	// keeps track of how many spins have been added
 	uIndx end;
 
 	float J_bulk = coupling(this->p.Eaa, this->p.Ebb, this->p.Eab);
@@ -100,6 +101,7 @@ float Ising::Hamiltonian() {
 		S_beg = S_end = 0u;
 		SS_fbc = 0u;
 		end = this->p.L.x - 1;
+		uSize yz_size = (uSize) this->p.L.y * this->p.L.z;
 		for (uIndx y = 0u; y < this->p.L.y; y += 1u) {
 			for (uIndx z = 0u; z < this->p.L.z; z += 1u) {
 				pos begP = {0u, y, z}, endP = {end, y, z};
@@ -109,39 +111,53 @@ float Ising::Hamiltonian() {
 				S_beg += s_beg;  S_end = s_end;
 			}
 		}
-		E += J_bulk * SS_fbc;
+		// fbc correction for coupling
+		E += J_bulk * bool2spin(SS_fbc, yz_size);
 
 		std::vector<Surface>::iterator surf;
 		if ((surf = p.whichSurface(Edge::X_BEG)) != p.surfaces.end()) {
 			// x-beg is free edge with surface
 			SS_sur = 0u;
+			ns = 0u;
 			for (uIndx y = 0; y < this->p.L.y; y += 1u) {
 				for (uIndx z = 0; z < this->p.L.z; z += 1u) {
 					pos begP = {0u, y, z};
 					bool s = this->operator()(begP);
-					SS_sur = s * this->sumNeighbours(begP, {0, 1, 1});
+					// sum neighbours only on the surface (    v  v ) (y, z directions)
+					SS_sur = s * this->sumNeighbours(begP, {0, 1, 1}, &ns);
 				}
 			}
 			float H1 = (p.q - 2) * field(surf->Eaa, surf->Ebb);
 			float J_surf = coupling(surf->Eaa, surf->Ebb, surf->Eab);
-			E += (J_bulk - J_surf) * SS_sur;
-			E += - H1 * S_beg + h * S_end;    // careful with the terms
-		} else E += h * S_beg;    // x-beg is a free edge with no surface
+			// surface correction for coupling
+			E += (J_bulk - J_surf) * bool2spin(SS_sur, ns);
+			// surface correction for field
+			// careful with the terms
+			E += -H1 * bool2spin(S_beg, yz_size) + h * bool2spin(S_end, yz_size);
+		} else		// x-beg is a free edge with no surface
+			E += h * bool2spin(S_beg, yz_size);
+
 		if ((surf = p.whichSurface(Edge::X_END)) != p.surfaces.end()) {
 			// x-end is a free edge with surface
 			SS_sur = 0u;
+			ns = 0u;
 			for (uIndx y = 0; y < this->p.L.y; y += 1u) {
 				for (uIndx z = 0; z < this->p.L.z; z += 1u) {
 					pos endP = {end, y, z};
 					bool s = this->operator()(endP);
-					SS_sur = s * this->sumNeighbours(endP, {0, 1, 1});
+					// sum neighbours only on the surface (    v  v ) (y, z directions)
+					SS_sur = s * this->sumNeighbours(endP, {0, 1, 1}, &ns);
 				}
 			}
 			float H1 = (p.q - 2) * field(surf->Eaa, surf->Ebb);
 			float J_surf = coupling(surf->Eaa, surf->Ebb, surf->Eab);
-			E += (J_bulk - J_surf) * SS_sur;
-			E += - H1 * S_end + h * S_beg;    // careful with the terms
-		} else E += h * S_end;    // x-end is a free edge with no surface
+			// surface correction for coupling
+			E += (J_bulk - J_surf) * bool2spin(SS_sur, ns);
+			// surface correction for field
+			// careful with the terms
+			E += - H1 * bool2spin(S_end, yz_size) + h * bool2spin(S_beg, yz_size);
+		} else		// x-end is a free edge with no surface
+			E += h * bool2spin(S_end, yz_size);
 	}
 
 
@@ -150,6 +166,7 @@ float Ising::Hamiltonian() {
 		S_beg = S_end = 0u;
 		SS_fbc = 0u;
 		end = this->p.L.y - 1;
+		uSize xz_size = (uSize) this->p.L.x * this->p.L.z;
 		for (uIndx x = 0u; x < this->p.L.x; x += 1u) {
 			for (uIndx z = 0u; z < this->p.L.z; z += 1u) {
 				pos begP = {x, 0u, z}, endP = {x, end, z};
@@ -159,39 +176,53 @@ float Ising::Hamiltonian() {
 				S_beg += s_beg;  S_end = s_end;
 			}
 		}
-		E += J_bulk * SS_fbc;
+		// fbc correction for coupling
+		E += J_bulk * bool2spin(SS_fbc, xz_size);
 
 		std::vector<Surface>::iterator surf;
 		if ((surf = p.whichSurface(Edge::Y_BEG)) != p.surfaces.end()) {
 			// y-beg is free edge with surface
 			SS_sur = 0u;
+			ns = 0u;
 			for (uIndx x = 0; x < this->p.L.x; x += 1u) {
 				for (uIndx z = 0; z < this->p.L.z; z += 1u) {
 					pos begP = {x, 0u, z};
 					bool s = this->operator()(begP);
-					SS_sur = s * this->sumNeighbours(begP, {1, 0, 1});
+					// sum neighbours only on the surface ( v     v ) (x, z directions)
+					SS_sur = s * this->sumNeighbours(begP, {1, 0, 1}, &ns);
 				}
 			}
 			float H1 = (p.q - 2) * field(surf->Eaa, surf->Ebb);
 			float J_surf = coupling(surf->Eaa, surf->Ebb, surf->Eab);
-			E += (J_bulk - J_surf) * SS_sur;
-			E += - H1 * S_beg + h * S_end;    // careful with the terms
-		} else E += h * S_beg;    // y-beg is a free edge with no surface
+			// surface correction for coupling
+			E += (J_bulk - J_surf) * bool2spin(SS_sur, ns);
+			// surface correction for field
+			// careful with the terms
+			E += -H1 * bool2spin(S_beg, xz_size) + h * bool2spin(S_end, xz_size);
+		} else		// y-beg is a free edge with no surface
+		E += h * bool2spin(S_beg, xz_size);
+
 		if ((surf = p.whichSurface(Edge::Y_END)) != p.surfaces.end()) {
 			// y-end is a free edge with surface
 			SS_sur = 0u;
+			ns = 0u;
 			for (uIndx x = 0; x < this->p.L.x; x += 1u) {
 				for (uIndx z = 0; z < this->p.L.z; z += 1u) {
 					pos endP = {x, end, z};
 					bool s = this->operator()(endP);
-					SS_sur = s * this->sumNeighbours(endP, {1, 0, 1});
+					// sum neighbours only on the surface ( v     v ) (y, z directions)
+					SS_sur = s * this->sumNeighbours(endP, {1, 0, 1}, &ns);
 				}
 			}
 			float H1 = (p.q - 2) * field(surf->Eaa, surf->Ebb);
 			float J_surf = coupling(surf->Eaa, surf->Ebb, surf->Eab);
-			E += (J_bulk - J_surf) * SS_sur;
-			E += - H1 * S_end + h * S_beg;    // careful with the terms
-		} else E += h * S_end;    // y-end is a free edge with no surface
+			// surface correction for coupling
+			E += (J_bulk - J_surf) * bool2spin(SS_sur, ns);
+			// surface correction for field
+			// careful with the terms
+			E += -H1 * bool2spin(S_end, xz_size) + h * bool2spin(S_beg, xz_size);
+		} else		// y-end is a free edge with no surface
+		E += h * bool2spin(S_end, xz_size);
 	}
 
 
@@ -201,44 +232,58 @@ float Ising::Hamiltonian() {
 		end = this->p.L.z - 1;
 		uIndx begP = 0u;
 		uIndx endP = this->rawN - (this->raw.x*this->raw.y);  // last layer
-		for (int i = 0; i < this->raw.x*this->raw.y; i++) {
+		uSize xy_size = (uSize) this->p.L.x * this->p.L.y;
+		for (uIndx i = 0; i < this->raw.x*this->raw.y; i += 1u) {
 			uWord s_beg = this->lattice[begP + i], s_end = this->lattice[endP + i];
 			SS_fbc += std::__popcount(~(s_beg ^ s_end));
 			S_beg += std::__popcount(s_beg);  S_end += std::__popcount(s_end);
 		}
-		E += J_bulk * SS_fbc;
+		// fbc correction for coupling
+		E += J_bulk * bool2spin(SS_fbc, xy_size);
 
 		std::vector<Surface>::iterator surf;
 		if ((surf = p.whichSurface(Edge::Z_BEG)) != p.surfaces.end()) {
 			// z-beg is free edge with surface
 			SS_sur = 0u;
+			ns = 0u;
 			for (uIndx x = 0; x < this->p.L.x; x += 1u) {
 				for (uIndx y = 0; y < this->p.L.y; y += 1u) {
 					pos begP = {x, y, 0u};
 					bool s = this->operator()(begP);
-					SS_sur = s * this->sumNeighbours(begP, {1, 1, 0});
+					// sum neighbours only on the surface ( v  v    ) (x, y directions)
+					SS_sur = s * this->sumNeighbours(begP, {1, 1, 0}, &ns);
 				}
 			}
 			float H1 = (p.q - 2) * field(surf->Eaa, surf->Ebb);
 			float J_surf = coupling(surf->Eaa, surf->Ebb, surf->Eab);
-			E += (J_bulk - J_surf) * SS_sur;
-			E += - H1 * S_beg + h * S_end;    // careful with the terms
-		} else E += h * S_beg;    // z-beg is a free edge with no surface
+			// surface correction for coupling
+			E += (J_bulk - J_surf) * bool2spin(SS_sur, xy_size);
+			// surface correction for field
+			// careful with the terms
+			E += -H1 * bool2spin(S_beg, xy_size) + h * bool2spin(S_end, xy_size);
+		} else		// z-beg is a free edge with no surface
+			E += h * bool2spin(S_beg, xy_size);
 		if ((surf = p.whichSurface(Edge::Z_END)) != p.surfaces.end()) {
 			// z-end is a free edge with surface
 			SS_sur = 0u;
+			ns = 0u;
 			for (uIndx x = 0; x < this->p.L.x; x += 1u) {
 				for (uIndx y = 0; y < this->p.L.y; y += 1u) {
 					pos endP = {x, y, end};
 					bool s = this->operator()(endP);
-					SS_sur = s * this->sumNeighbours(endP, {1, 1, 0});
+					// sum neighbours only on the surface ( v  v    ) (x, y directions)
+					SS_sur = s * this->sumNeighbours(endP, {1, 1, 0}, &ns);
 				}
 			}
 			float H1 = (p.q - 2) * field(surf->Eaa, surf->Ebb);
 			float J_surf = coupling(surf->Eaa, surf->Ebb, surf->Eab);
-			E += (J_bulk - J_surf) * SS_sur;
-			E += - H1 * S_end + h * S_beg;    // careful with the terms
-		} else E += h * S_end;    // z-end is a free edge with no surface
+			// surface correction for coupling
+			E += (J_bulk - J_surf) * bool2spin(SS_sur, xy_size);
+			// surface correction for field
+			// careful with the terms
+			E += -H1 * bool2spin(S_end, xy_size) + h * bool2spin(S_beg, xy_size);
+		} else		// z-end is a free edge with no surface
+			E += h * bool2spin(S_end, xy_size);
 	}
 
 	// still has errors

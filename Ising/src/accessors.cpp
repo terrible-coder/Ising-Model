@@ -42,7 +42,15 @@ bool Ising::operator() (int x, int y, int z) {
 
 	if (a.x == this->p.L.x || a.y == this->p.L.y || a.z == this->p.L.z) return NULL;
 	uSize idx = idx3to1(a, this->p.L);
-	return (this->lattice[idx / WORD_SIZE] >> (WORD_SIZE - idx%WORD_SIZE - 1)) & 1 ;
+	return (this->lattice[idx / WORD_SIZE] >> (WORD_SIZE - idx%WORD_SIZE - 1)) & 1;
+}
+bool Ising::operator() (vec3<int> const& i) {
+	return this->operator()(i.x, i.y, i.y);
+}
+bool Ising::operator() (pos const& i) {
+	if (i.x == this->p.L.x || i.y == this->p.L.y || i.z == this->p.L.z) return NULL;
+	uSize idx = idx3to1(i, this->p.L);
+	return (this->lattice[idx / WORD_SIZE] >> (WORD_SIZE - idx%WORD_SIZE - 1)) & 1;
 }
 
 void Ising::equiv(int* x, int* y, int* z) {
@@ -59,89 +67,106 @@ pos& Ising::equiv(vec3<int> const& idx) {
 	return aIdx;
 }
 
-uIndx Ising::sumNeighbours(pos const& i) {
-	return this->sumNeighbours(i, {1u, 1u, 1u});  // sum neighbours in all directions
+uIndx Ising::sumNeighbours(pos const& i, uSize* n) {
+	return this->sumNeighbours(i, {1u, 1u, 1u}, n);  // sum neighbours in all directions
 }
-uIndx Ising::sumNeighbours(pos const& i, vec3<uIndx> const& dir) {
+uIndx Ising::sumNeighbours(pos const& i, vec3<uIndx> const& dir, uSize* n) {
 	Edge e = onEdge(i, this->p.L);
 	static vec3<uIndx> offX = {1, 0, 0};
 	static vec3<uIndx> offY = {0, 1, 0};
 	static vec3<uIndx> offZ = {0, 0, 1};
 
 	uIndx SS = 0u;
-	if (dir.x) {
+	// neighbours available along x-direction only if x-length is at least 2
+	if (dir.x && this->p.L.x > 1) { 
 		switch (e) {
 		case Edge::X_BEG:
 			// make sure of the lattice dimensionality in x direction
-			if (this->p.L.x == 1) break;
 			SS += this->operator()(i+offX);
-			if (this->p.L.x > 2 && this->p.boundary.x == BoundaryCondition::PERIODIC)
+			*n += 1u;
+			if (this->p.L.x > 2 && this->p.boundary.x == BoundaryCondition::PERIODIC) {
 				SS += this->operator()(i-offX);
+				*n += 1u;
+			}
 			break;
 
 		case Edge::X_END:
-			// make sure of the lattice dimensionality in x direction
-			if (this->p.L.x == 1) break;
 			SS += this->operator()(i-offX);
-			if (this->p.L.x > 2 && this->p.boundary.x == BoundaryCondition::PERIODIC)
+			*n += 1u;
+			if (this->p.L.x > 2 && this->p.boundary.x == BoundaryCondition::PERIODIC) {
 				SS += this->operator()(i+offX);
+				*n += 1u;
+			}
 			break;
 
 		default:
 			SS += this->operator()(i+offX) + this->operator()(i-offX);
+			*n += 2u;
 		}
 	}
 
-	if (dir.y) {
+	// neighbours available in y-direction only if y-length is at least 2
+	if (dir.y && this->p.L.y > 1) {
 		switch (e) {
 		case Edge::Y_BEG:
-			// make sure of the lattice dimensionality in y direction
-			if (this->p.L.y == 1) break;
 			SS += this->operator()(i+offY);
-			if (this->p.L.y > 2 && this->p.boundary.y == BoundaryCondition::PERIODIC)
+			*n += 1u;
+			if (this->p.L.y > 2 && this->p.boundary.y == BoundaryCondition::PERIODIC) {
 				SS += this->operator()(i-offY);
+				*n += 1u;
+			}
 			break;
 
 		case Edge::Y_END:
-			// make sure of the lattice dimensionality in y direction
-			if (this->p.L.y == 1) break;
 			SS += this->operator()(i-offY);
-			if (this->p.L.y > 2 && this->p.boundary.y == BoundaryCondition::PERIODIC)
+			*n += 1u;
+			if (this->p.L.y > 2 && this->p.boundary.y == BoundaryCondition::PERIODIC) {
 				SS += this->operator()(i+offY);
+				*n += 1u;
+			}
 			break;
 
 		default:
 			SS += this->operator()(i+offY) + this->operator()(i-offY);
+			*n += 2u;
 		}
 	}
 
-	if (dir.z) {
+	// neighbours available in z-direction only if z-length is at least 2
+	if (dir.z && this->p.L.z > 1) {
 		switch (e) {
 		case Edge::Z_BEG:
-			// make sure of the lattice dimensionality in z direction
-			if (this->p.L.z == 1) break;
 			SS += this->operator()(i+offZ);
-			if (this->p.L.z > 2 && this->p.boundary.z == BoundaryCondition::PERIODIC)
+			*n += 1u;
+			if (this->p.L.z > 2 && this->p.boundary.z == BoundaryCondition::PERIODIC) {
 				SS += this->operator()(i-offZ);
+				*n += 1u;
+			}
 			break;
 
 		case Edge::Z_END:
-			// make sure of the lattice dimensionality in z direction
-			if (this->p.L.z == 1) break;
 			SS += this->operator()(i-offZ);
-			if (this->p.L.z > 2 && this->p.boundary.z == BoundaryCondition::PERIODIC)
+			*n += 1u;
+			if (this->p.L.z > 2 && this->p.boundary.z == BoundaryCondition::PERIODIC) {
 				SS += this->operator()(i+offZ);
+				*n += 1u;
+			}
 			break;
 
 		default:
 			SS += this->operator()(i+offZ) + this->operator()(i-offZ);
+			*n += 2u;
 		}
 	}
 
 	return SS;
 }
-uIndx Ising::sumNeighbours(pos const& i, vec3<uIndx> const& dir, pos const& except) {
-	return this->sumNeighbours(i, dir) - this->operator()(except);
+uIndx Ising::sumNeighbours(pos const& i, vec3<uIndx> const& dir, pos const& except, uSize* n) {
+	if (outOfBounds(this->p.L, except))
+		return this->sumNeighbours(i, dir, n);
+	uIndx S = this->sumNeighbours(i, dir, n) - this->operator()(except);
+	*n -= 1;
+	return S;
 }
 
 void Ising::__nXShift(uWord* shifted) {
@@ -150,44 +175,36 @@ void Ising::__nXShift(uWord* shifted) {
 		MSBs[idx] = this->lattice[idx] >> (WORD_SIZE - 1);
 		shifted[idx] = this->lattice[idx] << 1;
 	}
+	pos xyz;
 	for (uSize idx = 0; idx < this->p.N; idx += WORD_SIZE) {
-		pos xyz;
 		idx1to3(idx, this->p.L, &xyz);
-		imposeBC(this->p.L, vec3<int>{xyz.x-1, xyz.y, xyz.z}, &xyz, this->p.boundary);
-		if (outOfBounds(this->p.L, xyz)) // for free boundary condition
-			continue;
+		// shift MSB of x to x-1
+		if (xyz.x == 0) xyz.x = this->p.L.x-1;
+		else xyz.x -= 1u;
 		shifted[idx3to1(xyz, this->p.L) / WORD_SIZE] |= MSBs[idx / WORD_SIZE];
 	}
 }
 
 void Ising::__nYShift(uWord* shifted) {
-	uIndx z, i, idx, offset, xy_size = this->raw.x * this->raw.y;
+	uIndx z, i, idx, offset;
+	const uSize xy_size = this->raw.x * this->raw.y;
 	for (z = 0; z < this->raw.z; z += 1u)
 		for (i = this->raw.x, offset = z*xy_size; i < this->raw.y; i += 1u)
 			shifted[offset + i] = this->lattice[offset + i - this->raw.x];
-	pos k;
-	imposeBC(this->p.L, {0, -1, 0}, &k, this->p.boundary);
-	if (outOfBounds(this->p.L, k)) // for free boundary condition
-		for (z = 0; z < this->raw.z; z += 1u)
-			for (i = 0, offset = z*xy_size; i < this->raw.x; i += 1u)
-				shifted[offset + i] = 0;
-	else
-		for (z = 0, idx = idx3to1(k, this->p.L)/WORD_SIZE; z < this->raw.z; z += 1u)
-			for (i = 0, offset = z * xy_size; i < this->raw.x; i += 1u)
-				shifted[offset + i] = this->lattice[idx + i];
+	pos k{0, this->p.L.y - 1, 0}; // populate top row with last row for each z
+	idx = idx3to1(k, this->p.L) / WORD_SIZE;
+	for (z = 0; z < this->raw.z; z += 1u)
+		for (i = 0, offset = z * xy_size; i < this->raw.x; i += 1u)
+			shifted[offset + i] = this->lattice[idx + i];
 }
 
 void Ising::__nZShift(uWord* shifted) {
-	uIndx i, idx, xy_size = this->raw.x * this->raw.y;
+	uIndx i, idx;
+	const uSize xy_size = this->raw.x * this->raw.y;
 	uIndx offset = this->rawN - xy_size;
 	for (i = xy_size; i < this->rawN; i += 1u)
 		shifted[i - xy_size] = this->lattice[i];
-	pos k;
-	imposeBC(this->p.L, {0, 0, this->p.L.z}, &k, this->p.boundary);
-	if (outOfBounds(this->p.L, k))	// for free boundary condition
-		for (i = 0; i < xy_size; i += 1u)
-			shifted[offset + i] = 0;
-	else
-		for (i = 0, idx = idx3to1(k, this->p.L)/WORD_SIZE; i < xy_size; i += 1u)
-			shifted[offset + i] = this->lattice[idx + i];
+	// populate last z with first z
+	for (i = 0; i < xy_size; i += 1u)
+		shifted[offset + i] = this->lattice[i];
 }

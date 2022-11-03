@@ -162,8 +162,8 @@ public:
 	 * @return false 
 	 */
 	bool operator() (int x, int y, int z);
-	bool operator() (vec3<int> const& p);
-	bool operator() (pos const& p);
+	bool operator() (vec3<int> const& i);
+	bool operator() (pos const& i);
 
 	/**
 	 * @brief Convert given lattice coordinates to equivalent positive coordinates.
@@ -198,7 +198,7 @@ public:
 	 * @param i 
 	 * @return uIndx 
 	 */
-	uIndx sumNeighbours(pos const& i);
+	uIndx sumNeighbours(pos const& i, uSize* n);
 	/**
 	 * @brief Calculate the sum of spins of neighbours ONLY in the indicated
 	 * directions. The direction must have unsigned integer values. This method
@@ -208,7 +208,7 @@ public:
 	 * @param dir 
 	 * @return uIndx 
 	 */
-	uIndx sumNeighbours(pos const& i, vec3<uIndx> const& dir);
+	uIndx sumNeighbours(pos const& i, vec3<uIndx> const& dir, uSize* n);
 	/**
 	 * @brief Calculates the sum of the spins of neighbours ONLY in the indicated
 	 * directions, except the one specified. The direction must have unsigned
@@ -220,10 +220,28 @@ public:
 	 * @param except 
 	 * @return uIndx 
 	 */
-	uIndx sumNeighbours(pos const& i, vec3<uIndx> const& dir, pos const& except);
+	uIndx sumNeighbours(pos const& i, vec3<uIndx> const& dir, pos const& except, uSize* n);
 
+	/**
+	 * @brief Returns the lattice shifted towards -ve x by 1 position. Assumes
+	 * PBC. Any FBC corrections must be added by user.
+	 * 
+	 * @param shifted 
+	 */
 	void __nXShift(uWord* shifted);
+	/**
+	 * @brief Returns the lattice shifted towards -ve y by 1 position. Assumes
+	 * PBC. Any FBC corrections must be added by user.
+	 * 
+	 * @param shifted 
+	 */
 	void __nYShift(uWord* shifted);
+	/**
+	 * @brief Returns the lattice shifted towards -ve z by 1 position. Assumes
+	 * PBC. Any FBC corrections must be added by user.
+	 * 
+	 * @param shifted 
+	 */
 	void __nZShift(uWord* shifted);
 
 	void generate();
