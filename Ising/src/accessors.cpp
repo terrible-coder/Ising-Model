@@ -80,7 +80,7 @@ uIndx Ising::__sumDir(pos const& i, vec3<uIndx> const& off, Edge e, bool P, uSiz
 	} else if (off.z) {
 		E_BEG = Edge::Z_BEG;	E_END = Edge::Z_END;
 		bc = this->p.boundary.z;	L = this->p.L.z;
-	}
+	} else return 0u;	// no direction mentioned
 	if (L == 1u) // neighbours available along given direction only if
 		return 0u; // length along same direction is at least 2
 
@@ -180,7 +180,11 @@ void Ising::__nYShift(uWord* shifted) {
 	for (z = 0; z < this->raw.z; z += 1u)
 		for (i = this->raw.x, offset = z*xy_size; i < this->raw.y; i += 1u)
 			shifted[offset + i] = this->lattice[offset + i - this->raw.x];
-	pos k{0, this->p.L.y - 1, 0}; // populate top row with last row for each z
+	pos k{
+		0,
+		(uIndx)(this->p.L.y - 1), // populate y-beg with y-end for each z
+		0
+	};
 	idx = idx3to1(k, this->p.L) / WORD_SIZE;
 	for (z = 0; z < this->raw.z; z += 1u)
 		for (i = 0, offset = z * xy_size; i < this->raw.x; i += 1u)
@@ -188,7 +192,7 @@ void Ising::__nYShift(uWord* shifted) {
 }
 
 void Ising::__nZShift(uWord* shifted) {
-	uIndx i, idx;
+	uIndx i;
 	const uSize xy_size = this->raw.x * this->raw.y;
 	uIndx offset = this->rawN - xy_size;
 	for (i = xy_size; i < this->rawN; i += 1u)

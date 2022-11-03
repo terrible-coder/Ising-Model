@@ -73,7 +73,11 @@ float Ising::Hamiltonian() {
 	}
 
 	uSize SS = 0;
-	static pos P{this->getSizeX()/2, this->getSizeY()/2, this->getSizeZ()/2};
+	static pos P{
+		(uIndx)(getSizeX()>>1),
+		(uIndx)(getSizeY()>>1),
+		(uIndx)(getSizeZ()>>1)
+	};
 	static float J = this->getNNCoup(P, P);
 	static float H = this->getField(P);
 
