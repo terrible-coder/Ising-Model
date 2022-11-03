@@ -140,6 +140,17 @@ private:
 	float __M;    // Cheat for constant magnetisation.
 
 	float partialEnergy(uWord* shifted, uSize beg, vec3<int> off);
+	/**
+	 * @brief Calculate sum of the neighbours.
+	 * 
+	 * @param i The lattice point whose neighbours to consider.
+	 * @param off The offset indicating the direction to sum in.
+	 * @param e The edge on which the lattice point `i` is on.
+	 * @param P Flag to indicate if sum is only in positive direction.
+	 * @param n The number of spins which have been summed over.
+	 * @return uIndx 
+	 */
+	uIndx __sumDir(pos const& i, vec3<uIndx> const& off, Edge e, bool P, uSize* n);
 
 public:
 

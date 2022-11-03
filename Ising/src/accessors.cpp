@@ -67,97 +67,73 @@ pos& Ising::equiv(vec3<int> const& idx) {
 	return aIdx;
 }
 
+uIndx Ising::__sumDir(pos const& i, vec3<uIndx> const& off, Edge e, bool P, uSize* n) {
+	Edge E_BEG, E_END;
+	BoundaryCondition bc;
+	uIndx L;
+	if (off.x) {
+		E_BEG = Edge::X_BEG;	E_END = Edge::X_END;
+		bc = this->p.boundary.x;	L = this->p.L.x;
+	} else if (off.y) {
+		E_BEG = Edge::Y_BEG;	E_END = Edge::Y_END;
+		bc = this->p.boundary.y;	L = this->p.L.y;
+	} else if (off.z) {
+		E_BEG = Edge::Z_BEG;	E_END = Edge::Z_END;
+		bc = this->p.boundary.z;	L = this->p.L.z;
+	}
+	if (L == 1u) // neighbours available along given direction only if
+		return 0u; // length along same direction is at least 2
+
+	uIndx SS = 0u;
+	if (e == E_BEG) {
+		SS += this->operator()(i + off);
+		*n += 1u;
+		if (!P && L > 2 && bc == BoundaryCondition::PERIODIC) {
+			SS += this->operator()(i - off);
+			*n += 1u;
+		}
+	} else
+	if (e == E_END) {
+		if (!P) {
+			SS += this->operator()(i - off);
+			*n += 1u;
+		}
+		if (L > 2 && bc == BoundaryCondition::PERIODIC) {
+			SS += this->operator()(i + off);
+			*n += 1u;
+		}
+	} else {
+		SS += this->operator()(i+off);
+		*n += 1u;
+		if (!P) {
+			SS += this->operator()(i-off);
+			*n += 1u;
+		}
+	}
+	return SS;
+}
+
+static vec3<uIndx> offX = {1, 0, 0};
+static vec3<uIndx> offY = {0, 1, 0};
+static vec3<uIndx> offZ = {0, 0, 1};
 uIndx Ising::sumNeighbours(pos const& i, uSize* n) {
-	return this->sumNeighbours(i, {1u, 1u, 1u}, n);  // sum neighbours in all directions
+	Edge e = onEdge(i, this->p.L);
+
+	// sum of neighbours in all directions
+	return this->__sumDir(i, offX, e, false, n)
+	     + this->__sumDir(i, offY, e, false, n)
+			 + this->__sumDir(i, offZ, e, false, n);
 }
 uIndx Ising::sumNeighbours(pos const& i, vec3<uIndx> const& dir, uSize* n) {
 	Edge e = onEdge(i, this->p.L);
-	static vec3<uIndx> offX = {1, 0, 0};
-	static vec3<uIndx> offY = {0, 1, 0};
-	static vec3<uIndx> offZ = {0, 0, 1};
 
 	uIndx SS = 0u;
-	// neighbours available along x-direction only if x-length is at least 2
-	if (dir.x && this->p.L.x > 1) { 
-		switch (e) {
-		case Edge::X_BEG:
-			// make sure of the lattice dimensionality in x direction
-			SS += this->operator()(i+offX);
-			*n += 1u;
-			if (this->p.L.x > 2 && this->p.boundary.x == BoundaryCondition::PERIODIC) {
-				SS += this->operator()(i-offX);
-				*n += 1u;
-			}
-			break;
-
-		case Edge::X_END:
-			SS += this->operator()(i-offX);
-			*n += 1u;
-			if (this->p.L.x > 2 && this->p.boundary.x == BoundaryCondition::PERIODIC) {
-				SS += this->operator()(i+offX);
-				*n += 1u;
-			}
-			break;
-
-		default:
-			SS += this->operator()(i+offX) + this->operator()(i-offX);
-			*n += 2u;
-		}
-	}
-
-	// neighbours available in y-direction only if y-length is at least 2
-	if (dir.y && this->p.L.y > 1) {
-		switch (e) {
-		case Edge::Y_BEG:
-			SS += this->operator()(i+offY);
-			*n += 1u;
-			if (this->p.L.y > 2 && this->p.boundary.y == BoundaryCondition::PERIODIC) {
-				SS += this->operator()(i-offY);
-				*n += 1u;
-			}
-			break;
-
-		case Edge::Y_END:
-			SS += this->operator()(i-offY);
-			*n += 1u;
-			if (this->p.L.y > 2 && this->p.boundary.y == BoundaryCondition::PERIODIC) {
-				SS += this->operator()(i+offY);
-				*n += 1u;
-			}
-			break;
-
-		default:
-			SS += this->operator()(i+offY) + this->operator()(i-offY);
-			*n += 2u;
-		}
-	}
-
-	// neighbours available in z-direction only if z-length is at least 2
-	if (dir.z && this->p.L.z > 1) {
-		switch (e) {
-		case Edge::Z_BEG:
-			SS += this->operator()(i+offZ);
-			*n += 1u;
-			if (this->p.L.z > 2 && this->p.boundary.z == BoundaryCondition::PERIODIC) {
-				SS += this->operator()(i-offZ);
-				*n += 1u;
-			}
-			break;
-
-		case Edge::Z_END:
-			SS += this->operator()(i-offZ);
-			*n += 1u;
-			if (this->p.L.z > 2 && this->p.boundary.z == BoundaryCondition::PERIODIC) {
-				SS += this->operator()(i+offZ);
-				*n += 1u;
-			}
-			break;
-
-		default:
-			SS += this->operator()(i+offZ) + this->operator()(i-offZ);
-			*n += 2u;
-		}
-	}
+	if (dir.x)
+		SS += this->__sumDir(i, offX, e, false, n);
+	if (dir.y)
+		SS += this->__sumDir(i, offY, e, false, n);
+	if (dir.z)
+		SS += this->__sumDir(i, offY, e, false, n);
 
 	return SS;
 }
