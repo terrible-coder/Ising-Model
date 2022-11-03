@@ -73,13 +73,9 @@ float Ising::Hamiltonian() {
 	}
 
 	uSize SS = 0;
-	static pos P{
-		(uIndx)(getSizeX()>>1),
-		(uIndx)(getSizeY()>>1),
-		(uIndx)(getSizeZ()>>1)
-	};
-	static float J = this->getNNCoup(P, P);
-	static float H = this->getField(P);
+	static float J_bulk = coupling(this->p.Eaa, this->p.Ebb, this->p.Eab);
+	static float h = field(this->p.Eaa, this->p.Ebb);
+	static float H_bulk = this->p.q * h;
 
 	this->__nXShift(shift);
 	for (uIndx i = 0; i < this->rawN; i += 1u)
@@ -92,16 +88,13 @@ float Ising::Hamiltonian() {
 		SS += std::__popcount(~(lattice[i] ^ shift[i]));
 
 	// The PBC energy
-	E = -J * bool2spin(SS, this->p.N) - H*this->Magnetisation();
+	E = -J_bulk * bool2spin(SS, this->p.N) - H_bulk * this->Magnetisation();
 
 	// FBC and FBC+Surface corrections
 	uSize S_beg, S_end;   // sum of spins
 	uSize SS_fbc, SS_sur;  // sum of spin spin product
 	uSize ns;	// keeps track of how many spins have been added
 	uIndx end;
-
-	float J_bulk = coupling(this->p.Eaa, this->p.Ebb, this->p.Eab);
-	float h = field(this->p.Eaa, this->p.Ebb);
 
 	if (this->p.boundary.x == BoundaryCondition::FREE) {
 		S_beg = S_end = 0u;
@@ -130,7 +123,10 @@ float Ising::Hamiltonian() {
 					pos begP = {0u, y, z};
 					bool s = this->operator()(begP);
 					// sum neighbours only on the surface (    v  v ) (y, z directions)
-					SS_sur = s * this->sumNeighboursP(begP, {0, 1, 1}, &ns);
+					uSize n = 0u;
+					uIndx nSum = this->sumNeighboursP(begP, {0, 1, 1}, &n);
+					SS_sur += s? nSum : n - nSum;	// sum of spin products (bin equiv)
+					ns += n;
 				}
 			}
 			float H1 = (p.q - 2) * field(surf->Eaa, surf->Ebb);
@@ -152,7 +148,10 @@ float Ising::Hamiltonian() {
 					pos endP = {end, y, z};
 					bool s = this->operator()(endP);
 					// sum neighbours only on the surface (    v  v ) (y, z directions)
-					SS_sur = s * this->sumNeighboursP(endP, {0, 1, 1}, &ns);
+					uSize n = 0u;
+					uIndx nSum = this->sumNeighboursP(endP, {0, 1, 1}, &n);
+					SS_sur += s? nSum : n - nSum;	// sum of spin products (bin equiv)
+					ns += n;
 				}
 			}
 			float H1 = (p.q - 2) * field(surf->Eaa, surf->Ebb);
@@ -195,7 +194,10 @@ float Ising::Hamiltonian() {
 					pos begP = {x, 0u, z};
 					bool s = this->operator()(begP);
 					// sum neighbours only on the surface ( v     v ) (x, z directions)
-					SS_sur = s * this->sumNeighboursP(begP, {1, 0, 1}, &ns);
+					uSize n = 0u;
+					uIndx nSum = this->sumNeighboursP(begP, {1, 0, 1}, &n);
+					SS_sur += s? nSum : n - nSum;	// sum of spin products (bin equiv)
+					ns += n;
 				}
 			}
 			float H1 = (p.q - 2) * field(surf->Eaa, surf->Ebb);
@@ -217,7 +219,10 @@ float Ising::Hamiltonian() {
 					pos endP = {x, end, z};
 					bool s = this->operator()(endP);
 					// sum neighbours only on the surface ( v     v ) (y, z directions)
-					SS_sur = s * this->sumNeighboursP(endP, {1, 0, 1}, &ns);
+					uSize n = 0u;
+					uIndx nSum = this->sumNeighboursP(endP, {1, 0, 1}, &n);
+					SS_sur += s? nSum : n - nSum;	// sum of spin products (bin equiv)
+					ns += n;
 				}
 			}
 			float H1 = (p.q - 2) * field(surf->Eaa, surf->Ebb);
@@ -257,7 +262,10 @@ float Ising::Hamiltonian() {
 					pos begP = {x, y, 0u};
 					bool s = this->operator()(begP);
 					// sum neighbours only on the surface ( v  v    ) (x, y directions)
-					SS_sur = s * this->sumNeighboursP(begP, {1, 1, 0}, &ns);
+					uSize n = 0u;
+					uIndx nSum = this->sumNeighboursP(begP, {1, 1, 0}, &n);
+					SS_sur += s? nSum : n - nSum;	// sum of spin products (bin equiv)
+					ns += n;
 				}
 			}
 			float H1 = (p.q - 2) * field(surf->Eaa, surf->Ebb);
@@ -278,7 +286,10 @@ float Ising::Hamiltonian() {
 					pos endP = {x, y, end};
 					bool s = this->operator()(endP);
 					// sum neighbours only on the surface ( v  v    ) (x, y directions)
-					SS_sur = s * this->sumNeighboursP(endP, {1, 1, 0}, &ns);
+					uSize n = 0u;
+					uIndx nSum = this->sumNeighboursP(endP, {1, 1, 0}, &n);
+					SS_sur += s? nSum : n - nSum;	// sum of spin products (bin equiv)
+					ns += n;
 				}
 			}
 			float H1 = (p.q - 2) * field(surf->Eaa, surf->Ebb);
