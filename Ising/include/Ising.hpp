@@ -151,6 +151,7 @@ private:
 	 * @return uIndx 
 	 */
 	uIndx __sumDir(pos const& i, vec3<uIndx> const& off, Edge e, bool P, uSize* n);
+	uIndx sumNeighboursP(pos const& i, vec3<uIndx> const& dir, uSize* n);
 
 public:
 

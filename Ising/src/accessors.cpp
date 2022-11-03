@@ -116,6 +116,19 @@ uIndx Ising::__sumDir(pos const& i, vec3<uIndx> const& off, Edge e, bool P, uSiz
 static vec3<uIndx> offX = {1, 0, 0};
 static vec3<uIndx> offY = {0, 1, 0};
 static vec3<uIndx> offZ = {0, 0, 1};
+uIndx Ising::sumNeighboursP(pos const& i, vec3<uIndx> const& dir, uSize* n) {
+	Edge e = onEdge(i, this->p.L);
+
+	uIndx SS = 0u;
+	if (dir.x)
+		SS += this->__sumDir(i, offX, e, true, n);
+	if (dir.y)
+		SS += this->__sumDir(i, offY, e, true, n);
+	if (dir.z)
+		SS += this->__sumDir(i, offY, e, true, n);
+
+	return SS;
+}
 uIndx Ising::sumNeighbours(pos const& i, uSize* n) {
 	Edge e = onEdge(i, this->p.L);
 

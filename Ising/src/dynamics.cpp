@@ -58,6 +58,8 @@ void Ising::exchange(pos& p1, pos& p2) {
 }
 
 float Ising::Hamiltonian() {
+	// either break function into smaller functions or move to different file
+
 	float E = 0.;
 	uWord* shift = new uWord[this->rawN];
 
@@ -124,7 +126,7 @@ float Ising::Hamiltonian() {
 					pos begP = {0u, y, z};
 					bool s = this->operator()(begP);
 					// sum neighbours only on the surface (    v  v ) (y, z directions)
-					SS_sur = s * this->sumNeighbours(begP, {0, 1, 1}, &ns);
+					SS_sur = s * this->sumNeighboursP(begP, {0, 1, 1}, &ns);
 				}
 			}
 			float H1 = (p.q - 2) * field(surf->Eaa, surf->Ebb);
@@ -146,7 +148,7 @@ float Ising::Hamiltonian() {
 					pos endP = {end, y, z};
 					bool s = this->operator()(endP);
 					// sum neighbours only on the surface (    v  v ) (y, z directions)
-					SS_sur = s * this->sumNeighbours(endP, {0, 1, 1}, &ns);
+					SS_sur = s * this->sumNeighboursP(endP, {0, 1, 1}, &ns);
 				}
 			}
 			float H1 = (p.q - 2) * field(surf->Eaa, surf->Ebb);
@@ -189,7 +191,7 @@ float Ising::Hamiltonian() {
 					pos begP = {x, 0u, z};
 					bool s = this->operator()(begP);
 					// sum neighbours only on the surface ( v     v ) (x, z directions)
-					SS_sur = s * this->sumNeighbours(begP, {1, 0, 1}, &ns);
+					SS_sur = s * this->sumNeighboursP(begP, {1, 0, 1}, &ns);
 				}
 			}
 			float H1 = (p.q - 2) * field(surf->Eaa, surf->Ebb);
@@ -211,7 +213,7 @@ float Ising::Hamiltonian() {
 					pos endP = {x, end, z};
 					bool s = this->operator()(endP);
 					// sum neighbours only on the surface ( v     v ) (y, z directions)
-					SS_sur = s * this->sumNeighbours(endP, {1, 0, 1}, &ns);
+					SS_sur = s * this->sumNeighboursP(endP, {1, 0, 1}, &ns);
 				}
 			}
 			float H1 = (p.q - 2) * field(surf->Eaa, surf->Ebb);
@@ -251,7 +253,7 @@ float Ising::Hamiltonian() {
 					pos begP = {x, y, 0u};
 					bool s = this->operator()(begP);
 					// sum neighbours only on the surface ( v  v    ) (x, y directions)
-					SS_sur = s * this->sumNeighbours(begP, {1, 1, 0}, &ns);
+					SS_sur = s * this->sumNeighboursP(begP, {1, 1, 0}, &ns);
 				}
 			}
 			float H1 = (p.q - 2) * field(surf->Eaa, surf->Ebb);
@@ -272,7 +274,7 @@ float Ising::Hamiltonian() {
 					pos endP = {x, y, end};
 					bool s = this->operator()(endP);
 					// sum neighbours only on the surface ( v  v    ) (x, y directions)
-					SS_sur = s * this->sumNeighbours(endP, {1, 1, 0}, &ns);
+					SS_sur = s * this->sumNeighboursP(endP, {1, 1, 0}, &ns);
 				}
 			}
 			float H1 = (p.q - 2) * field(surf->Eaa, surf->Ebb);
@@ -286,9 +288,6 @@ float Ising::Hamiltonian() {
 			E += h * bool2spin(S_end, xy_size);
 	}
 
-	// still has errors
-	// check dimensionality
-	// sum of neighbours has repeated terms
 	return E;
 }
 
