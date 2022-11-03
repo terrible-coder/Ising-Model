@@ -140,9 +140,6 @@ uIndx Ising::sumNeighbours(pos const& i, vec3<uIndx> const& dir) {
 
 	return SS;
 }
-uIndx Ising::sumNeighbours(pos const& i, pos const& except) {
-	return this->sumNeighbours(i) - this->operator()(except);
-}
 uIndx Ising::sumNeighbours(pos const& i, vec3<uIndx> const& dir, pos const& except) {
 	return this->sumNeighbours(i, dir) - this->operator()(except);
 }

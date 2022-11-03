@@ -210,16 +210,6 @@ public:
 	 */
 	uIndx sumNeighbours(pos const& i, vec3<uIndx> const& dir);
 	/**
-	 * @brief Returns the sum of spins of all the neighbours of the given spin
-	 * except the one specified. This method takes care of the boundary conditions
-	 * and the dimensionality of the lattice.
-	 * 
-	 * @param i 
-	 * @param except 
-	 * @return uIndx 
-	 */
-	uIndx sumNeighbours(pos const& i, pos const& except);
-	/**
 	 * @brief Calculates the sum of the spins of neighbours ONLY in the indicated
 	 * directions, except the one specified. The direction must have unsigned
 	 * integer values. This method takes care of the boundary conditions and the
