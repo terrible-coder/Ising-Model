@@ -107,7 +107,7 @@ float Ising::Hamiltonian() {
 				bool s_beg = this->operator()(begP);
 				bool s_end = this->operator()(endP);
 				SS_fbc += !(s_beg ^ s_end);
-				S_beg += s_beg;  S_end = s_end;
+				S_beg += s_beg;  S_end += s_end;
 			}
 		}
 		// fbc correction for coupling
@@ -178,7 +178,7 @@ float Ising::Hamiltonian() {
 				bool s_beg = this->operator()(begP);
 				bool s_end = this->operator()(endP);
 				SS_fbc += !(s_beg ^ s_end);
-				S_beg += s_beg;  S_end = s_end;
+				S_beg += s_beg;  S_end += s_end;
 			}
 		}
 		// fbc correction for coupling
