@@ -63,12 +63,12 @@ void getStatusBar(sf::Text* statusBar, float x, float y) {
  * @param T The temperature of the simulation.
  * @return std::string 
  */
-std::string getStatus(int time, int member, double T) {
+std::string getStatus(int time, int member, float T) {
 	return "t = " + std::to_string(time) + "\t" +
 				 "Ensemble = " + std::to_string(member) + "\t" +
 				 "Temperature = " + std::to_string(T);
 }
-std::string getStatus(int time, std::string member, double T) {
+std::string getStatus(int time, std::string member, float T) {
 	return "t = " + std::to_string(time) + "\t" +
 				 "Ensemble = " + member + "\t" +
 				 "Temperature = " + std::to_string(T);
@@ -84,9 +84,9 @@ std::string getStatus(int time, std::string member, std::string T) {
  * This function works only if the full path to the experiment folder is used.
  * 
  * @param name 
- * @return double 
+ * @return float 
  */
-double getTemp(std::string name) {
+float getTemp(std::string name) {
 	int idxT = name.find("Temp") + 4;
 	int c = 0;
 	for (int i = 0; i < (int)name.length() - idxT; i++, c++)
@@ -285,7 +285,7 @@ int main(int argc, char** argv) {
 
 	// read Temp from exT
 	// read ensemble # from exT
-	double temp = getTemp(exT);
+	float temp = getTemp(exT);
 
 	// The total window width and height
 	int wWidth  = sysWidth;

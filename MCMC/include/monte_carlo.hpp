@@ -13,7 +13,7 @@
  * @param ctx The system settings.
  * @return `true` if accepted, `false` if rejected.
  */
-bool isAccepted(double dE, double temperature, Context *ctx);
+bool isAccepted(float dE, float temperature, Context *ctx);
 
 /**
  * @brief Perform the dynamics of the system according to the spin-flip and
