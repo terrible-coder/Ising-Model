@@ -77,12 +77,3 @@ struct Context {
 	Dynamics SpinKinetics;	// The kind of kinetics to be used.
 	std::string saveDir;	// Directory to save all data to.
 };
-
-/**
- * @brief Initialise the simulation. The context settings are read from a file
- * containing key-value pairs representing the values to be used.
- * 
- * @param filename 
- * @param ctx 
- */
-void init_system(std::string filename, Context* ctx);
