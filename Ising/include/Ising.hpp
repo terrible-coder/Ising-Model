@@ -306,14 +306,14 @@ public:
 	/**
 	 * @brief Computes the Ising hamiltonian for a given configuration.
 	 * 
-	 * @return double 
+	 * @return float 
 	 */
 	float Hamiltonian();
 
 	/**
 	 * @brief Calculate the magnetisation of the configuration.
 	 * 
-	 * @return double 
+	 * @return float 
 	 */
 	float Magnetisation();
 };

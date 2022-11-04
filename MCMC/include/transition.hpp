@@ -7,18 +7,18 @@
  * 
  * @param dE The energy change.
  * @param BETA 1/(kT)
- * @return double 
+ * @return float 
  */
-double Boltzmann(double dE, double BETA);
+float Boltzmann(float dE, float BETA);
 
 /**
  * @brief The Suzuki-Kubo probability distribution.
  * 
  * @param dE The energy change.
  * @param BETA 1/(kT)
- * @return double 
+ * @return float 
  */
-double Suzuki_Kubo(double dE, double BETA);
+float Suzuki_Kubo(float dE, float BETA);
 
 /**
  * @brief The probability value for accept-reject algorithm. The type of
@@ -27,6 +27,6 @@ double Suzuki_Kubo(double dE, double BETA);
  * @param dE The energy change.
  * @param BETA 1/(kT)
  * @param ctx The system settings.
- * @return double 
+ * @return float 
  */
-double Probability(double dE, const double BETA, Context* ctx);
+float Probability(float dE, const float BETA, Context* ctx);

@@ -5,8 +5,8 @@
 
 #include "defaults.hpp"
 
-void openLogger(std::string parentDir, double T);
+void openLogger(std::string parentDir, float T);
 void closeLogger();
 
-void logData(double energy, double magnet);
+void logData(float energy, float magnet);
 void nextEnsemble();

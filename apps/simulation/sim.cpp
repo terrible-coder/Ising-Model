@@ -62,7 +62,7 @@ int main(int argc, char** argv) {
 	Ising::setField(CTX.Field);
 
 	for (auto tp = CTX.Temperature.begin(); tp != CTX.Temperature.end(); tp++) {
-		double T = *tp;
+		float T = *tp;
 		// new temperature
 		openLogger(parentDir, T);
 		std::cout << SEPARATOR;

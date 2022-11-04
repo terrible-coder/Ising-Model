@@ -28,7 +28,7 @@ uSize idx3to1(pos const& p, vec3<uIndx> const& L) {
 	return z * L.x*L.y + y * L.x + x;
 }
 
-void idx1to3(uSize idx, vec3<uIndx>& L, pos* p) {
+void idx1to3(uSize idx, vec3<uIndx> const& L, pos* p) {
 	uSize _2D_size = (uSize) L.x * L.y;
 	p->z = idx / _2D_size;
 	p->y = (idx % _2D_size) / L.x;

@@ -1,10 +1,10 @@
 #include "monte_carlo.hpp"
 
-bool isAccepted(double dE, double temperature, Context *ctx) {
+bool isAccepted(float dE, float temperature, Context *ctx) {
 	if (dE < 0) return true;
-	double BETA = 1 / (ctx->BoltzConstant * temperature);
-	double prob = Probability(dE, BETA, ctx);
-	double r = rProbability();
+	float BETA = 1 / (ctx->BoltzConstant * temperature);
+	float prob = Probability(dE, BETA, ctx);
+	float r = rProbability();
 	return r < prob;
 }
 

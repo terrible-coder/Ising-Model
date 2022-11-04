@@ -30,7 +30,7 @@ uSize idx3to1(pos const& p, vec3<uIndx> const& L);
  * @param i The row index.
  * @param j The column index.
  */
-void idx1to3(uSize idx, vec3<uIndx>& L, pos* p);
+void idx1to3(uSize idx, vec3<uIndx> const& L, pos* p);
 
 /**
  * @brief Check if the index is valid.

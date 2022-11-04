@@ -71,10 +71,10 @@ int countOccurrence(std::string str, char c) {
  * @brief Interpret the temperature range from given string.
  * 
  * @param str The string to interpret. 
- * @return std::vector<double> 
+ * @return std::vector<float> 
  */
-std::vector<double> readTemp(std::string str) {
-	double Ti, Tf, interval;
+std::vector<float> readTemp(std::string str) {
+	float Ti, Tf, interval;
 	// interpret above values from str using : delimiter
 	int points;
 	int colonCount = countOccurrence(str, ':');
@@ -104,7 +104,7 @@ std::vector<double> readTemp(std::string str) {
 		Tf = std::stod(third);
 		points = (int) ((Tf - Ti) / interval + 0.5);
 	}
-	std::vector<double> T;
+	std::vector<float> T;
 	T.reserve(points);
 
 	for (int i = 0; i < points; i++)

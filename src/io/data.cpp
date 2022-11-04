@@ -9,7 +9,7 @@ std::ofstream energyData;
  */
 std::ofstream magnetData;
 
-void openLogger(std::string parentDir, double T) {
+void openLogger(std::string parentDir, float T) {
 	if (energyData.is_open() || magnetData.is_open()) {
 		std::cout << "The previous data files are still open. You should close that." << std::endl;
 		return;
@@ -26,7 +26,7 @@ void closeLogger() {
 	magnetData.close();
 }
 
-void logData(double energy, double magnet) {
+void logData(float energy, float magnet) {
 	if (!energyData.is_open() || !magnetData.is_open()) {
 		std::cout << "File(s) not open. Data not logged." << std::endl;
 		return;
