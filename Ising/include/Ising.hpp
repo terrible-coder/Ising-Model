@@ -300,6 +300,9 @@ public:
 	 */
 	void exchange(pos& p1, pos& p2);
 
+	float flipEnergyChange(pos const& i);
+	float exchangeEnergyChange(pos const& i, pos const& j);
+
 	/**
 	 * @brief Computes the Ising hamiltonian for a given configuration.
 	 * 
