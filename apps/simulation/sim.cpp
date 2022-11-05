@@ -5,10 +5,10 @@
 #include <exception>
 
 #include "defaults.hpp"
-#include "io/data_logger.hpp"
-#include "io/save.hpp"
+// #include "io/data_logger.hpp"
+// #include "io/save.hpp"
 #include "io/prepare.hpp"
-#include "monte_carlo.hpp"
+// #include "monte_carlo.hpp"
 
 static Context CTX;
 
@@ -49,6 +49,15 @@ int main(int argc, char** argv) {
 	else          filename = INPUT_FILE;
 
 	std::cout << "Initialising system..." << std::endl;
+	init_system(filename, &CTX);
+	std::cout << "Reading done." << std::endl;
+
+	std::cout << "Box size: " << CTX.size.x << "x" << CTX.size.y << "x" << CTX.size.z << "\n";
+	std::cout << "Number of surfaces: " << CTX.surfLocs.size() << "\n";
+	std::cout << "Number of temperature points: " << CTX.Temperature.size() << "\n";
+	std::cout << "Temperature range: " << *(CTX.Temperature.begin()) << "..." << *(CTX.Temperature.end()-1) << "\n";
+	std::cout << std::endl;
+	/*
 	// init_system(filename, &CTX);
 	CTX.size = { 64u, 64u, 1u };
 	const std::string parentDir = prepExperiment(&CTX);
@@ -94,6 +103,7 @@ int main(int argc, char** argv) {
 		closeLogger();
 		delete config;
 	}
+	*/
 
 	return EXIT_SUCCESS;
 }

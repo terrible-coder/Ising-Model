@@ -65,15 +65,19 @@ typedef vec3<uIndx> pos;
 // template<typename T>
 
 struct Context {
-	uIndx Ensemble_Size;		// Number of ensembles to consider.
+	std::string saveDir;    // Directory to save all data to.
+	float BoltzConstant;    // The numerical value of the Boltzmann factor.
+	vec3<float> interact;   // Energy interaction between types A-B
+
 	vec3<uIndx> size;				// The dimensions of the lattice.
-	uIndx Concentration;		// Concentration in units of 1/WORD_SIZE
 	vec3<BoundaryCondition> boundary;	// Boundary conditions
+	std::vector<std::string> surfLocs; // Location of surfaces
+	std::vector<vec3<float>> surfInts; // Interaction values at surfaces
+
 	std::vector<float> Temperature;	// The temperature range of the simulation.
-	float BoltzConstant;		// The numerical value of the Boltzmann factor.
-	std::function<float(const pos& i, const pos& j)> Coupling;	// The coupling constant.
-	std::function<float(const pos& i)> Field;						// The external field applied.
+	uIndx Ensemble_Size;		// Number of ensembles to consider.
+
+	uIndx Concentration;		// Concentration in units of 1/WORD_SIZE
 	TransProb Transition;		// The form of the transition rate to use.
 	Dynamics SpinKinetics;	// The kind of kinetics to be used.
-	std::string saveDir;	// Directory to save all data to.
 };
