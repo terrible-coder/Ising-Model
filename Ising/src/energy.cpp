@@ -7,7 +7,6 @@ float Ising::flipEnergyChange(pos const& i) {
 	// assuming interaction values are static
 
 	static float J_bulk = coupling(this->p.Eaa, this->p.Ebb, this->p.Eab);
-	static float H_bulk = this->p.q * field(this->p.Eaa, this->p.Ebb);
 
 	uSize nSum;
 	uSize n = 0u;
@@ -56,7 +55,6 @@ float Ising::exchangeEnergyChange(pos const& i, pos const& j) {
 	std::vector<Surface>::iterator jit = p.whichSurface(jE);
 
 	float J_bulk = coupling(this->p.Eaa, this->p.Ebb, this->p.Eab);
-	float H_bulk = this->p.q * field(this->p.Eaa, this->p.Ebb);
 
 	// float diff = 2.f * (this->operator()(i) - this->operator()(j));
 	// since the spins are opposite, we simplify
@@ -134,4 +132,5 @@ float Ising::exchangeEnergyChange(pos const& i, pos const& j) {
 	}
 	float bulkChange = -diff * J_bulk * 2.f * (offSurfJ - offSurfI);
 	float surfChange = -diff * J_surf * 2.f * (jSum - iSum);
+	return bulkChange + surfChange;
 }

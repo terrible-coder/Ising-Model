@@ -46,7 +46,6 @@ bool readVec(sToken const& tokens, vec3<T>* v) {
 	v->z = (T) std::stof(tokens[3]);
 	return true;
 }
-template<>
 bool readVec(sToken const& tokens, vec3<std::string>* v) {
 	if (tokens.size() < 4) return false;
 	v->x = tokens[1];
@@ -63,7 +62,6 @@ bool readTemp(sToken const& tokens, std::vector<float>* T) {
 			st += tokens[i];
 	else
 		st = tokens[1];
-	std::cout << st << std::endl;
 	float dT;
 	sToken values = tokenise(st, ':', '\n');
 	switch (values.size()) {
@@ -194,7 +192,7 @@ bool init_system(std::string filename, Context* ctx) {
 
 	sToken tokens;
 	std::string line;
-	bool success = false;
+	bool success = true;
 	while(getline(input_file, line)) {
 		sToken tok = tokenise(line, DELIMITER, STOP_CHAR);
 		if (tok.size() == 0)

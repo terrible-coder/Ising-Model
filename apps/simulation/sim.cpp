@@ -8,6 +8,7 @@
 // #include "io/data_logger.hpp"
 // #include "io/save.hpp"
 #include "io/prepare.hpp"
+#include "Ising.hpp"
 // #include "monte_carlo.hpp"
 
 static Context CTX;
@@ -49,14 +50,45 @@ int main(int argc, char** argv) {
 	else          filename = INPUT_FILE;
 
 	std::cout << "Initialising system..." << std::endl;
-	init_system(filename, &CTX);
-	std::cout << "Reading done." << std::endl;
+	if (init_system(filename, &CTX))
+		std::cout << "Parsing input file success." << std::endl;
+	else {
+		std::cout << "Could not parse input file." << std::endl;
+		return EXIT_FAILURE;
+	}
 
 	std::cout << "Box size: " << CTX.size.x << "x" << CTX.size.y << "x" << CTX.size.z << "\n";
 	std::cout << "Number of surfaces: " << CTX.surfLocs.size() << "\n";
 	std::cout << "Number of temperature points: " << CTX.Temperature.size() << "\n";
 	std::cout << "Temperature range: " << *(CTX.Temperature.begin()) << "..." << *(CTX.Temperature.end()-1) << "\n";
 	std::cout << std::endl;
+
+	ModelParams parameters(CTX.size, CTX.boundary);
+	parameters.setInteractions(CTX.interact.x, CTX.interact.y, CTX.interact.z);
+	if (CTX.surfLocs.size() != CTX.surfInts.size()) {
+		std::cout << "Number of surfaces do not match ";
+		std::cout << "number of surface interactions." << std::endl;
+		return EXIT_FAILURE;
+	}
+	if (CTX.surfLocs.size() > 0) {
+		Edge e;
+		for (uint i = 0; i < CTX.surfInts.size(); i += 1u) {
+			std::string loc = CTX.surfLocs[i];
+			vec3<float> interact = CTX.surfInts[i];
+			if (loc == "x_beg") e = Edge::X_BEG; else
+			if (loc == "x_end") e = Edge::X_END; else
+			if (loc == "y_beg") e = Edge::Y_BEG; else
+			if (loc == "y_end") e = Edge::Y_END; else
+			if (loc == "z_beg") e = Edge::Z_BEG; else
+			if (loc == "z_end") e = Edge::Z_END;
+			else {
+				std::cout << "Edge location \"" << loc << "\" not recognised." << std::endl;
+				return EXIT_FAILURE;
+			}
+			parameters.create_surface(e, interact.x, interact.y, interact.z);
+		}
+	}
+
 	/*
 	// init_system(filename, &CTX);
 	CTX.size = { 64u, 64u, 1u };

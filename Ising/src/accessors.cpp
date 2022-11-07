@@ -103,10 +103,10 @@ uIndx Ising::__sumDir(pos const& i, vec3<uIndx> const& off, Edge e, bool P, uSiz
 			*n += 1u;
 		}
 	} else {
-		SS += this->operator()(i+off);
+		SS += this->operator()(i + off);
 		*n += 1u;
 		if (!P) {
-			SS += this->operator()(i-off);
+			SS += this->operator()(i - off);
 			*n += 1u;
 		}
 	}
@@ -200,4 +200,12 @@ void Ising::__nZShift(uWord* shifted) {
 	// populate last z with first z
 	for (i = 0; i < xy_size; i += 1u)
 		shifted[offset + i] = this->lattice[i];
+}
+
+float Ising::getNNCoup(pos const& i, pos const& j) {
+	return this->p.J(i, j);
+}
+
+float Ising::getField(pos const& i) {
+	return this->p.H(i);
 }

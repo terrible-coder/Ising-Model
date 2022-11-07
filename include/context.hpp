@@ -44,21 +44,24 @@ struct vec3 {
 };
 
 template<typename T>
-bool operator==(vec3<T> const& lhs, vec3<T> const& rhs);
+inline bool operator==(vec3<T> const& lhs, vec3<T> const& rhs) {
+	return (lhs.x == rhs.x) && (lhs.y == rhs.y) && (lhs.z == rhs.z);
+}
 
 template<typename T>
-vec3<T> operator+(vec3<T> const& lhs, vec3<T> const& rhs);
-template<typename T>
-vec3<int> operator+(vec3<T> const& lhs, vec3<int> const& rhs);
-template<typename T>
-vec3<int> operator+(vec3<int> const& lhs, vec3<T> const& rhs);
+inline vec3<T> operator+(vec3<T> const& lhs, vec3<T> const& rhs) {
+	return {lhs.x+rhs.x, lhs.y+rhs.y, lhs.z+rhs.z};
+}
 
-template<typename T>
-vec3<int> operator-(vec3<T> const& lhs, vec3<T> const& rhs);
-template<typename T>
-vec3<int> operator-(vec3<T> const& lhs, vec3<int> const& rhs);
-template<typename T>
-vec3<int> operator-(vec3<int> const& lhs, vec3<T> const& rhs);
+template<typename T, typename U>
+inline vec3<int> operator+(vec3<T> const& lhs, vec3<U> const& rhs) {
+	return {lhs.x+rhs.x, lhs.y+rhs.y, lhs.z+rhs.z};
+}
+
+template<typename T, typename U>
+inline vec3<int> operator-(vec3<T> const& lhs, vec3<U> const& rhs) {
+	return {lhs.x-rhs.x, lhs.y-rhs.y, lhs.z-rhs.z};
+}
 
 typedef vec3<uIndx> pos;
 

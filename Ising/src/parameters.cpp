@@ -19,7 +19,7 @@ Edge onEdge(pos const& i, vec3<uIndx>& s) {
 }
 
 ModelParams::ModelParams() {}
-ModelParams::ModelParams(vec3<uIndx>& size, vec3<BoundaryCondition>& bc) {
+ModelParams::ModelParams(vec3<uIndx> const& size, vec3<BoundaryCondition> const& bc) {
 	this->L = size;
 	this->boundary = bc;
 
@@ -58,7 +58,7 @@ std::vector<Surface>::iterator ModelParams::whichSurface(Edge e) {
 	);
 }
 
-float ModelParams::J(pos& i, pos& j) {
+float ModelParams::J(pos const& i, pos const& j) {
 	if (this->surfaces.size() == 0)
 		return coupling(this->Eaa, this->Ebb, this->Eab);
 
@@ -74,7 +74,7 @@ float ModelParams::J(pos& i, pos& j) {
 	return coupling(it->Eaa, it->Ebb, it->Eab);
 }
 
-float ModelParams::H(pos& i) {
+float ModelParams::H(pos const& i) {
 	if (this->surfaces.size() == 0)
 		return	this->q * field(this->Eaa, this->Ebb);
 

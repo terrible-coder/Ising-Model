@@ -79,7 +79,7 @@ public:
 	 * @param size 
 	 * @param bc 
 	 */
-	ModelParams(vec3<uIndx>& size, vec3<BoundaryCondition>& bc);
+	ModelParams(vec3<uIndx> const& size, vec3<BoundaryCondition> const& bc);
 
 	/**
 	 * @brief Set the interaction energy values.
@@ -114,7 +114,7 @@ public:
 	 * @param j Lattice point index.
 	 * @return float 
 	 */
-	float J(pos& i, pos& j);
+	float J(pos const& i, pos const& j);
 
 	/**
 	 * @brief The "bulk" magnetic field energy.
@@ -122,7 +122,7 @@ public:
 	 * @param i Lattice point index.
 	 * @return float 
 	 */
-	float H(pos& i);
+	float H(pos const& i);
 };
 
 class Ising {
@@ -158,8 +158,8 @@ public:
 	Ising(uIndx conc, ModelParams& params, float temperature);
 	~Ising();
 
-	float getNNCoup(const pos& i, const pos& j);
-	float getField(const pos& i);
+	float getNNCoup(pos const& i, pos const& j);
+	float getField(pos const& i);
 
 	/**
 	 * @brief Lattice point accessor. The index is of the site we "want" to look at.

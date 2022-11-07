@@ -15,7 +15,7 @@ uint imposeBC(const uint len, const int uIdx, BoundaryCondition boundary) {
 	}
 }
 
-void imposeBC(const vec3<uIndx>& len, const vec3<int>& uIdx, vec3<int>* aIdx, vec3<BoundaryCondition>& boundary) {
+void imposeBC(vec3<uIndx> const& len, vec3<int> const& uIdx, vec3<uIndx>* aIdx, vec3<BoundaryCondition> const& boundary) {
 	aIdx->x = imposeBC(len.x, uIdx.x, boundary.x);
 	aIdx->y = imposeBC(len.y, uIdx.y, boundary.y);
 	aIdx->z = imposeBC(len.z, uIdx.z, boundary.z);

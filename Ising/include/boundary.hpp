@@ -11,7 +11,7 @@
  * @param aIdx 
  * @param boundary 
  */
-void imposeBC(vec3<uIndx>& len, const vec3<int>& uIdx, vec3<uIndx>* aIdx, vec3<BoundaryCondition>& boundary);
+void imposeBC(vec3<uIndx> const& len, vec3<int> const& uIdx, vec3<uIndx>* aIdx, vec3<BoundaryCondition> const& boundary);
 
 /**
  * @brief Transform from double index to a row major indexing.
