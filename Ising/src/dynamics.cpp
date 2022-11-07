@@ -303,6 +303,7 @@ float Ising::Hamiltonian() {
 			E += h * bool2spin(S_end, xy_size);
 	}
 
+	delete shift;
 	return E;
 }
 

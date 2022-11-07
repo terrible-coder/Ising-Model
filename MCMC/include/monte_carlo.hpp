@@ -3,7 +3,6 @@
 #include "context.hpp"
 #include "transition.hpp"
 #include "randomness.hpp"
-#include "energyChange.hpp"
 
 /**
  * @brief Performs the accept-reject algorithm.
@@ -41,3 +40,15 @@ void spin_flip(Ising& c, Context* ctx);
  * @param ctx 
  */
 void spin_exchange(Ising& c, Context* ctx);
+
+/**
+ * @brief The driver code for monte carlo simulations. The monte carlo runs
+ * are defined here. This method is also responsible for passing the programme
+ * control to the appropriate functions to handle the dynamics (conserved or
+ * non-conserved) of the system.
+ * 
+ * @param c 
+ * @param ctx 
+ * @param en 
+ */
+void MonteCarlo(Ising& c, Context* ctx, uIndx en);

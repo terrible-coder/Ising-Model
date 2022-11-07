@@ -61,7 +61,7 @@ void Ising::equiv(int* x, int* y, int* z) {
 	*y = aIdx.y;
 	*z = aIdx.z;
 }
-pos& Ising::equiv(vec3<int> const& idx) {
+pos Ising::equiv(vec3<int> const& idx) {
 	pos aIdx;
 	imposeBC(this->p.L, idx, &aIdx, this->p.boundary);
 	return aIdx;
@@ -172,6 +172,7 @@ void Ising::__nXShift(uWord* shifted) {
 		else xyz.x -= 1u;
 		shifted[idx3to1(xyz, this->p.L) / WORD_SIZE] |= MSBs[idx / WORD_SIZE];
 	}
+	delete MSBs;
 }
 
 void Ising::__nYShift(uWord* shifted) {
@@ -208,4 +209,8 @@ float Ising::getNNCoup(pos const& i, pos const& j) {
 
 float Ising::getField(pos const& i) {
 	return this->p.H(i);
+}
+
+vec3<uIndx> Ising::getVecSize() {
+	return this->p.L;
 }

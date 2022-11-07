@@ -9,7 +9,7 @@
 // #include "io/save.hpp"
 #include "io/prepare.hpp"
 #include "Ising.hpp"
-// #include "monte_carlo.hpp"
+#include "monte_carlo.hpp"
 
 static Context CTX;
 
@@ -88,6 +88,10 @@ int main(int argc, char** argv) {
 			parameters.create_surface(e, interact.x, interact.y, interact.z);
 		}
 	}
+	float T = *(CTX.Temperature.begin()); // temperature
+	Ising config(CTX.Concentration, parameters, T);
+	config.generate();
+	MonteCarlo(config, &CTX, 1u);
 
 	/*
 	// init_system(filename, &CTX);
@@ -133,9 +137,7 @@ int main(int argc, char** argv) {
 			close();
 		}
 		closeLogger();
-		delete config;
 	}
 	*/
-
 	return EXIT_SUCCESS;
 }

@@ -18,3 +18,13 @@ void dynamics(Ising& config, Context* ctx) {
 		break;
 	}
 }
+
+void MonteCarlo(Ising& c, Context* ctx, uIndx en) {
+	uSize Bin = c.getSize();
+	for (uint i = 0; i < ctx->Run; i += 1u) {
+		for (uSize mc = 0; mc < Bin; mc += 1u) {
+			std::cout << "run " << i << " " << mc << std::endl;
+			dynamics(c, ctx);
+		}
+	}
+}

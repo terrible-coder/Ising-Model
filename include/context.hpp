@@ -69,6 +69,8 @@ typedef vec3<uIndx> pos;
 
 struct Context {
 	std::string saveDir;    // Directory to save all data to.
+	uint Run;    // The total number of monte carlo cycles to run
+
 	float BoltzConstant;    // The numerical value of the Boltzmann factor.
 	vec3<float> interact;   // Energy interaction between types A-B
 

@@ -37,7 +37,7 @@ $(SO_NAME): $(OG_NAME)
 
 $(OG_NAME): $(OBJFILES)
 	@echo -n "Generating \033[0;36m$@\033[0m"
-	$(CC) -fpic -o $@ $^ -shared -Wl,-soname,$(SO_NAME)
+	@$(CC) -fpic -o $@ $^ -shared -Wl,-soname,$(SO_NAME)
 	@echo "\t\033[1;32m√\033[0m"
 
 $(OBJ_DIR)/%.o: src/%.cpp

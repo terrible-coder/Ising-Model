@@ -191,7 +191,7 @@ public:
 	 * @param idx 
 	 * @return pos& 
 	 */
-	pos& equiv(vec3<int> const& idx);
+	pos equiv(vec3<int> const& idx);
 
 	vec3<uIndx> getVecSize();
 	uIndx getSizeX();

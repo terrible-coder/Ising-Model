@@ -125,6 +125,9 @@ bool deal_with(sToken const& tokens, Context* ctx) {
 	if (keyword == "name")
 		ctx->saveDir = tokens[1];
 	else
+	if (keyword == "run")
+		ctx->Run = (uint) std::stoi(tokens[1]);
+	else
 	if (keyword == "kB")
 		ctx->BoltzConstant = std::stof(tokens[1]);
 	else

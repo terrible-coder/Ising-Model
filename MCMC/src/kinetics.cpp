@@ -38,6 +38,7 @@ void spin_exchange(Ising& c, Context* ctx) {
 		getRandomIndices(c.getVecSize(), &i);
 		getRandomIndices({1, 1, 1}, &j);
 		j = j + i;
+		if (c(i) == c(j)) continue;
 		dE = c.exchangeEnergyChange(i, j);
 	} while (!isAccepted(dE, c.getTemp(), ctx));
 	c.exchange(i, j);
