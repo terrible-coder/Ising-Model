@@ -165,7 +165,7 @@ bool deal_with(sToken const& tokens, Context* ctx) {
 		ctx->Concentration = (uIndx) std::stoi(tokens[1]);
 	else
 	if (keyword == "ensemble")
-		ctx->Ensemble_Size = (uIndx) std::stoi(tokens[1]);
+		ctx->EnsembleSize = (uIndx) std::stoi(tokens[1]);
 	else
 	if (keyword == "ar_prob")
 		if (!readProb(tokens, &(ctx->Transition))) return false;
@@ -173,6 +173,12 @@ bool deal_with(sToken const& tokens, Context* ctx) {
 	else
 	if (keyword == "dynamics")
 		if (!readKinet(tokens, &(ctx->SpinKinetics))) return false;
+		else {}
+	else
+	if (keyword == "log") {
+		if (tokens.size() < 2) return false;
+		ctx->DataLogs.insert(ctx->DataLogs.begin(), tokens.begin()+1, tokens.end());
+	}
 	return true;
 }
 
@@ -210,25 +216,23 @@ bool safeCreate(std::string path) {
 	return std::filesystem::exists(path) || std::filesystem::create_directories(path);
 }
 
-std::string prepExperiment(Context* ctx) {
+bool prepExperiment(Context* ctx) {
 	bool success = true;
+	if (ctx->saveDir.at(0) != '/')
+		ctx->saveDir += "/";
 
 	std::string parent = ctx->saveDir;
 	std::string snaps = "snaps/";
 	std::string frame = "frames/";
 
-	for (auto it = ctx->Temperature.begin(); it != ctx->Temperature.end(); it++) {
+	for (auto it = ctx->Temperature.begin(); success && it != ctx->Temperature.end(); it++) {
 		std::string T = "Temp" + std::to_string(*it) + "/";
 		success = success && safeCreate(parent+T+snaps);
 		success = success && safeCreate(parent+T+frame);
-
-		for (int j = 0; (j < ctx->Ensemble_Size) && success; j++)
+		for (uIndx j = 0; success && j < ctx->EnsembleSize; j += 1u)
 			success = success && safeCreate(parent+T+frame+"En"+std::to_string(j+1));
-
-		if (!success) {
-			std::cout << "Could not prepare directories properly" << std::endl;
-			return "";
-		}
 	}
-	return parent;
+	if (!success)
+		std::cout << "Could not prepare directories properly" << std::endl;
+	return success;
 }

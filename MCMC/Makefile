@@ -1,5 +1,5 @@
 CODE_DIR=./src
-INCDIR=./include ../include/ ../include/lib
+INCDIR=./include ../include ../include/io ../include/lib
 OBJ_DIR=./bin
 
 CC=c++

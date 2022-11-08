@@ -26,7 +26,6 @@ enum TransProb {
 /**
  * @brief The type of kinetics followed by the simulation. It can either be
  * flipping (non-conserved) or exchange (conserved) kinetics.
- * 
  */
 enum Dynamics {
 	FLIP = false,
@@ -80,9 +79,10 @@ struct Context {
 	std::vector<vec3<float>> surfInts; // Interaction values at surfaces
 
 	std::vector<float> Temperature;	// The temperature range of the simulation.
-	uIndx Ensemble_Size;		// Number of ensembles to consider.
+	uIndx EnsembleSize;		// Number of ensembles to consider.
 
 	uIndx Concentration;		// Concentration in units of 1/WORD_SIZE
 	TransProb Transition;		// The form of the transition rate to use.
 	Dynamics SpinKinetics;	// The kind of kinetics to be used.
+	std::vector<std::string> DataLogs;
 };

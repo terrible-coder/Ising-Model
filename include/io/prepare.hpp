@@ -31,6 +31,6 @@ bool init_system(std::string filename, Context* ctx);
  * @brief Create directory structure for an experiment.
  * 
  * @param ctx 
- * @return std::string 
+ * @return true false 
  */
-std::string prepExperiment(Context* ctx);
+bool prepExperiment(Context* ctx);

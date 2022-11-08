@@ -9,7 +9,7 @@
 #define snaps "snaps/"
 #define frames "frames/"
 
-void open(Ising* config, int en, std::string parentDir);
-bool snap(Ising* config);
+void open(Ising& config, int en, std::string parentDir);
+bool snap(Ising& config);
 void close();
-bool saveInit(Ising* config, std::string parentDir);
+bool saveInit(Ising& config, std::string parentDir);

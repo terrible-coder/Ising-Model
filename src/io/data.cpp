@@ -9,6 +9,20 @@ std::ofstream energyData;
  */
 std::ofstream magnetData;
 
+static int LogType;
+
+void logOnly(std::vector<std::string> tokens) {
+	LogType = 0;
+	for (auto it = tokens.begin(); it != tokens.end(); it++) {
+		if (*it == "energy")
+			LogType |= LogData::ENERGY;
+		else if (*it == "order")
+			LogType |= LogData::ORDER_PARAM;
+		else
+			std::cout << "Ignoring unrecognised log request \"" << *it << "\"" << std::endl;
+	}
+}
+
 void openLogger(std::string parentDir, float T) {
 	if (energyData.is_open() || magnetData.is_open()) {
 		std::cout << "The previous data files are still open. You should close that." << std::endl;
@@ -17,8 +31,18 @@ void openLogger(std::string parentDir, float T) {
 
 	// file name contains information about temperature
 	std::string path = parentDir + "Temp" + std::to_string(T) + "/";
-	energyData.open(path + "energy" + DATA_EXT);
-	magnetData.open(path + "magnet" + DATA_EXT);
+	switch (LogType) {
+		case LogData::ENERGY:
+			energyData.open(path + "energy" + DATA_EXT);
+			break;
+		case LogData::ORDER_PARAM:
+			magnetData.open(path + "magnet" + DATA_EXT);
+			break;
+		case LogData::ENERGY | LogData::ORDER_PARAM:
+			energyData.open(path + "energy" + DATA_EXT);
+			magnetData.open(path + "magnet" + DATA_EXT);
+			break;
+	}
 }
 
 void closeLogger() {
@@ -26,13 +50,35 @@ void closeLogger() {
 	magnetData.close();
 }
 
-void logData(float energy, float magnet) {
-	if (!energyData.is_open() || !magnetData.is_open()) {
-		std::cout << "File(s) not open. Data not logged." << std::endl;
+void logEnergy(float energy) {
+	if (!energyData.is_open()) {
+		std::cout << "Energy file not open. Data not logged." << std::endl;
 		return;
 	}
 	energyData << energy << ",";
-	// magnetData << magnet << ",";
+}
+
+void logMagnet(float magnet) {
+	if (!magnetData.is_open()) {
+		std::cout << "Magnet file not open. Data not logged." << std::endl;
+		return;
+	}
+	magnetData << magnet << ",";
+}
+
+void createLog(Ising& c) {
+	switch (LogType) {
+		case LogData::ENERGY:
+			logEnergy(c.Hamiltonian());
+			break;
+		case LogData::ORDER_PARAM:
+			logMagnet(c.Magnetisation());
+			break;
+		case LogData::ENERGY | LogData::ORDER_PARAM:
+			logEnergy(c.Hamiltonian());
+			logMagnet(c.Magnetisation());
+			break;
+	}
 }
 
 void nextEnsemble() {

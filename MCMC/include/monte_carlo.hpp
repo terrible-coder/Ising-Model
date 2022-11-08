@@ -1,6 +1,8 @@
 #include <cmath>
 #include "Ising.hpp"
 #include "context.hpp"
+#include "data_logger.hpp"
+#include "save.hpp"
 #include "transition.hpp"
 #include "randomness.hpp"
 

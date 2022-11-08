@@ -5,13 +5,12 @@
 #include <exception>
 
 #include "defaults.hpp"
-// #include "io/data_logger.hpp"
-// #include "io/save.hpp"
+#include "io/data_logger.hpp"
+#include "io/save.hpp"
 #include "io/prepare.hpp"
 #include "Ising.hpp"
 #include "monte_carlo.hpp"
 
-static Context CTX;
 
 /**
  * @brief Print the progress of a process. The function has been taken from
@@ -49,6 +48,7 @@ int main(int argc, char** argv) {
 	if (argc > 1) filename = argv[1];
 	else          filename = INPUT_FILE;
 
+	Context CTX;
 	std::cout << "Initialising system..." << std::endl;
 	if (init_system(filename, &CTX))
 		std::cout << "Parsing input file success." << std::endl;
@@ -56,6 +56,9 @@ int main(int argc, char** argv) {
 		std::cout << "Could not parse input file." << std::endl;
 		return EXIT_FAILURE;
 	}
+	if (!prepExperiment(&CTX))
+		return EXIT_FAILURE;
+	logOnly(CTX.DataLogs);
 
 	std::cout << "Box size: " << CTX.size.x << "x" << CTX.size.y << "x" << CTX.size.z << "\n";
 	std::cout << "Number of surfaces: " << CTX.surfLocs.size() << "\n";
@@ -91,7 +94,15 @@ int main(int argc, char** argv) {
 	float T = *(CTX.Temperature.begin()); // temperature
 	Ising config(CTX.Concentration, parameters, T);
 	config.generate();
-	MonteCarlo(config, &CTX, 1u);
+
+	openLogger(CTX.saveDir, T);
+	saveInit(config, CTX.saveDir);
+	for (uIndx en = 0; en < CTX.EnsembleSize; en += 1u) {
+		open(config, en+1, CTX.saveDir);
+		MonteCarlo(config, &CTX, 1u);
+		close();
+	}
+	closeLogger();
 
 	/*
 	// init_system(filename, &CTX);
