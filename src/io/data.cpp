@@ -1,5 +1,7 @@
 #include "io/data_logger.hpp"
 
+typedef std::vector<std::ofstream> ofVec;
+
 /**
  * @brief Hamiltonian output stream.
  */
@@ -23,7 +25,7 @@ void logOnly(std::vector<std::string> tokens) {
 	}
 }
 
-void openLogger(std::string parentDir, float T) {
+void openLogger(std::string parentDir, float T, int rank) {
 	if (energyData.is_open() || magnetData.is_open()) {
 		std::cout << "The previous data files are still open. You should close that." << std::endl;
 		return;
@@ -33,14 +35,14 @@ void openLogger(std::string parentDir, float T) {
 	std::string path = parentDir + "Temp" + std::to_string(T) + "/";
 	switch (LogType) {
 		case LogData::ENERGY:
-			energyData.open(path + "energy" + DATA_EXT);
+			energyData.open(path + "energy" + std::to_string(rank) + DATA_EXT);
 			break;
 		case LogData::ORDER_PARAM:
-			magnetData.open(path + "magnet" + DATA_EXT);
+			magnetData.open(path + "magnet" + std::to_string(rank) + DATA_EXT);
 			break;
 		case LogData::ENERGY | LogData::ORDER_PARAM:
-			energyData.open(path + "energy" + DATA_EXT);
-			magnetData.open(path + "magnet" + DATA_EXT);
+			energyData.open(path + "energy" + std::to_string(rank) + DATA_EXT);
+			magnetData.open(path + "magnet" + std::to_string(rank) + DATA_EXT);
 			break;
 	}
 }

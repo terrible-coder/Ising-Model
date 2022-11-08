@@ -3,7 +3,7 @@
 static int _last_en = -1;
 std::ofstream evolution;
 
-void open(Ising& config, int en, std::string parentDir) {
+void openSnap(Ising& config, int en, std::string parentDir) {
 	if (en != _last_en)
 		_last_en = en;
 
@@ -23,7 +23,7 @@ void open(Ising& config, int en, std::string parentDir) {
 	evolution.write((char*) &Lz, sizeof(uIndx));
 }
 
-bool snap(Ising& config) {
+bool takeSnap(Ising& config) {
 	uIndx i, rawSize = (uIndx)(config.getSize() / WORD_SIZE);
 	uWord* rawSpins = config.getRaw();
 	uWord number;
@@ -39,7 +39,7 @@ bool snap(Ising& config) {
 	return true;
 }
 
-void close() {
+void closeSnap() {
 	evolution.close();
 }
 

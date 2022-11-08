@@ -91,64 +91,22 @@ int main(int argc, char** argv) {
 			parameters.create_surface(e, interact.x, interact.y, interact.z);
 		}
 	}
+
+	int rank = 0;
+
 	float T = *(CTX.Temperature.begin()); // temperature
 	Ising config(CTX.Concentration, parameters, T);
 	config.generate();
 
-	openLogger(CTX.saveDir, T);
+	openLogger(CTX.saveDir, T, rank+1);
 	saveInit(config, CTX.saveDir);
 	for (uIndx en = 0; en < CTX.EnsembleSize; en += 1u) {
-		open(config, en+1, CTX.saveDir);
+		openSnap(config, en+1, CTX.saveDir);
 		MonteCarlo(config, &CTX, 1u);
-		close();
+		closeSnap();
+		nextEnsemble();
 	}
 	closeLogger();
 
-	/*
-	// init_system(filename, &CTX);
-	CTX.size = { 64u, 64u, 1u };
-	const std::string parentDir = prepExperiment(&CTX);
-	if (parentDir == "") return EXIT_FAILURE;
-
-	std::cout << parentDir << std::endl;
-	const uint BIN = CTX.size.x * CTX.size.y * CTX.size.z;
-
-	std::cout << "Setting global values..." << std::endl;
-	Ising::setCoupling(CTX.Coupling);
-	Ising::setField(CTX.Field);
-
-	for (auto tp = CTX.Temperature.begin(); tp != CTX.Temperature.end(); tp++) {
-		float T = *tp;
-		// new temperature
-		openLogger(parentDir, T);
-		std::cout << SEPARATOR;
-
-		Ising* config = new Ising(
-			CTX.size, CTX.Concentration,
-			T, CTX.boundary);
-		config->generate();
-		saveInit(config, parentDir);
-
-		for (int ensemble = 0; ensemble < CTX.Ensemble_Size; ensemble++) {
-			// std::cout << "Ensemble member " << ensemble+1 << "\n";
-			print_progress(ensemble+1, CTX.Ensemble_Size);
-			config->reinit();
-			open(config, ensemble+1, parentDir);
-
-			for (int k = 0; k < RUN; k++) {
-				for (int i = 0; i < BIN; i++)
-					dynamics(*config, &CTX);
-				logData(config->Hamiltonian() / config->getSize(),
-								config->Magnetisation() / config->getSize());
-				if (!snap(config))
-					return EXIT_FAILURE;
-			}
-			// next ensemble
-			nextEnsemble();
-			close();
-		}
-		closeLogger();
-	}
-	*/
 	return EXIT_SUCCESS;
 }

@@ -19,7 +19,7 @@ enum LogData {
 
 void logOnly(std::vector<std::string> tokens);
 
-void openLogger(std::string parentDir, float T);
+void openLogger(std::string parentDir, float T, int rank);
 void closeLogger();
 
 void createLog(Ising& c);

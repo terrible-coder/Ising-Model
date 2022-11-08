@@ -27,7 +27,7 @@ void MonteCarlo(Ising& c, Context* ctx, uIndx en) {
 		for (uSize mc = 0; mc < Bin; mc += 1u) {
 			dynamics(c, ctx);
 		}
-		snap(c);
+		takeSnap(c);
 		createLog(c);
 	}
 }
