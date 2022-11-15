@@ -64,7 +64,9 @@ int main(int argc, char** argv) {
 	std::cout << "Number of surfaces: " << CTX.surfLocs.size() << "\n";
 	std::cout << "Number of temperature points: " << CTX.Temperature.size() << "\n";
 	std::cout << "Temperature range: " << *(CTX.Temperature.begin()) << "..." << *(CTX.Temperature.end()-1) << "\n";
+	std::cout << "Logging " << CTX.DataLogs.size() << "\n"; 
 	std::cout << std::endl;
+	std::cin.get();
 
 	ModelParams parameters(CTX.size, CTX.boundary);
 	parameters.setInteractions(CTX.interact.x, CTX.interact.y, CTX.interact.z);
@@ -107,6 +109,12 @@ int main(int argc, char** argv) {
 		nextEnsemble();
 	}
 	closeLogger();
+
+	// pos i = {57u, 25u, 0u};
+	// std::vector<vec3<int>> neighbours;
+	// config.getNeighbours(i, &neighbours);
+	// for (auto it = neighbours.begin(); it != neighbours.end(); it++)
+	// 	std::cout << it->x << "," << it->y << "," << it->z << std::endl;
 
 	return EXIT_SUCCESS;
 }

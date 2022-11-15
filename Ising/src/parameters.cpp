@@ -8,14 +8,15 @@ float field(float aa, float bb) {
 	return 0.25f * (aa - bb);
 }
 
-Edge onEdge(pos const& i, vec3<uIndx>& s) {
-	if (i.x == 0)     return Edge::X_BEG;
-	if (i.x == s.x-1) return Edge::X_END;
-	if (i.y == 0)     return Edge::Y_BEG;
-	if (i.y == s.y-1) return Edge::Y_END;
-	if (i.z == 0)     return Edge::Z_BEG;
-	if (i.z == s.z-1) return Edge::Z_END;
-	return Edge::NONE;
+int onEdge(pos const& i, vec3<uIndx>& s) {
+	int e = 0;
+	if (i.x == 0)     e |= Edge::X_BEG; else
+	if (i.x == s.x-1) e |= Edge::X_END;
+	if (i.y == 0)     e |= Edge::Y_BEG; else
+	if (i.y == s.y-1) e |= Edge::Y_END;
+	if (i.z == 0)     e |= Edge::Z_BEG; else
+	if (i.z == s.z-1) e |= Edge::Z_END;
+	return e;
 }
 
 ModelParams::ModelParams() {}
@@ -50,11 +51,11 @@ bool ModelParams::isSurface(Edge e) {
 	return false;
 }
 
-std::vector<Surface>::iterator ModelParams::whichSurface(Edge e) {
+std::vector<Surface>::iterator ModelParams::whichSurface(int edge) {
 	return std::find_if(
 		surfaces.begin(),
 		surfaces.end(),
-		[e](Surface& s) { return s.loc == e; }
+		[edge](Surface& s) { return (edge & s.loc) != 0; }
 	);
 }
 
@@ -63,9 +64,9 @@ float ModelParams::J(pos const& i, pos const& j) {
 		return coupling(this->Eaa, this->Ebb, this->Eab);
 
 	std::vector<Surface>::iterator it = this->surfaces.end();
-	Edge iE = onEdge(i, this->L);
-	Edge jE = onEdge(j, this->L);
-	if (iE == jE && jE != Edge::NONE)    // points lie on the same edge
+	int iE = onEdge(i, this->L);
+	int jE = onEdge(j, this->L);
+	if ((iE & jE))    // points lie on the same edge
 		// find out if there is a surface at Edge e
 		it = this->whichSurface(iE);
 
@@ -79,7 +80,7 @@ float ModelParams::H(pos const& i) {
 		return	this->q * field(this->Eaa, this->Ebb);
 
 	std::vector<Surface>::iterator it = this->surfaces.end();
-	Edge iE = onEdge(i, this->L);
+	int iE = onEdge(i, this->L);
 	if (iE == Edge::NONE)    // point is not on an edge
 		return	q * field(this->Eaa, this->Ebb);
 

@@ -2,7 +2,7 @@
 
 float Ising::flipEnergyChange(pos const& i) {
 	std::vector<Surface>::iterator it;
-	Edge e = onEdge(i, this->p.L);
+	int e = onEdge(i, this->p.L);
 	it = this->p.whichSurface(e);
 	// assuming interaction values are static
 
@@ -49,8 +49,8 @@ float Ising::exchangeEnergyChange(pos const& i, pos const& j) {
 	iN = jN = 0u;
 	iSum = this->sumNeighbours(i, {1u, 1u, 1u}, j, &iN); // neighbour sum should
 	jSum = this->sumNeighbours(j, {1u, 1u, 1u}, i, &jN); // not have each other
-	Edge iE = onEdge(i, this->p.L);
-	Edge jE = onEdge(j, this->p.L);
+	int iE = onEdge(i, this->p.L);
+	int jE = onEdge(j, this->p.L);
 	std::vector<Surface>::iterator iit = p.whichSurface(iE);
 	std::vector<Surface>::iterator jit = p.whichSurface(jE);
 

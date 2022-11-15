@@ -31,7 +31,7 @@ float field(float aa, float bb);
  * @param s The dimensions of the lattice.
  * @return Edge 
  */
-Edge onEdge(pos const& i, vec3<uIndx>& s);
+int onEdge(pos const& i, vec3<uIndx>& s);
 
 /*
 At some later point the Surface struct maybe modified to allow non-constant
@@ -105,7 +105,7 @@ public:
 	 */
 	bool isSurface(Edge e);
 
-	std::vector<Surface>::iterator whichSurface(Edge e);
+	std::vector<Surface>::iterator whichSurface(int e);
 
 	/**
 	 * @brief The interaction energy between two lattice points.
@@ -140,8 +140,27 @@ private:
 	float __M;    // Cheat for constant magnetisation.
 
 	float partialEnergy(uWord* shifted, uSize beg, vec3<int> off);
+
 	/**
-	 * @brief Calculate sum of the neighbours.
+	 * @brief Get the position of the nearest neighbours of the the given
+	 * lattice point. The positions are calculated along the given direction
+	 * only. Passing in diagonal direction will result in unpredictable
+	 * behaviour.
+	 * 
+	 * @param i The lattice point whose neighbours are to be found.
+	 * @param off The offset indicating the direction to look in.
+	 * @param e The edge on which the lattice point `i` is on.
+	 * @param P Flag to indicate if search is only in positive direction.
+	 * @param NN The vector containing positions of all the neighbours asked for.
+	 */
+	void __getNN(pos const& i,
+	             vec3<uIndx> const& off, int edge, bool P,
+							 std::vector<vec3<int>>* NN);
+
+	/**
+	 * @brief Calculate sum of the neighbours along a given direction only.
+	 * The direction indicator should only indicate neighbours along the axis.
+	 * Passing diagonal directions will have unpredictable behaviour.
 	 * 
 	 * @param i The lattice point whose neighbours to consider.
 	 * @param off The offset indicating the direction to sum in.
@@ -150,7 +169,18 @@ private:
 	 * @param n The number of spins which have been summed over.
 	 * @return uIndx 
 	 */
-	uIndx __sumDir(pos const& i, vec3<uIndx> const& off, Edge e, bool P, uSize* n);
+	uIndx __sumDir(pos const& i, vec3<uIndx> const& off, int edge, bool P, uSize* n);
+
+	/**
+	 * @brief Find the sum of the neighbours only in the positive direction along
+	 * the specified direction. Passing in diagonal directions will result in
+	 * unpredictable behaviour.
+	 * 
+	 * @param i 
+	 * @param dir 
+	 * @param n 
+	 * @return uIndx 
+	 */
 	uIndx sumNeighboursP(pos const& i, vec3<uIndx> const& dir, uSize* n);
 
 public:
@@ -194,6 +224,7 @@ public:
 	pos equiv(vec3<int> const& idx);
 
 	vec3<uIndx> getVecSize();
+	uIndx getQ();
 	uIndx getSizeX();
 	uIndx getSizeY();
 	uIndx getSizeZ();
@@ -201,6 +232,8 @@ public:
 	float getTemp();
 	uWord* getInit();
 	uWord* getRaw();
+
+	void getNeighbours(pos const& i, std::vector<vec3<int>>* NN);
 
 	/**
 	 * @brief Returns the sum of spins of all the neighbours of the given spin.

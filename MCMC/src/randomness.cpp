@@ -31,36 +31,34 @@ static std::uniform_int_distribution<uSize> iDist;
 static std::default_random_engine iRNG;
 
 /**
- * @brief Keep track of last x-length of lattice. This guards accidental
+ * @brief Keep track of last length of lattice. This guards accidental
  * re-initialisation (with same seed value).
  */
-static int _last_Lx = -1;
-/**
- * @brief Keep track of last y-length of lattice. This guards accidental
- * re-initialisation (with same seed value).
- */
-static int _last_Ly = -1;
-/**
- * @brief Keep track of last z-length of lattice. This guards accidental
- * re-initialisation (with same seed value).
- */
-static int _last_Lz = -1;
+static vec3<uIndx> _lastL = {0, 0, 0};
 
 void init_iRNG(pos const& L) {
+	std::cout << "\tiRNG initiated\t";
 	uSize N = (uSize)L.x * L.y * L.z;
 	iDist = std::uniform_int_distribution<uSize>(0, N - 1);
 	iRNG = std::default_random_engine(N);
-	_last_Lx = L.x;
-	_last_Ly = L.y;
-	_last_Lz = L.z;
+	_lastL = L;
+	std::cout << "last L: " << _lastL.x << "," << _lastL.y << "," << _lastL.z << std::endl;
 }
 
 float rProbability() {
 	return pDist(pRNG);
 }
 
-uSize rIndex(vec3<uIndx> const& L) {
-	if (L.x != _last_Lx || L.y != _last_Ly || L.z != _last_Lz)
+uSize rIndex(vec3<uIndx> const& L, bool noInit) {
+	if (!(L == _lastL) && !noInit)
 		init_iRNG(L);
+	if (noInit) {
+		std::uniform_int_distribution<uSize> tmpDist(0, L.x-1);
+		return tmpDist(iRNG);
+	}
 	return iDist(iRNG);
+}
+
+uSize rIndex(vec3<uIndx> const& L) {
+	return rIndex(L, false);
 }

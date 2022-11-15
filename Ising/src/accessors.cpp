@@ -8,6 +8,15 @@
 
 #include "Ising.hpp"
 
+
+static vec3<uIndx> offX = {1, 0, 0};
+static vec3<uIndx> offY = {0, 1, 0};
+static vec3<uIndx> offZ = {0, 0, 1};
+
+uIndx Ising::getQ() {
+	return this->p.q;
+}
+
 uIndx Ising::getSizeX() {
 	return this->p.L.x;
 }
@@ -67,7 +76,10 @@ pos Ising::equiv(vec3<int> const& idx) {
 	return aIdx;
 }
 
-uIndx Ising::__sumDir(pos const& i, vec3<uIndx> const& off, Edge e, bool P, uSize* n) {
+void Ising::__getNN(pos const& i,
+	             vec3<uIndx> const& off, int edge, bool P,
+							 std::vector<vec3<int>>* NN) {
+
 	Edge E_BEG, E_END;
 	BoundaryCondition bc;
 	uIndx L;
@@ -80,44 +92,40 @@ uIndx Ising::__sumDir(pos const& i, vec3<uIndx> const& off, Edge e, bool P, uSiz
 	} else if (off.z) {
 		E_BEG = Edge::Z_BEG;	E_END = Edge::Z_END;
 		bc = this->p.boundary.z;	L = this->p.L.z;
-	} else return 0u;	// no direction mentioned
-	if (L == 1u) // neighbours available along given direction only if
-		return 0u; // length along same direction is at least 2
+	} else return;	// no direction mentioned
+	if (L == 1u)  // neighbours available along given direction only if
+		return;     // length along same direction is at least 2
+
+	if ((edge & E_BEG) != 0) {
+		NN->push_back(toIntVec(i + off));
+		if (!P && L > 2 && bc == BoundaryCondition::PERIODIC)
+			NN->push_back(i - off);
+	} else
+	if ((edge & E_END) != 0) {
+		if (!P)
+			NN->push_back(toIntVec(i - off));
+		if (L > 2 && bc == BoundaryCondition::PERIODIC)
+			NN->push_back(toIntVec(i + off));
+	} else {
+		NN->push_back(toIntVec(i + off));
+		if (!P)
+			NN->push_back(i - off);
+	}
+}
+
+uIndx Ising::__sumDir(pos const& i, vec3<uIndx> const& off, int edge, bool P, uSize* n) {
+	std::vector<vec3<int>> neighbours;
+	this->__getNN(i, off, edge, P, &neighbours);
+	*n += neighbours.size();
 
 	uIndx SS = 0u;
-	if (e == E_BEG) {
-		SS += this->operator()(i + off);
-		*n += 1u;
-		if (!P && L > 2 && bc == BoundaryCondition::PERIODIC) {
-			SS += this->operator()(i - off);
-			*n += 1u;
-		}
-	} else
-	if (e == E_END) {
-		if (!P) {
-			SS += this->operator()(i - off);
-			*n += 1u;
-		}
-		if (L > 2 && bc == BoundaryCondition::PERIODIC) {
-			SS += this->operator()(i + off);
-			*n += 1u;
-		}
-	} else {
-		SS += this->operator()(i + off);
-		*n += 1u;
-		if (!P) {
-			SS += this->operator()(i - off);
-			*n += 1u;
-		}
-	}
+	for (auto it = neighbours.begin(); it != neighbours.end(); it ++)
+		SS += this->operator()(*it);
 	return SS;
 }
 
-static vec3<uIndx> offX = {1, 0, 0};
-static vec3<uIndx> offY = {0, 1, 0};
-static vec3<uIndx> offZ = {0, 0, 1};
 uIndx Ising::sumNeighboursP(pos const& i, vec3<uIndx> const& dir, uSize* n) {
-	Edge e = onEdge(i, this->p.L);
+	int e = onEdge(i, this->p.L);
 
 	uIndx SS = 0u;
 	if (dir.x)
@@ -129,8 +137,17 @@ uIndx Ising::sumNeighboursP(pos const& i, vec3<uIndx> const& dir, uSize* n) {
 
 	return SS;
 }
+
+void Ising::getNeighbours(pos const& i, std::vector<vec3<int>>* NN) {
+	int e = onEdge(i, this->p.L);
+
+	this->__getNN(i, offX, e, false, NN);
+	this->__getNN(i, offY, e, false, NN);
+	this->__getNN(i, offZ, e, false, NN);
+}
+
 uIndx Ising::sumNeighbours(pos const& i, uSize* n) {
-	Edge e = onEdge(i, this->p.L);
+	int e = onEdge(i, this->p.L);
 
 	// sum of neighbours in all directions
 	return this->__sumDir(i, offX, e, false, n)
@@ -138,7 +155,7 @@ uIndx Ising::sumNeighbours(pos const& i, uSize* n) {
 			 + this->__sumDir(i, offZ, e, false, n);
 }
 uIndx Ising::sumNeighbours(pos const& i, vec3<uIndx> const& dir, uSize* n) {
-	Edge e = onEdge(i, this->p.L);
+	int e = onEdge(i, this->p.L);
 
 	uIndx SS = 0u;
 	if (dir.x)

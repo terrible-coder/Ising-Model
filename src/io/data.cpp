@@ -48,8 +48,10 @@ void openLogger(std::string parentDir, float T, int rank) {
 }
 
 void closeLogger() {
-	energyData.close();
-	magnetData.close();
+	if (LogType & LogData::ENERGY)
+		energyData.close();
+	if (LogType & LogData::ORDER_PARAM)
+		magnetData.close();
 }
 
 void logEnergy(float energy) {
@@ -84,6 +86,8 @@ void createLog(Ising& c) {
 }
 
 void nextEnsemble() {
-	energyData << std::endl;
-	magnetData << std::endl;
+	if (LogType & LogData::ENERGY)
+		energyData << std::endl;
+	if (LogType & LogData::ORDER_PARAM)
+		magnetData << std::endl;
 }

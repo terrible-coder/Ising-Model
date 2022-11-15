@@ -62,6 +62,16 @@ inline vec3<int> operator-(vec3<T> const& lhs, vec3<U> const& rhs) {
 	return {lhs.x-rhs.x, lhs.y-rhs.y, lhs.z-rhs.z};
 }
 
+template<typename T>
+inline vec3<int> toIntVec(vec3<T> const& a) {
+	return {(int) a.x, (int) a.y, (int) a.z};
+}
+
+template<typename T>
+inline vec3<T> toTVec(vec3<int> const& a) {
+	return {(T) a.x, (T) a.y, (T) a.z};
+}
+
 typedef vec3<uIndx> pos;
 
 // template<typename T>
