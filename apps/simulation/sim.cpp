@@ -3,6 +3,7 @@
 #include <fstream>
 #include <string>
 #include <exception>
+#include <mpi.h>
 
 #include "defaults.hpp"
 #include "io/data_logger.hpp"
@@ -66,7 +67,6 @@ int main(int argc, char** argv) {
 	std::cout << "Temperature range: " << *(CTX.Temperature.begin()) << "..." << *(CTX.Temperature.end()-1) << "\n";
 	std::cout << "Logging " << CTX.DataLogs.size() << "\n"; 
 	std::cout << std::endl;
-	std::cin.get();
 
 	ModelParams parameters(CTX.size, CTX.boundary);
 	parameters.setInteractions(CTX.interact.x, CTX.interact.y, CTX.interact.z);
@@ -94,7 +94,19 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	int rank = 0;
+	// Preparing MPI
+
+	int rank, n_ranks, numbers_per_rank;
+	int rEn_beg, rEn_end;
+	int numbers = CTX.EnsembleSize;
+	MPI_Init(&argc, &argv);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &n_ranks);
+	numbers_per_rank = floor(numbers / n_ranks);
+	if (numbers% n_ranks > 0)
+		numbers_per_rank++;
+	rEn_beg = rank * numbers_per_rank;
+	rEn_end = rEn_beg + numbers_per_rank;
 
 	float T = *(CTX.Temperature.begin()); // temperature
 	Ising config(CTX.Concentration, parameters, T);
@@ -102,19 +114,12 @@ int main(int argc, char** argv) {
 
 	openLogger(CTX.saveDir, T, rank+1);
 	saveInit(config, CTX.saveDir);
-	for (uIndx en = 0; en < CTX.EnsembleSize; en += 1u) {
+	for (uIndx en = rEn_beg; en < rEn_end; en += 1u) {
 		openSnap(config, en+1, CTX.saveDir);
-		MonteCarlo(config, &CTX, 1u);
+		MonteCarlo(config, &CTX, en+1);
 		closeSnap();
 		nextEnsemble();
 	}
 	closeLogger();
-
-	// pos i = {57u, 25u, 0u};
-	// std::vector<vec3<int>> neighbours;
-	// config.getNeighbours(i, &neighbours);
-	// for (auto it = neighbours.begin(); it != neighbours.end(); it++)
-	// 	std::cout << it->x << "," << it->y << "," << it->z << std::endl;
-
-	return EXIT_SUCCESS;
+	return MPI_Finalize();
 }

@@ -42,16 +42,16 @@ void spin_exchange(Ising& c, Context* ctx) {
 		c.getNeighbours(i, &neighbours);
 		q = neighbours.size();
 		getRandomIndices({q, 1u, 1u}, &j, true);
-		j = toTVec<uIndx>(neighbours[j.x]);
+		j = c.equiv(neighbours[j.x]);
 
 		if (c(i) == c(j)) continue;
 		dE = c.exchangeEnergyChange(i, j);
 		if (isAccepted(dE, c.getTemp(), ctx)) break;
 	}
-	std::cout << " nn:" << q << " ";
-	std::cout << "\tpos i:" << i.x << "," << i.y << "," << i.z << "\t";
-	std::cout << "pos j:" << j.x << "," << j.y << "," << j.z << "\t";
-	std::cout << c(i) << " " << c(j) << "\t";
+	// std::cout << " nn:" << q << " ";
+	// std::cout << "\tpos i:" << i.x << "," << i.y << "," << i.z << "\t";
+	// std::cout << "pos j:" << j.x << "," << j.y << "," << j.z << "\t";
+	// std::cout << c(i) << " " << c(j) << "\t";
 	c.exchange(i, j);
-	std::cout << c(i) << " " << c(j) << std::endl;
+	// std::cout << c(i) << " " << c(j) << std::endl;
 }
