@@ -110,7 +110,7 @@ int main(int argc, char** argv) {
 
 	float T = *(CTX.Temperature.begin()); // temperature
 	Ising config(CTX.Concentration, parameters, T);
-	config.generate();
+	config.generate(rank+1);
 
 	openLogger(CTX.saveDir, T, rank+1);
 	saveInit(config, CTX.saveDir);

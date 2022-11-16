@@ -289,7 +289,21 @@ public:
 	 */
 	void __nZShift(uWord* shifted);
 
-	void generate();
+	/**
+	 * @brief Generates a lattice of spins of given dimensions. The spins are
+	 * represented as boolean values (`true` for up and `false` for down).
+	 * This is the initial configuration of the model. That is, all ensemble
+	 * members will start from this configuration.
+	 * 
+	 * Note: This function should not be called more than once.
+	 * 
+	 * @param r 
+	 */
+	void generate(int r);
+
+	/**
+	 * @brief Initialise the lattice to the initial configuration generated.
+	 */
 	void reinit();
 
 	/**
