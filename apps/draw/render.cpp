@@ -4,6 +4,7 @@
 
 #include <SFML/Graphics.hpp>
 #include "defaults.hpp"
+#include "context.hpp"
 
 #define sysWidth 600
 #define sysHeight 600
@@ -104,16 +105,16 @@ float getTemp(std::string name) {
  * @return true if the read is successful,
  * @return false if the read did not complete
  */
-bool readNext(std::ifstream& file, uWord_t* grid, const int w, const int h) {
+bool readNext(std::ifstream& file, uWord* grid, const int w, const int h) {
 	int N = w * h;
-	uWord_t number;
+	uWord number;
 	int idx = 0;
 	while (N > 0) {
 		if (N < WORD_SIZE) {
 			std::cout << "Bad file format." << std::endl;
 			return false;
 		}
-		if (!file.read((char*) &number, sizeof(uWord_t)))
+		if (!file.read((char*) &number, sizeof(uWord)))
 			return false;
 		grid[idx++] = number;
 		N -= WORD_SIZE;
@@ -131,12 +132,12 @@ std::string frameName(int n, const int maxLen) {
 	return fno;
 }
 
-void drawFrame(uWord_t* grid, std::uint16_t Lx, std::uint16_t Ly, float scale, sf::RenderTexture& target) {
+void drawFrame(uWord* grid, std::uint16_t Lx, std::uint16_t Ly, float scale, sf::RenderTexture& target) {
 	for (uint y = 0; y < Ly; y++) {
 		for (uint x = 0; x < Lx; x++) {
 			sf::RectangleShape sq(sf::Vector2f(scale, scale));
 			uint idx = y * Lx + x;
-			uWord_t number = grid[idx / WORD_SIZE];
+			uWord number = grid[idx / WORD_SIZE];
 			bool spin = (number >> (WORD_SIZE - (idx%WORD_SIZE) - 1)) & 1;
 			if ( !spin ) continue;
 			sq.setFillColor(sf::Color::White);
@@ -146,12 +147,12 @@ void drawFrame(uWord_t* grid, std::uint16_t Lx, std::uint16_t Ly, float scale, s
 		}
 	}
 }
-void drawFrame(uWord_t* grid, std::uint16_t Lx, std::uint16_t Ly, float scale, sf::RenderWindow& target) {
+void drawFrame(uWord* grid, std::uint16_t Lx, std::uint16_t Ly, float scale, sf::RenderWindow& target) {
 	for (uint y = 0; y < Ly; y++) {
 		for (uint x = 0; x < Lx; x++) {
 			sf::RectangleShape sq(sf::Vector2f(scale, scale));
 			uint idx = y * Lx + x;
-			uWord_t number = grid[idx / WORD_SIZE];
+			uWord number = grid[idx / WORD_SIZE];
 			bool spin = (number >> (WORD_SIZE - (idx%WORD_SIZE) - 1)) & 1;
 			if ( !spin ) continue;
 			sq.setFillColor(sf::Color::White);
@@ -240,7 +241,7 @@ int main(int argc, char** argv) {
 			std::cout << "Something went wrong." << std::endl;
 			return EXIT_FAILURE;
 		}
-		uWord_t* lattice = new uWord_t[Lx*Ly / sizeof(uWord_t)];
+		uWord* lattice = new uWord[Lx*Ly / sizeof(uWord)];
 		if (!readNext(iniCon, lattice, Lx, Ly)) {
 			std::cout << "Could not read initial frame." << std::endl;
 			return EXIT_FAILURE;
@@ -300,7 +301,7 @@ int main(int argc, char** argv) {
 	}
 
 	std::cout << "Generating lattice..." << std::endl;
-	uWord_t* lattice = new uWord_t[Lx*Ly / sizeof(uWord_t)];
+	uWord* lattice = new uWord[Lx*Ly / sizeof(uWord)];
 
 	sf::RenderWindow window;
 	sf::RenderTexture texture;
