@@ -71,16 +71,17 @@ void logMagnet(float magnet) {
 }
 
 void createLog(Ising& c) {
+	static const float totSpins = (float)c.getSize();
 	switch (LogType) {
 		case LogData::ENERGY:
-			logEnergy(c.Hamiltonian());
+			logEnergy(c.Hamiltonian() / totSpins);
 			break;
 		case LogData::ORDER_PARAM:
-			logMagnet(c.Magnetisation());
+			logMagnet(c.Magnetisation() / totSpins);
 			break;
 		case LogData::ENERGY | LogData::ORDER_PARAM:
-			logEnergy(c.Hamiltonian());
-			logMagnet(c.Magnetisation());
+			logEnergy(c.Hamiltonian() / totSpins);
+			logMagnet(c.Magnetisation() / totSpins);
 			break;
 	}
 }

@@ -77,15 +77,23 @@ float Ising::Hamiltonian() {
 	static float h = field(this->p.Eaa, this->p.Ebb);
 	static float H_bulk = this->p.q * h;
 
-	this->__nXShift(shift);
-	for (uIndx i = 0; i < this->rawN; i += 1u)
-		SS += std::__popcount(~(lattice[i] ^ shift[i]));
-	this->__nYShift(shift);
-	for (uIndx i = 0; i < this->rawN; i += 1u)
-		SS += std::__popcount(~(lattice[i] ^ shift[i]));
-	this->__nZShift(shift);
-	for (uIndx i = 0; i < this->rawN; i += 1u)
-		SS += std::__popcount(~(lattice[i] ^ shift[i]));
+	// taking care of bi-layer is little cumbersome
+	// settle for anything above 2 for now
+	if (this->p.L.x > 2) {
+		this->__nXShift(shift);
+		for (uIndx i = 0; i < this->rawN; i += 1u)
+			SS += std::__popcount(~(lattice[i] ^ shift[i]));
+	}
+	if (this->p.L.y > 2) {
+		this->__nYShift(shift);
+		for (uIndx i = 0; i < this->rawN; i += 1u)
+			SS += std::__popcount(~(lattice[i] ^ shift[i]));
+	}
+	if (this->p.L.z > 2) {
+		this->__nZShift(shift);
+		for (uIndx i = 0; i < this->rawN; i += 1u)
+			SS += std::__popcount(~(lattice[i] ^ shift[i]));
+	}
 
 	// The PBC energy
 	E = -J_bulk * bool2spin(SS, this->p.N) - H_bulk * this->Magnetisation();
