@@ -49,9 +49,9 @@ uint _last_seed = -1;
 uWord randIntP(uint density, uint seed) {
 	// we are working with fraction (in binary), trailing zeroes don't matter
 	uint n = trimTrailingZeros(&density);
-	static std::default_random_engine rng;
+	static std::mt19937 rng;
 	if (seed != _last_seed) {
-		rng.seed(seed);
+		rng = std::mt19937(seed);
 		_last_seed = seed;
 	}
 	static std::uniform_int_distribution<uWord> dist(0, ~((uWord)0));

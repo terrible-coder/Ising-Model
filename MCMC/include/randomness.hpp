@@ -23,7 +23,8 @@ float rProbability();
  * @param noInit Force the RNG to not initialise.
  * @return int 
  */
-uSize rIndex(vec3<uIndx> const& L, bool noInit);
+// uSize rIndex(vec3<uIndx> const& L, bool noInit);
+uIndx rIndex(uIndx q);
 
 /**
  * @brief A random integer in range `[0, N)` for indexing purposes. The RNG is
