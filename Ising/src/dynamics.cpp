@@ -166,7 +166,6 @@ float Ising::Hamiltonian() {
 	}
 
 
-
 	if (this->p.boundary.y == BoundaryCondition::FREE) {
 		S_beg = S_end = 0u;
 		SS_fbc = 0u;

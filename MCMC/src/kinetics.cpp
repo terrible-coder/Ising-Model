@@ -8,15 +8,15 @@
  * @param i The row index.
  * @param j The column index.
  */
-void getRandomIndices(vec3<uIndx> const& L, pos* i, bool noInit) {
-	int idx = rIndex(L, noInit);
+void getRandomIndices(vec3<uIndx> const& L, pos* i) {
+	int idx = rIndex(L);
 	idx1to3(idx, L, i);
 }
 
 void spin_flip(Ising& c, Context* ctx) {
 	pos i;
 	float dE;
-	getRandomIndices(c.getVecSize(), &i, false);
+	getRandomIndices(c.getVecSize(), &i);
 	// The change in energy, if the spin is flipped
 	dE = c.flipEnergyChange(i);
 	if (!isAccepted(dE, c.getTemp(), ctx))
@@ -35,23 +35,28 @@ void spin_exchange(Ising& c, Context* ctx) {
 	pos i, j;
 	float dE;
 	vec3<uIndx> L = c.getVecSize();
-	uIndx q;
-	while (true) {
-		getRandomIndices(L, &i, false);
+	uIndx q, idx;
+	// while (true) {
+		getRandomIndices(L, &i);
 		std::vector<vec3<int>> neighbours;
 		c.getNeighbours(i, &neighbours);
 		q = neighbours.size();
-		getRandomIndices({q, 1u, 1u}, &j, true);
-		j = c.equiv(neighbours[j.x]);
+		idx = rIndex(q);
+		j = c.equiv(neighbours[idx]);
 
-		if (c(i) == c(j)) continue;
-		dE = c.exchangeEnergyChange(i, j);
-		if (isAccepted(dE, c.getTemp(), ctx)) break;
-	}
-	// std::cout << " nn:" << q << " ";
+		// if (c(i) == c(j)) continue;
+		if (c(i) != c(j)) {
+			dE = c.exchangeEnergyChange(i, j);
 	// std::cout << "\tpos i:" << i.x << "," << i.y << "," << i.z << "\t";
-	// std::cout << "pos j:" << j.x << "," << j.y << "," << j.z << "\t";
+	// std::cout << "\tpos j:" << j.x << "," << j.y << "," << j.z << "\t";
 	// std::cout << c(i) << " " << c(j) << "\t";
-	c.exchange(i, j);
-	// std::cout << c(i) << " " << c(j) << std::endl;
+			if (isAccepted(dE, c.getTemp(), ctx))
+				c.exchange(i, j);
+		}
+	// std::cout << c(i) << " " << c(j) << "\t";
+		// if (c(i) != c(j)) break;
+	// }
+	// std::cout << " nn:" << q << " ";
+	// std::cout << "\t" << idx << std::endl;
+	// c.exchange(i, j);
 }

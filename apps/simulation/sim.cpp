@@ -121,5 +121,27 @@ int main(int argc, char** argv) {
 		nextEnsemble();
 	}
 	closeLogger();
+
+	// config.reinit();
+	// saveInit(config, CTX.saveDir);
+	// pos i{0u, 0u, 0u};
+	// uSize n = 0;
+	// std::vector<vec3<int>> neighbours;
+	// config.getNeighbours(i, &neighbours);
+	// std::cout << "point:\t" << i.x << "," << i.y << "," << i.z << "\t" << config(i) << std::endl;
+	// for (auto it = neighbours.begin(); it != neighbours.end(); it++) {
+	// 	pos j = config.equiv(*it);
+	// 	uSize m = 0;
+	// 	std::cout << j.x << "," << j.y << "," << j.z << "\t";
+	// 	std::cout << config(j) << "\t";
+	// 	std::cout << "nn_sum, except i: ";
+	// 	std::cout << config.sumNeighbours(j, {1u, 1u, 1u}, i, &m);
+	// 	std::cout << "(" << m << ")" << "\t";
+	// 	std::cout << config.exchangeEnergyChange(i, j);
+	// 	std::cout << std::endl;
+	// }
+	// uIndx s = config.sumNeighbours(i, &n);
+	// std::cout << "\n" << n << "\t" << s << std::endl; 
+
 	return MPI_Finalize();
 }

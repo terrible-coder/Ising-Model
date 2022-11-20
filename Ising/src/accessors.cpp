@@ -48,9 +48,11 @@ uWord* Ising::getRaw() {
 bool Ising::operator() (int x, int y, int z) {
 	pos a;
 	imposeBC(this->p.L, {x, y, z}, &a, this->p.boundary);
+	// std::cout << a.x << "," << a.y << "," << a.z << "\t";
 
 	if (a.x == this->p.L.x || a.y == this->p.L.y || a.z == this->p.L.z) return NULL;
 	uSize idx = idx3to1(a, this->p.L);
+	// std::cout << idx << "\t";
 	return (this->lattice[idx / WORD_SIZE] >> (WORD_SIZE - idx%WORD_SIZE - 1)) & 1;
 }
 bool Ising::operator() (vec3<int> const& i) {
@@ -133,7 +135,7 @@ uIndx Ising::sumNeighboursP(pos const& i, vec3<uIndx> const& dir, uSize* n) {
 	if (dir.y)
 		SS += this->__sumDir(i, offY, e, true, n);
 	if (dir.z)
-		SS += this->__sumDir(i, offY, e, true, n);
+		SS += this->__sumDir(i, offZ, e, true, n);
 
 	return SS;
 }
@@ -163,7 +165,7 @@ uIndx Ising::sumNeighbours(pos const& i, vec3<uIndx> const& dir, uSize* n) {
 	if (dir.y)
 		SS += this->__sumDir(i, offY, e, false, n);
 	if (dir.z)
-		SS += this->__sumDir(i, offY, e, false, n);
+		SS += this->__sumDir(i, offZ, e, false, n);
 
 	return SS;
 }

@@ -49,23 +49,34 @@ float Ising::exchangeEnergyChange(pos const& i, pos const& j) {
 	iN = jN = 0u;
 	iSum = this->sumNeighbours(i, {1u, 1u, 1u}, j, &iN); // neighbour sum should
 	jSum = this->sumNeighbours(j, {1u, 1u, 1u}, i, &jN); // not have each other
+
+	float J_bulk = coupling(this->p.Eaa, this->p.Ebb, this->p.Eab);
+	// float diff = 2.f * (this->operator()(i) - this->operator()(j));
+	// since the spins are opposite, we simplify
+	float diff = 2.f * bool2spin(this->operator()(i));
+	if (this->p.surfaces.size() == 0) {
+		// there are no surfaces to worry about
+		// everything is bulk
+		float nDiff = bool2spin(
+			(float)jSum - iSum, (float)jN - iN		// diff of neighbour sums
+		);
+		return - J_bulk * diff * nDiff;
+	}
+
 	int iE = onEdge(i, this->p.L);
 	int jE = onEdge(j, this->p.L);
 	std::vector<Surface>::iterator iit = p.whichSurface(iE);
 	std::vector<Surface>::iterator jit = p.whichSurface(jE);
 
-	float J_bulk = coupling(this->p.Eaa, this->p.Ebb, this->p.Eab);
-
-	// float diff = 2.f * (this->operator()(i) - this->operator()(j));
-	// since the spins are opposite, we simplify
-	float diff = 2.f * bool2spin(this->operator()(i));
-
 	if (iit == this->p.surfaces.end() && jit == this->p.surfaces.end()) {
 		// none of them are on edge
 		// both spins are in bulk
-		float nDiff = 2.f * ((float)jSum - (float)iSum); // diff of neighbour sums
+		float nDiff = bool2spin(
+			(float)jSum - iSum, (float)jN - iN		// diff of neighbour sums
+		);
 		return - J_bulk * diff * nDiff;
 	}
+
 	float H1 = (p.q-2)*field(jit->Eaa, jit->Ebb) - (p.q-1)*field(p.Eaa, p.Ebb);
 	if (iit == this->p.surfaces.end()) {
 		// j is on a surface edge
@@ -81,56 +92,45 @@ float Ising::exchangeEnergyChange(pos const& i, pos const& j) {
 		float surfChange =  diff * J_surf * bool2spin(iSum, iN);
 		return bulkChange + surfChange - H1 * diff;
 	}
+
 	// they are both on a surface
 	// since i and j are nearest neighbours, they must be on the same surface
 
 	float J_surf = coupling(iit->Eaa, iit->Ebb, iit->Eab);
-	bool offSurfI;
-	bool offSurfJ;
-	switch (iE) {
+	pos offI;		// the neighbour of `i` which is off the surface
+	pos offJ;		// the neighbour of `j` which is off the surface
+	bool offSurfI, offSurfJ;
+	switch ((iE & jE)) {
 	case Edge::X_BEG:
-		offSurfI = this->operator()(pos{1u, i.y, i.z});
-		iSum -= offSurfI;
-		offSurfJ = this->operator()(pos{1u, j.y, j.z});
-		jSum -= offSurfJ;
+		offI = {1u, i.y, i.z};
+		offJ = {1u, j.y, j.z};
 		break;
-
 	case Edge::X_END:
-		offSurfI = this->operator()(pos{(uIndx)(p.L.x-2), i.y, i.z});
-		iSum -= offSurfI;
-		offSurfJ = this->operator()(pos{(uIndx)(p.L.x-2), j.y, j.z});
-		jSum -= offSurfJ;
+		offI = {(uIndx)(p.L.x-2u), i.y, i.z};
+		offJ = {(uIndx)(p.L.x-2u), j.y, j.z};
 		break;
-
 	case Edge::Y_BEG:
-		offSurfI = this->operator()(pos{i.x, 1u, i.z});
-		iSum -= offSurfI;
-		offSurfJ = this->operator()(pos{j.x, 1u, j.z});
-		jSum -= offSurfJ;
+		offI = {i.x, 1u, i.z};
+		offJ = {j.x, 1u, j.z};
 		break;
-
 	case Edge::Y_END:
-		offSurfI = this->operator()(pos{i.x, (uIndx)(p.L.y-2), i.z});
-		iSum -= offSurfI;
-		offSurfJ = this->operator()(pos{j.x, (uIndx)(p.L.y-2), j.z});
-		jSum -= offSurfJ;
+		offI = {i.x, (uIndx)(p.L.y-2u), i.z};
+		offJ = {j.x, (uIndx)(p.L.y-2u), j.z};
 		break;
-
 	case Edge::Z_BEG:
-		offSurfI = this->operator()(pos{i.x, i.y, 1u});
-		iSum -= offSurfI;
-		offSurfJ = this->operator()(pos{j.x, j.y, 1u});
-		jSum -= offSurfJ;
+		offI = {i.x, i.y, 1u};
+		offJ = {j.x, j.y, 1u};
 		break;
-
 	case Edge::Z_END:
-		offSurfI = this->operator()(pos{i.x, i.y, (uIndx)(p.L.z-2)});
-		iSum -= offSurfI;
-		offSurfJ = this->operator()(pos{j.x, j.y, (uIndx)(p.L.z-2)});
-		iSum -= offSurfI;
+		offI = {i.x, i.y, (uIndx)(p.L.z-2u)};
+		offJ = {j.x, j.y, (uIndx)(p.L.z-2u)};
 		break;
 	}
+
+	offSurfI = this->operator()(offI); iSum -= offSurfI;
+	offSurfJ = this->operator()(offJ); jSum -= offSurfJ;
 	float bulkChange = -diff * J_bulk * 2.f * (offSurfJ - offSurfI);
-	float surfChange = -diff * J_surf * 2.f * (jSum - iSum);
+	float surfChange = -diff * J_surf * bool2spin(jSum - iSum, jN - iN);
+	// iN -> iN-1 and jN -> jN-1, jN-iN remains unchanged
 	return bulkChange + surfChange;
 }
