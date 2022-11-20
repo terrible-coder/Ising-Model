@@ -105,10 +105,10 @@ float getTemp(std::string name) {
  * @return true if the read is successful,
  * @return false if the read did not complete
  */
-bool readNext(std::ifstream& file, uWord* grid, const int w, const int h) {
-	int N = w * h;
+bool readNext(std::ifstream& file, uWord* grid, const uIndx w, const uIndx h) {
+	uSize N = (uSize)w * h;
 	uWord number;
-	int idx = 0;
+	uIndx idx = 0;
 	while (N > 0) {
 		if (N < WORD_SIZE) {
 			std::cout << "Bad file format." << std::endl;
@@ -132,11 +132,11 @@ std::string frameName(int n, const int maxLen) {
 	return fno;
 }
 
-void drawFrame(uWord* grid, std::uint16_t Lx, std::uint16_t Ly, float scale, sf::RenderTexture& target) {
-	for (uint y = 0; y < Ly; y++) {
-		for (uint x = 0; x < Lx; x++) {
+void drawFrame(uWord* grid, uIndx Lx, uIndx Ly, float scale, sf::RenderTexture& target) {
+	for (uIndx y = 0; y < Ly; y++) {
+		for (uIndx x = 0; x < Lx; x++) {
 			sf::RectangleShape sq(sf::Vector2f(scale, scale));
-			uint idx = y * Lx + x;
+			uSize idx = y * Lx + x;
 			uWord number = grid[idx / WORD_SIZE];
 			bool spin = (number >> (WORD_SIZE - (idx%WORD_SIZE) - 1)) & 1;
 			if ( !spin ) continue;
@@ -147,11 +147,11 @@ void drawFrame(uWord* grid, std::uint16_t Lx, std::uint16_t Ly, float scale, sf:
 		}
 	}
 }
-void drawFrame(uWord* grid, std::uint16_t Lx, std::uint16_t Ly, float scale, sf::RenderWindow& target) {
-	for (uint y = 0; y < Ly; y++) {
-		for (uint x = 0; x < Lx; x++) {
+void drawFrame(uWord* grid, uIndx Lx, uIndx Ly, float scale, sf::RenderWindow& target) {
+	for (uIndx y = 0; y < Ly; y++) {
+		for (uIndx x = 0; x < Lx; x++) {
 			sf::RectangleShape sq(sf::Vector2f(scale, scale));
-			uint idx = y * Lx + x;
+			uSize idx = (uSize)Lx * y + x;
 			uWord number = grid[idx / WORD_SIZE];
 			bool spin = (number >> (WORD_SIZE - (idx%WORD_SIZE) - 1)) & 1;
 			if ( !spin ) continue;
@@ -230,9 +230,10 @@ int main(int argc, char** argv) {
 		std::string path = exT + "initial" + BIN_EXT;
 		std::ifstream iniCon(path);
 		std::ofstream frame(exT + "initial" + IMG_EXT);
-		std::uint16_t Lx, Ly;
-		iniCon.read((char*) &Lx, sizeof(std::uint16_t));
-		iniCon.read((char*) &Ly, sizeof(std::uint16_t));
+		uIndx Lx, Ly, Lz;
+		iniCon.read((char*) &Lx, sizeof(uIndx));
+		iniCon.read((char*) &Ly, sizeof(uIndx));
+		iniCon.read((char*) &Lz, sizeof(uIndx));
 		float scale = (float)sysWidth / Lx;
 
 		sf::Text statusBar;
@@ -275,9 +276,10 @@ int main(int argc, char** argv) {
 		return EXIT_FAILURE;
 	}
 
-	std::uint16_t Lx, Ly;
-	snap.read((char*) &Lx, sizeof(std::uint16_t));
-	snap.read((char*) &Ly, sizeof(std::uint16_t));
+	uIndx Lx, Ly, Lz;
+	snap.read((char*) &Lx, sizeof(uIndx));
+	snap.read((char*) &Ly, sizeof(uIndx));
+	snap.read((char*) &Lz, sizeof(uIndx));
 	float scale = (float)sysWidth / Lx;
 
 	std::cout << "Width: " << Lx << "\n";
