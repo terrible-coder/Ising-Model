@@ -108,19 +108,22 @@ int main(int argc, char** argv) {
 	rEn_beg = rank * numbers_per_rank;
 	rEn_end = rEn_beg + numbers_per_rank;
 
-	float T = *(CTX.Temperature.begin()); // temperature
-	Ising config(CTX.Concentration, parameters, T);
-	config.generate(rank+1);
+	std::vector<float>::iterator tempIt = CTX.Temperature.begin();
+	for (; tempIt != CTX.Temperature.end(); tempIt++) {
+		float T = *tempIt; // temperature
+		Ising config(CTX.Concentration, parameters, T);
+		config.generate(rank+1);
 
-	openLogger(CTX.saveDir, T, rank+1);
-	saveInit(config, CTX.saveDir);
-	for (uIndx en = rEn_beg; en < rEn_end; en += 1u) {
-		openSnap(config, en+1, CTX.saveDir);
-		MonteCarlo(config, &CTX, en+1);
-		closeSnap();
-		nextEnsemble();
+		openLogger(CTX.saveDir, T, rank+1);
+		saveInit(config, CTX.saveDir);
+		for (uIndx en = rEn_beg; en < rEn_end; en += 1u) {
+			openSnap(config, en+1, CTX.saveDir);
+			MonteCarlo(config, &CTX, en+1);
+			closeSnap();
+			nextEnsemble();
+		}
+		closeLogger();
 	}
-	closeLogger();
 
 	// config.reinit();
 	// saveInit(config, CTX.saveDir);
