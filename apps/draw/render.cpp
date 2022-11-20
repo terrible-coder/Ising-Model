@@ -194,42 +194,48 @@ void print_progress(int p, int total, int width = 80) {
 	if(p == total) std::cout << std::endl;
 }
 
+enum Mode {
+	save, draw
+};
+enum Source {
+	ensemble, initial
+};
+
 int main(int argc, char** argv) {
-	std::string exT;
-	std::string member;
-	std::string dispMode = "draw";
-	std::string source = "en";
+	std::string expName;
+	int member;
+	Mode disp = Mode::draw;
+	Source src = Source::ensemble;
 	if (argc < 2) {
+		std::cout << "Don't know what to do." << std::endl;
+		return EXIT_FAILURE;
+	}
+	if (argc < 3) {
 		std::cout << "No file given." << std::endl;
 		return EXIT_FAILURE;
-	} else if (argc < 3) {
-		std::cout << "Ensemble not specified." << std::endl;
+	}
+	if (argc < 4) {
+		std::cout << "No ensemble specified." << std::endl;
 		return EXIT_FAILURE;
 	}
-	exT = argv[1];
-	member = argv[2];
 
-	// true is for draw, false is for save
-	bool mode = true;
-	if (argc > 3) {
-		dispMode = argv[3];
-		if (dispMode != "save" && dispMode != "draw") {
-			std::cout << "Unknown mode." << std::endl;
-		} else
-		mode = dispMode == "draw";
-		if (argc > 4) {
-			source = argv[4];
-			if (source != "en" && source != "ini") {
-				std::cout << "Unknown source." << std::endl;
-				source = "ini";
-			}
-		}
+	if (std::string(argv[1]) == "save")	disp = Mode::save; else
+	if (std::string(argv[1]) != "draw") {
+		std::cout << "Unknown mode." << std::endl;
+		return EXIT_FAILURE;
+	}
+	expName = argv[2];
+	if (std::string(argv[3]) == "ini")
+		src = Source::initial;
+	else {
+		member = std::stoi(argv[3]);
+		src = Source::ensemble;
 	}
 
-	if (source == "ini") {
-		std::string path = exT + "initial" + BIN_EXT;
+	if (src == Source::initial) {
+		std::string path = expName + "initial" + BIN_EXT;
 		std::ifstream iniCon(path);
-		std::ofstream frame(exT + "initial" + IMG_EXT);
+		std::ofstream frame(expName + "initial" + IMG_EXT);
 		uIndx Lx, Ly, Lz;
 		iniCon.read((char*) &Lx, sizeof(uIndx));
 		iniCon.read((char*) &Ly, sizeof(uIndx));
@@ -250,7 +256,7 @@ int main(int argc, char** argv) {
 
 		statusBar.setString("Initial condition "
 												+ std::to_string(Lx) + "x" + std::to_string(Ly)
-												+ "\tTemperature: " + std::to_string(getTemp(exT)));
+												+ "\tTemperature: " + std::to_string(getTemp(expName)));
 
 		int wWidth  = sysWidth;
 		int wHeight = sysHeight + STAT_BAR_H;
@@ -261,13 +267,13 @@ int main(int argc, char** argv) {
 		drawFrame(lattice, Lx, Ly, scale, texture);
 		texture.draw(statusBar);
 		texture.display();
-		texture.getTexture().copyToImage().saveToFile(exT + "initial" + IMG_EXT);
+		texture.getTexture().copyToImage().saveToFile(expName + "initial" + IMG_EXT);
 		delete lattice;
 		return EXIT_SUCCESS;
 	}
 
-	std::string snapsPath = exT + "snaps/En" + member + BIN_EXT;
-	std::string framePath = exT + "frames/En" + member + "/fr";
+	std::string snapsPath = expName + "snaps/En" + std::to_string(member) + BIN_EXT;
+	std::string framePath = expName + "frames/En" + std::to_string(member) + "/fr";
 
 	std::ifstream snap(snapsPath, std::ios::binary);
 	std::ofstream frame;
@@ -286,9 +292,9 @@ int main(int argc, char** argv) {
 	std::cout << "Height: " << Ly << "\n";
 	std::cout << "Scale: " << scale << "\n";
 
-	// read Temp from exT
-	// read ensemble # from exT
-	float temp = getTemp(exT);
+	// read Temp from expName
+	// read ensemble # from expName
+	float temp = getTemp(expName);
 
 	// The total window width and height
 	int wWidth  = sysWidth;
@@ -307,8 +313,8 @@ int main(int argc, char** argv) {
 
 	sf::RenderWindow window;
 	sf::RenderTexture texture;
-	if (mode)	{
-		window.create(sf::VideoMode(wWidth, wHeight), "Ising model");
+	if (disp == Mode::draw)	{
+		window.create(sf::VideoMode(wWidth, wHeight), "Ising displ");
 		texture.~RenderTexture();
 	}	else {
 		texture.create(wWidth, wHeight);
@@ -316,8 +322,8 @@ int main(int argc, char** argv) {
 	}
 
 	int t = 0;
-	while ((mode && window.isOpen()) || !mode) { 
-		if (mode) handleEvents(window);
+	while ((disp == Mode::draw && window.isOpen()) || disp == Mode::save) {
+		if (disp == Mode::draw) handleEvents(window);
 		if (pause) continue;
 		if (!readNext(snap, lattice, Lx, Ly)) {
 			if (t == RUN) break;
@@ -326,7 +332,7 @@ int main(int argc, char** argv) {
 		}
 
 		status.setString(getStatus(++t, member, temp));
-		if (mode) {
+		if (disp == Mode::draw) {
 			window.clear();
 			drawFrame(lattice, Lx, Ly, scale, window);
 			window.draw(status);
