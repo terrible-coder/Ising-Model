@@ -314,7 +314,7 @@ int main(int argc, char** argv) {
 	sf::RenderWindow window;
 	sf::RenderTexture texture;
 	if (disp == Mode::draw)	{
-		window.create(sf::VideoMode(wWidth, wHeight), "Ising displ");
+		window.create(sf::VideoMode(wWidth, wHeight), "Ising model");
 		texture.~RenderTexture();
 	}	else {
 		texture.create(wWidth, wHeight);

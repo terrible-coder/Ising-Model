@@ -36,7 +36,10 @@ void spin_exchange(Ising& c, Context* ctx) {
 	float dE;
 	vec3<uIndx> L = c.getVecSize();
 	uIndx q, idx;
-	// while (true) {
+	const uIndx BAIL = c.getQ() << 2;
+	uIndx iter = 0u;
+	while (true) {
+		iter += 1u;
 		getRandomIndices(L, &i);
 		std::vector<vec3<int>> neighbours;
 		c.getNeighbours(i, &neighbours);
@@ -44,18 +47,18 @@ void spin_exchange(Ising& c, Context* ctx) {
 		idx = rIndex(q);
 		j = c.equiv(neighbours[idx]);
 
-		// if (c(i) == c(j)) continue;
 		if (c(i) != c(j)) {
-			dE = c.exchangeEnergyChange(i, j);
 	// std::cout << "\tpos i:" << i.x << "," << i.y << "," << i.z << "\t";
 	// std::cout << "\tpos j:" << j.x << "," << j.y << "," << j.z << "\t";
 	// std::cout << c(i) << " " << c(j) << "\t";
-			if (isAccepted(dE, c.getTemp(), ctx))
-				c.exchange(i, j);
+			dE = c.exchangeEnergyChange(i, j);
+			if (isAccepted(dE, c.getTemp(), ctx)) break;
 		}
+		if (iter == BAIL) return;
 	// std::cout << c(i) << " " << c(j) << "\t";
 		// if (c(i) != c(j)) break;
-	// }
+	}
+	c.exchange(i, j);
 	// std::cout << " nn:" << q << " ";
 	// std::cout << "\t" << idx << std::endl;
 	// c.exchange(i, j);
