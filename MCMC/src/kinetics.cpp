@@ -16,11 +16,19 @@ void getRandomIndices(vec3<uIndx> const& L, pos* i) {
 void spin_flip(Ising& c, Context* ctx) {
 	pos i;
 	float dE;
-	getRandomIndices(c.getVecSize(), &i);
-	// The change in energy, if the spin is flipped
-	dE = c.flipEnergyChange(i);
-	if (isAccepted(dE, c.getTemp(), ctx))
-		c.flip(i);
+	const uIndx BAIL = c.getQ() << 2;
+	uIndx iter = 0u;
+	while (true) {
+		iter += 1u;
+		getRandomIndices(c.getVecSize(), &i);
+		// The change in energy, if the spin is flipped
+		dE = c.flipEnergyChange(i);
+		if (isAccepted(dE, c.getTemp(), ctx))
+			break;
+		if (iter == BAIL)
+			return;
+	}
+	c.flip(i);
 }
 
 float picking(float dE) {
