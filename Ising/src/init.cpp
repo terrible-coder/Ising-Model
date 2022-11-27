@@ -9,8 +9,6 @@ Ising::Ising(uIndx conc, ModelParams& params, float temperature) {
 	this->rawN = params.N / WORD_SIZE;
 	this->is_generated = false;
 
-	this->__M = (float)params.N + 10.f;
-
 	std::cout << "Temperature of config: " << this->T << std::endl;
 }
 

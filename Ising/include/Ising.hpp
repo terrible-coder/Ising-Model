@@ -137,8 +137,6 @@ private:
 	vec3<uIndx> raw;    // The size of the array in memory which stores the spins.
 	uIndx rawN;         // Total number of values needed to represent all spins.
 
-	float __M;    // Cheat for constant magnetisation.
-
 	float partialEnergy(uWord* shifted, uSize beg, vec3<int> off);
 
 	/**

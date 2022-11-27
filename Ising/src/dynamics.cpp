@@ -96,7 +96,7 @@ float Ising::Hamiltonian() {
 	}
 
 	// The PBC energy
-	E = -J_bulk * bool2spin(SS, this->p.N) - H_bulk * this->Magnetisation();
+	E = -J_bulk * bool2spin(SS, this->p.N << 1) - H_bulk * this->Magnetisation();
 
 	// FBC and FBC+Surface corrections
 	uSize S_beg, S_end;   // sum of spins
@@ -315,10 +315,8 @@ float Ising::Hamiltonian() {
 }
 
 float Ising::Magnetisation() {
-	if (this->__M <= (float) this->p.N) return this->__M;
-	uint M = 0;
+	uSize M = 0;
 	for (uIndx i = 0; i < this->rawN; i++)
 		M += std::__popcount(this->lattice[i]);
-	this->__M = bool2spin(M, this->p.N);
-	return __M;
+	return bool2spin(M, this->p.N);
 }
