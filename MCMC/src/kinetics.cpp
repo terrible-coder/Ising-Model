@@ -19,7 +19,7 @@ void spin_flip(Ising& c, Context* ctx) {
 	getRandomIndices(c.getVecSize(), &i);
 	// The change in energy, if the spin is flipped
 	dE = c.flipEnergyChange(i);
-	if (!isAccepted(dE, c.getTemp(), ctx))
+	if (isAccepted(dE, c.getTemp(), ctx))
 		c.flip(i);
 }
 

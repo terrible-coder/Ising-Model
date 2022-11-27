@@ -13,7 +13,7 @@ float Ising::flipEnergyChange(pos const& i) {
 	bool s = this->operator()(i);
 	nSum = this->sumNeighbours(i, &n);
 	if (it == this->p.surfaces.end())	// the spin is in the bulk
-		return 2 * J_bulk * bool2spin(s? nSum : n - nSum, n);
+		return 2 * J_bulk * bool2spin((s? nSum : (n - nSum)), n);
 
 	// point is on a surface
 
