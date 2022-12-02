@@ -10,12 +10,12 @@ float field(float aa, float bb) {
 
 int onEdge(pos const& i, vec3<uIndx>& s) {
 	int e = 0;
-	if (i.x == 0)     e |= Edge::X_BEG; else
-	if (i.x == s.x-1) e |= Edge::X_END;
-	if (i.y == 0)     e |= Edge::Y_BEG; else
-	if (i.y == s.y-1) e |= Edge::Y_END;
-	if (i.z == 0)     e |= Edge::Z_BEG; else
-	if (i.z == s.z-1) e |= Edge::Z_END;
+	if (s.x > 1 && i.x == 0)     e |= Edge::X_BEG; else
+	if (s.x > 1 && i.x == s.x-1) e |= Edge::X_END;
+	if (s.y > 1 && i.y == 0)     e |= Edge::Y_BEG; else
+	if (s.y > 1 && i.y == s.y-1) e |= Edge::Y_END;
+	if (s.z > 1 && i.z == 0)     e |= Edge::Z_BEG; else
+	if (s.z > 1 && i.z == s.z-1) e |= Edge::Z_END;
 	return e;
 }
 

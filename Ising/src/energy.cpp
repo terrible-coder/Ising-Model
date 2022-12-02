@@ -100,30 +100,31 @@ float Ising::exchangeEnergyChange(pos const& i, pos const& j) {
 	pos offI;		// the neighbour of `i` which is off the surface
 	pos offJ;		// the neighbour of `j` which is off the surface
 	bool offSurfI, offSurfJ;
+	// std::cout << (iE & jE) << std::endl;
 	switch ((iE & jE)) {
 	case Edge::X_BEG:
-		offI = {1u, i.y, i.z};
-		offJ = {1u, j.y, j.z};
+		offI = {(uIndx)(i.x+1u), i.y, i.z};
+		offJ = {(uIndx)(j.x+1u), j.y, j.z};
 		break;
 	case Edge::X_END:
-		offI = {(uIndx)(p.L.x-2u), i.y, i.z};
-		offJ = {(uIndx)(p.L.x-2u), j.y, j.z};
+		offI = {(uIndx)(i.x-1u), i.y, i.z};
+		offJ = {(uIndx)(j.x-1u), j.y, j.z};
 		break;
 	case Edge::Y_BEG:
-		offI = {i.x, 1u, i.z};
-		offJ = {j.x, 1u, j.z};
+		offI = {i.x, (uIndx)(i.y+1u), i.z};
+		offJ = {j.x, (uIndx)(j.y+1u), j.z};
 		break;
 	case Edge::Y_END:
-		offI = {i.x, (uIndx)(p.L.y-2u), i.z};
-		offJ = {j.x, (uIndx)(p.L.y-2u), j.z};
+		offI = {i.x, (uIndx)(i.y-1u), i.z};
+		offJ = {j.x, (uIndx)(j.y-1u), j.z};
 		break;
 	case Edge::Z_BEG:
-		offI = {i.x, i.y, 1u};
-		offJ = {j.x, j.y, 1u};
+		offI = {i.x, i.y, (uIndx)(i.z+1u)};
+		offJ = {j.x, j.y, (uIndx)(j.z+1u)};
 		break;
 	case Edge::Z_END:
-		offI = {i.x, i.y, (uIndx)(p.L.z-2u)};
-		offJ = {j.x, j.y, (uIndx)(p.L.z-2u)};
+		offI = {i.x, i.y, (uIndx)(i.z-1u)};
+		offJ = {j.x, j.y, (uIndx)(j.z-1u)};
 		break;
 	}
 

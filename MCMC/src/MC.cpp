@@ -23,6 +23,7 @@ void MonteCarlo(Ising& c, Context* ctx, uIndx en) {
 	uSize Bin = c.getSize();
 	c.reinit();
 	for (uint i = 0; i < ctx->Run; i += 1u) {
+		if (i % 100 == 0)
 		std::cout << "en " << en << " run " << i << std::endl; // << " mc " << mc;
 		for (uSize mc = 0; mc < Bin; mc += 1u) {
 			dynamics(c, ctx);
