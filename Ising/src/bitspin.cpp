@@ -1,13 +1,16 @@
 #include "bitspin.hpp"
 
-double bool2spin(bool s) {
+float bool2spin(bool s) {
 	return 2.*s - 1.;
 }
-double bool2spin(uint S, int n) {
+float bool2spin(uSize S, uSize n) {
 	/* This comes from applying the single bool2spin function on a sum of spins
 	 * (2s_1 - 1) + 2(s_2 - 1) + ... + 2(s_n - 1) = 2(s_1 + s_2 + ... + s_n) - n
 	 */
-	return 2.*S - n;
+	return 2.f * S - n;
+}
+float bool2spin(float J, float n) {
+	return 2.f * J - n;
 }
 
 bool bitFromEnd(uWord number, uint a) {
@@ -46,9 +49,9 @@ uint _last_seed = -1;
 uWord randIntP(uint density, uint seed) {
 	// we are working with fraction (in binary), trailing zeroes don't matter
 	uint n = trimTrailingZeros(&density);
-	static std::default_random_engine rng;
+	static std::mt19937 rng;
 	if (seed != _last_seed) {
-		rng.seed(seed);
+		rng = std::mt19937(seed);
 		_last_seed = seed;
 	}
 	static std::uniform_int_distribution<uWord> dist(0, ~((uWord)0));

@@ -1,15 +1,15 @@
 #include "transition.hpp"
 
-double Boltzmann(double dE, double BETA) {
+float Boltzmann(float dE, float BETA) {
 	return exp(-dE * BETA);
 }
 
-double Suzuki_Kubo(double dE, double BETA) {
-	double p = Boltzmann(dE, BETA);
+float Suzuki_Kubo(float dE, float BETA) {
+	float p = Boltzmann(dE, BETA);
 	return p / (1 + p);
 }
 
-double Probability(double dE, const double BETA, Context *ctx) {
+float Probability(float dE, const float BETA, Context *ctx) {
 	switch(ctx->Transition) {
 	case TransProb::BOLTZMANN:
 		return Boltzmann(dE, BETA);

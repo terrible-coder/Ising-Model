@@ -11,7 +11,7 @@
  * @param aIdx 
  * @param boundary 
  */
-void imposeBC(vec3<uIndx>& len, const vec3<int>& uIdx, vec3<uIndx>* aIdx, vec3<BoundaryCondition>& boundary);
+void imposeBC(vec3<uIndx> const& len, vec3<int> const& uIdx, vec3<uIndx>* aIdx, vec3<BoundaryCondition> const& boundary);
 
 /**
  * @brief Transform from double index to a row major indexing.
@@ -20,7 +20,7 @@ void imposeBC(vec3<uIndx>& len, const vec3<int>& uIdx, vec3<uIndx>* aIdx, vec3<B
  * @param len
  * @return uint 
  */
-uSize idx3to1(pos& p, vec3<uIndx>& L);
+uSize idx3to1(pos const& p, vec3<uIndx> const& L);
 
 /**
  * @brief Transform from a row major index to double indexing.
@@ -30,7 +30,7 @@ uSize idx3to1(pos& p, vec3<uIndx>& L);
  * @param i The row index.
  * @param j The column index.
  */
-void idx1to3(uSize idx, vec3<uIndx>& L, pos* p);
+void idx1to3(uSize idx, vec3<uIndx> const& L, pos* p);
 
 /**
  * @brief Check if the index is valid.
@@ -40,4 +40,4 @@ void idx1to3(uSize idx, vec3<uIndx>& L, pos* p);
  * @return true 
  * @return false 
  */
-bool outOfBounds(vec3<uIndx>& L, pos& idx);
+bool outOfBounds(vec3<uIndx> const& L, pos const& idx);

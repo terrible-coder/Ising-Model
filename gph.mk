@@ -1,6 +1,6 @@
 BIN=Ising_draw
 
-CODEDIR=./apps/analysis
+CODEDIR=./apps/draw ./src/ ./src/io
 INCDIRS=./include ./include/*
 LIBDIRS=./lib
 OBJDIR=./bin
@@ -23,6 +23,11 @@ $(BIN): $(OBJECTS)
 	@echo "\t\033[1;32m√\033[0m"
 
 $(OBJDIR)/%.o: ./src/%.cpp
+	@echo -n "Compiling \033[0;36m$<\033[0m"
+	@$(CC) $(CPPFLAGS) -c -O3 -o $@ $<
+	@echo "\t\033[1;32m√\033[0m"
+
+bin/./apps/draw/render.o: apps/draw/render.cpp
 	@echo -n "Compiling \033[0;36m$<\033[0m"
 	@$(CC) $(CPPFLAGS) -c -O3 -o $@ $<
 	@echo "\t\033[1;32m√\033[0m"

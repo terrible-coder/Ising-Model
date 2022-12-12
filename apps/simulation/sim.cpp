@@ -3,14 +3,15 @@
 #include <fstream>
 #include <string>
 #include <exception>
+#include <mpi.h>
 
 #include "defaults.hpp"
 #include "io/data_logger.hpp"
 #include "io/save.hpp"
 #include "io/prepare.hpp"
+#include "Ising.hpp"
 #include "monte_carlo.hpp"
 
-static Context CTX;
 
 /**
  * @brief Print the progress of a process. The function has been taken from
@@ -48,52 +49,102 @@ int main(int argc, char** argv) {
 	if (argc > 1) filename = argv[1];
 	else          filename = INPUT_FILE;
 
+	Context CTX;
 	std::cout << "Initialising system..." << std::endl;
-	// init_system(filename, &CTX);
-	CTX.size = { 64u, 64u, 1u };
-	const std::string parentDir = prepExperiment(&CTX);
-	if (parentDir == "") return EXIT_FAILURE;
+	if (init_system(filename, &CTX))
+		std::cout << "Parsing input file success." << std::endl;
+	else {
+		std::cout << "Could not parse input file." << std::endl;
+		return EXIT_FAILURE;
+	}
+	if (!prepExperiment(&CTX))
+		return EXIT_FAILURE;
+	logOnly(CTX.DataLogs);
 
-	std::cout << parentDir << std::endl;
-	const uint BIN = CTX.size.x * CTX.size.y * CTX.size.z;
+	std::cout << "Box size: " << CTX.size.x << "x" << CTX.size.y << "x" << CTX.size.z << "\n";
+	std::cout << "Number of surfaces: " << CTX.surfLocs.size() << "\n";
+	std::cout << "Number of temperature points: " << CTX.Temperature.size() << "\n";
+	std::cout << "Temperature range: " << *(CTX.Temperature.begin()) << "..." << *(CTX.Temperature.end()-1) << "\n";
+	std::cout << "Logging " << CTX.DataLogs.size() << "\n"; 
+	std::cout << std::endl;
 
-	std::cout << "Setting global values..." << std::endl;
-	Ising::setCoupling(CTX.Coupling);
-	Ising::setField(CTX.Field);
-
-	for (auto tp = CTX.Temperature.begin(); tp != CTX.Temperature.end(); tp++) {
-		double T = *tp;
-		// new temperature
-		openLogger(parentDir, T);
-		std::cout << SEPARATOR;
-
-		Ising* config = new Ising(
-			CTX.size, CTX.Concentration,
-			T, CTX.boundary);
-		config->generate();
-		saveInit(config, parentDir);
-
-		for (int ensemble = 0; ensemble < CTX.Ensemble_Size; ensemble++) {
-			// std::cout << "Ensemble member " << ensemble+1 << "\n";
-			print_progress(ensemble+1, CTX.Ensemble_Size);
-			config->reinit();
-			open(config, ensemble+1, parentDir);
-
-			for (int k = 0; k < RUN; k++) {
-				for (int i = 0; i < BIN; i++)
-					dynamics(*config, &CTX);
-				logData(config->Hamiltonian() / config->getSize(),
-								config->Magnetisation() / config->getSize());
-				if (!snap(config))
-					return EXIT_FAILURE;
+	ModelParams parameters(CTX.size, CTX.boundary);
+	parameters.setInteractions(CTX.interact.x, CTX.interact.y, CTX.interact.z);
+	if (CTX.surfLocs.size() != CTX.surfInts.size()) {
+		std::cout << "Number of surfaces do not match ";
+		std::cout << "number of surface interactions." << std::endl;
+		return EXIT_FAILURE;
+	}
+	if (CTX.surfLocs.size() > 0) {
+		Edge e;
+		for (uint i = 0; i < CTX.surfInts.size(); i += 1u) {
+			std::string loc = CTX.surfLocs[i];
+			vec3<float> interact = CTX.surfInts[i];
+			if (loc == "x_beg") e = Edge::X_BEG; else
+			if (loc == "x_end") e = Edge::X_END; else
+			if (loc == "y_beg") e = Edge::Y_BEG; else
+			if (loc == "y_end") e = Edge::Y_END; else
+			if (loc == "z_beg") e = Edge::Z_BEG; else
+			if (loc == "z_end") e = Edge::Z_END;
+			else {
+				std::cout << "Edge location \"" << loc << "\" not recognised." << std::endl;
+				return EXIT_FAILURE;
 			}
-			// next ensemble
-			nextEnsemble();
-			close();
+			parameters.create_surface(e, interact.x, interact.y, interact.z);
 		}
-		closeLogger();
-		delete config;
 	}
 
-	return EXIT_SUCCESS;
+	// Preparing MPI
+
+	int rank, n_ranks, numbers_per_rank;
+	int rEn_beg, rEn_end;
+	int numbers = CTX.EnsembleSize;
+	MPI_Init(&argc, &argv);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &n_ranks);
+	numbers_per_rank = floor(numbers / n_ranks);
+	if (numbers% n_ranks > 0)
+		numbers_per_rank++;
+	rEn_beg = rank * numbers_per_rank;
+	rEn_end = rEn_beg + numbers_per_rank;
+
+	std::vector<float>::iterator tempIt = CTX.Temperature.begin();
+	for (; tempIt != CTX.Temperature.end(); tempIt++) {
+		float T = *tempIt; // temperature
+		Ising config(CTX.Concentration, parameters, T);
+		config.generate(rank+1);
+
+		openLogger(CTX.saveDir, T, rank+1);
+		saveInit(config, CTX.saveDir);
+		for (uIndx en = rEn_beg; en < rEn_end; en += 1u) {
+			openSnap(config, en+1, CTX.saveDir);
+			MonteCarlo(config, &CTX, en+1);
+			closeSnap();
+			nextEnsemble();
+		}
+		closeLogger();
+	}
+
+	// config.reinit();
+	// saveInit(config, CTX.saveDir);
+	// pos i{0u, 0u, 0u};
+	// uSize n = 0;
+	// std::vector<vec3<int>> neighbours;
+	// config.getNeighbours(i, &neighbours);
+	// std::cout << "point:\t" << i.x << "," << i.y << "," << i.z << "\t" << config(i) << std::endl;
+	// for (auto it = neighbours.begin(); it != neighbours.end(); it++) {
+	// 	pos j = config.equiv(*it);
+	// 	uSize m = 0;
+	// 	std::cout << j.x << "," << j.y << "," << j.z << "\t";
+	// 	std::cout << config(j) << "\t";
+	// 	std::cout << "nn_sum, except i: ";
+	// 	std::cout << config.sumNeighbours(j, {1u, 1u, 1u}, i, &m);
+	// 	std::cout << "(" << m << ")" << "\t";
+	// 	std::cout << config.exchangeEnergyChange(i, j);
+	// 	std::cout << std::endl;
+	// }
+	// uIndx s = config.sumNeighbours(i, &n);
+	// std::cout << "\n" << n << "\t" << s << std::endl; 
+
+	return MPI_Finalize();
 }

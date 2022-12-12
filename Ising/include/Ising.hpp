@@ -4,43 +4,190 @@
 #include <filesystem>
 #include <fstream>
 #include <bit>
+#include <functional>
+#include <vector>
 
 #include "bitspin.hpp"
 #include "boundary.hpp"
 #include "context.hpp"
 
-#define BC BoundaryCondition
+/**
+ * @brief Enumerates the edges of the lattice.
+ */
+enum Edge {
+	NONE = 0,
+	X_BEG = 1, X_END = 2,
+	Y_BEG = 4, Y_END = 8,
+	Z_BEG = 16, Z_END = 32
+};
+
+float coupling(float aa, float bb, float ab);
+float field(float aa, float bb);
+
+/**
+ * @brief Find the edge on which the lattice point is on.
+ * 
+ * @param i The lattice point to check.
+ * @param s The dimensions of the lattice.
+ * @return Edge 
+ */
+int onEdge(pos const& i, vec3<uIndx>& s);
+
+/*
+At some later point the Surface struct maybe modified to allow non-constant
+values at the edge. That would require inheritance. 
+*/
+
+/**
+ * @brief Represents a surface at one of the edges of the lattice.
+ */
+struct Surface {
+	Edge loc;   // location of the surface on the lattice
+
+	float Eaa;	// interaction energy between A-A particles at surface
+	float Ebb;	// interaction energy between B-B particles at surface
+	float Eab;	// interaction energy between A-B particles at surface
+	bool __static_surf;
+};
+
+/*
+Along with non-constant values at edges, the bulk values would also be allowed
+to take non-constant functions.
+*/
+
+/**
+ * @brief Deals with the parameters of the simulation system.
+ */
+class ModelParams {
+public:
+	vec3<uIndx> L;                     // Dimensions of the system.
+	uSize N;                           // Total number of lattice points.
+	uIndx q;                           // Coordination of lattice.
+	vec3<BoundaryCondition> boundary;  // The boundary conditions.
+
+	float Eaa;	// "bulk" interaction energy between A-A particles
+	float Ebb;	// "bulk" interaction energy between B-B particles
+	float Eab;	// "bulk" interaction energy between A-B particles
+	bool __static_bulk;
+
+	std::vector<Surface> surfaces;
+
+	ModelParams();
+	/**
+	 * @brief Construct a new Model Params object.
+	 * 
+	 * @param size 
+	 * @param bc 
+	 */
+	ModelParams(vec3<uIndx> const& size, vec3<BoundaryCondition> const& bc);
+
+	/**
+	 * @brief Set the interaction energy values.
+	 * 
+	 * @param aa 
+	 * @param bb 
+	 * @param ab 
+	 */
+	void setInteractions(float aa, float bb, float ab);
+
+	/**
+	 * @brief Introduce a surface at one of the edges.
+	 */
+	void create_surface(Surface& s);
+	void create_surface(Edge loc, float aa, float bb, float ab);
+
+	/**
+	 * @brief Check if a given edge has a surface.
+	 * 
+	 * @param e 
+	 * @return true 
+	 * @return false 
+	 */
+	bool isSurface(Edge e);
+
+	std::vector<Surface>::iterator whichSurface(int e);
+
+	/**
+	 * @brief The interaction energy between two lattice points.
+	 * 
+	 * @param i Lattice point index.
+	 * @param j Lattice point index.
+	 * @return float 
+	 */
+	float J(pos const& i, pos const& j);
+
+	/**
+	 * @brief The "bulk" magnetic field energy.
+	 * 
+	 * @param i Lattice point index.
+	 * @return float 
+	 */
+	float H(pos const& i);
+};
 
 class Ising {
 private:
-	static std::function<double(const pos& i, const pos& j)> J; // Coupling constant
-	static std::function<double(const pos& i)> H;							  // The external magnetic field.
-
 	bool is_generated;	// Guard for generation of initial configuration.
-	vec3<uIndx> L;			// The size of the physical lattice.
-	uSize N;						// Total number of spins in the system.
 
-	uIndx conc;					// Concentration of "up" spins, scaled by `WORD_SIZE`.
-	vec3<uIndx> raw;		// The size of the array in memory which stores the spins.
-	uIndx rawN;					// Total number of values needed to represent all spins.
-	double T;						// The temperature of the ensemble.
-	uWord* initial;			// The initial condition. Must create before simulation.
-	uWord* lattice;			// The current configuration of the lattice.
-	vec3<BC> boundary;	// The boundary conditions.
+	uIndx conc;         // Concentration of "up" spins, scaled by `WORD_SIZE`.
+	ModelParams p;      // Parameters of the problem.
+	float T;            // Temperature of the system.
+	uWord* initial;     // The initial condition. Must create before simulation.
+	uWord* lattice;     // The current configuration of the lattice.
+	vec3<uIndx> raw;    // The size of the array in memory which stores the spins.
+	uIndx rawN;         // Total number of values needed to represent all spins.
 
-	double partialEnergy(uWord* shifted, uSize beg, vec3<int> off);
+	float partialEnergy(uWord* shifted, uSize beg, vec3<int> off);
+
+	/**
+	 * @brief Get the position of the nearest neighbours of the the given
+	 * lattice point. The positions are calculated along the given direction
+	 * only. Passing in diagonal direction will result in unpredictable
+	 * behaviour.
+	 * 
+	 * @param i The lattice point whose neighbours are to be found.
+	 * @param off The offset indicating the direction to look in.
+	 * @param e The edge on which the lattice point `i` is on.
+	 * @param P Flag to indicate if search is only in positive direction.
+	 * @param NN The vector containing positions of all the neighbours asked for.
+	 */
+	void __getNN(pos const& i,
+	             vec3<uIndx> const& off, int edge, bool P,
+							 std::vector<vec3<int>>* NN);
+
+	/**
+	 * @brief Calculate sum of the neighbours along a given direction only.
+	 * The direction indicator should only indicate neighbours along the axis.
+	 * Passing diagonal directions will have unpredictable behaviour.
+	 * 
+	 * @param i The lattice point whose neighbours to consider.
+	 * @param off The offset indicating the direction to sum in.
+	 * @param e The edge on which the lattice point `i` is on.
+	 * @param P Flag to indicate if sum is only in positive direction.
+	 * @param n The number of spins which have been summed over.
+	 * @return uIndx 
+	 */
+	uIndx __sumDir(pos const& i, vec3<uIndx> const& off, int edge, bool P, uSize* n);
+
+	/**
+	 * @brief Find the sum of the neighbours only in the positive direction along
+	 * the specified direction. Passing in diagonal directions will result in
+	 * unpredictable behaviour.
+	 * 
+	 * @param i 
+	 * @param dir 
+	 * @param n 
+	 * @return uIndx 
+	 */
+	uIndx sumNeighboursP(pos const& i, vec3<uIndx> const& dir, uSize* n);
 
 public:
 
-	Ising(vec3<uIndx>& size, uIndx conc,
-				double temperature,
-				const vec3<BC>& b);
+	Ising(uIndx conc, ModelParams& params, float temperature);
 	~Ising();
 
-	static void setCoupling(std::function<double(const pos& i, const pos& j)>& coupling);
-	static double getNNCoup(const pos& i, const pos& j);
-	static void setField(std::function<double(const pos& i)>& field);
-	static double getField(const pos& i);
+	float getNNCoup(pos const& i, pos const& j);
+	float getField(pos const& i);
 
 	/**
 	 * @brief Lattice point accessor. The index is of the site we "want" to look at.
@@ -55,7 +202,8 @@ public:
 	 * @return false 
 	 */
 	bool operator() (int x, int y, int z);
-	bool operator() (vec3<int>& p);
+	bool operator() (vec3<int> const& i);
+	bool operator() (pos const& i);
 
 	/**
 	 * @brief Convert given lattice coordinates to equivalent positive coordinates.
@@ -71,20 +219,89 @@ public:
 	 * @param idx 
 	 * @return pos& 
 	 */
-	pos& equiv(vec3<int>& idx);
+	pos equiv(vec3<int> const& idx);
 
+	vec3<uIndx> getVecSize();
+	uIndx getQ();
 	uIndx getSizeX();
 	uIndx getSizeY();
 	uIndx getSizeZ();
 	uSize getSize();
-	double getTemp();
+	float getTemp();
 	uWord* getInit();
 	uWord* getRaw();
+
+	void getNeighbours(pos const& i, std::vector<vec3<int>>* NN);
+
+	/**
+	 * @brief Returns the sum of spins of all the neighbours of the given spin.
+	 * This method takes care of the boundary conditions and the dimensionality
+	 * of the lattice.
+	 * 
+	 * @param i 
+	 * @return uIndx 
+	 */
+	uIndx sumNeighbours(pos const& i, uSize* n);
+	/**
+	 * @brief Calculate the sum of spins of neighbours ONLY in the indicated
+	 * directions. The direction must have unsigned integer values. This method
+	 * will check in both +ve and -ve directions for the indicated axes.
+	 * 
+	 * @param i 
+	 * @param dir 
+	 * @return uIndx 
+	 */
+	uIndx sumNeighbours(pos const& i, vec3<uIndx> const& dir, uSize* n);
+	/**
+	 * @brief Calculates the sum of the spins of neighbours ONLY in the indicated
+	 * directions, except the one specified. The direction must have unsigned
+	 * integer values. This method takes care of the boundary conditions and the
+	 * dimensionality of the lattice.
+	 * 
+	 * @param i 
+	 * @param dir 
+	 * @param except 
+	 * @return uIndx 
+	 */
+	uIndx sumNeighbours(pos const& i, vec3<uIndx> const& dir, pos const& except, uSize* n);
+
+	/**
+	 * @brief Returns the lattice shifted towards -ve x by 1 position. Assumes
+	 * PBC. Any FBC corrections must be added by user.
+	 * 
+	 * @param shifted 
+	 */
 	void __nXShift(uWord* shifted);
+	/**
+	 * @brief Returns the lattice shifted towards -ve y by 1 position. Assumes
+	 * PBC. Any FBC corrections must be added by user.
+	 * 
+	 * @param shifted 
+	 */
 	void __nYShift(uWord* shifted);
+	/**
+	 * @brief Returns the lattice shifted towards -ve z by 1 position. Assumes
+	 * PBC. Any FBC corrections must be added by user.
+	 * 
+	 * @param shifted 
+	 */
 	void __nZShift(uWord* shifted);
 
-	void generate();
+	/**
+	 * @brief Generates a lattice of spins of given dimensions. The spins are
+	 * represented as boolean values (`true` for up and `false` for down).
+	 * This is the initial configuration of the model. That is, all ensemble
+	 * members will start from this configuration.
+	 * 
+	 * Note: This function should not be called more than once.
+	 * 
+	 * @param r 
+	 */
+	void generate(int r);
+
+	/**
+	 * @brief Initialise the lattice to the initial configuration generated.
+	 */
 	void reinit();
 
 	/**
@@ -119,19 +336,29 @@ public:
 	 * @param p1 
 	 * @param p2 
 	 */
+	void exchange(vec3<int>& p1, vec3<int>& p2);
+	/**
+	 * @brief Exchange the spins at the given positions.
+	 * 
+	 * @param p1 
+	 * @param p2 
+	 */
 	void exchange(pos& p1, pos& p2);
+
+	float flipEnergyChange(pos const& i);
+	float exchangeEnergyChange(pos const& i, pos const& j);
 
 	/**
 	 * @brief Computes the Ising hamiltonian for a given configuration.
 	 * 
-	 * @return double 
+	 * @return float 
 	 */
-	double Hamiltonian();
+	float Hamiltonian();
 
 	/**
 	 * @brief Calculate the magnetisation of the configuration.
 	 * 
-	 * @return double 
+	 * @return float 
 	 */
-	double Magnetisation();
+	float Magnetisation();
 };

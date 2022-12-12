@@ -8,21 +8,30 @@
  * @param i The row index.
  * @param j The column index.
  */
-void getRandomIndices(int w, int h, int* i, int* j) {
-	int idx = rIndex(w, h);
-	idx1to2(idx, w, (uint*) i, (uint*) j);
+void getRandomIndices(vec3<uIndx> const& L, pos* i) {
+	int idx = rIndex(L);
+	idx1to3(idx, L, i);
 }
 
 void spin_flip(Ising& c, Context* ctx) {
-	int ri, rj;
-	getRandomIndices(c.getWidth(), c.getHeight(), &ri, &rj);
-	// The change in energy, if the spin is flipped
-	double dE = flipChange(c, ri, rj);
-	if (isAccepted(dE, c.getTemp(), ctx))
-		c.flip(ri, rj);
+	pos i;
+	float dE;
+	const uIndx BAIL = c.getQ() << 2;
+	uIndx iter = 0u;
+	while (true) {
+		iter += 1u;
+		getRandomIndices(c.getVecSize(), &i);
+		// The change in energy, if the spin is flipped
+		dE = c.flipEnergyChange(i);
+		if (isAccepted(dE, c.getTemp(), ctx))
+			break;
+		if (iter == BAIL)
+			return;
+	}
+	c.flip(i);
 }
 
-double picking(double dE) {
+float picking(float dE) {
 	// return 0.01 * exp(-dE);
 	// return 12 - dE + 1;
 	// return 0.5 * exp(-dE / 4) + exp(-dE*dE / 16);
@@ -30,33 +39,35 @@ double picking(double dE) {
 	return (dE < 0) ? 0.5 * exp(-dE / 4) + 1.5 : -0.125 * dE + 2;
 }
 
-/**
- * @brief List of possible exchanges arranged in decreasing order of -ve
- * energy change.
- */
-static ExchangeList exchanges;
-static double _last_temp = -99.;
-
 void spin_exchange(Ising& c, Context* ctx) {
-	if (_last_temp != c.getTemp()) {
-		_last_temp = c.getTemp();
-		exchanges = ExchangeList(picking);
-		exchanges.createList(c, ctx);
-	}
+	pos i, j;
+	float dE;
+	vec3<uIndx> L = c.getVecSize();
+	uIndx q, idx;
+	const uIndx BAIL = c.getQ() << 2;
+	uIndx iter = 0u;
+	while (true) {
+		iter += 1u;
+		getRandomIndices(L, &i);
+		std::vector<vec3<int>> neighbours;
+		c.getNeighbours(i, &neighbours);
+		q = neighbours.size();
+		idx = rIndex(q);
+		j = c.equiv(neighbours[idx]);
 
-	PotEx ex;
-	exchanges.normalise();
-	do {
-		ex = exchanges.pickEx(rProbability());
-	} while(!isAccepted(ex.delE, c.getTemp(), ctx));
-	c.exchange(ex.i1, ex.j1, ex.i2, ex.j2);
-	int i1 = ex.i1, j1 = ex.j1;
-	int i2 = ex.i2, j2 = ex.j2;
-	exchanges.remove_if([i1, j1, i2, j2](const PotEx& done) {
-		return (done.i1 == i1 && done.j1 == j1) ||
-					 (done.i2 == i2 && done.j2 == j2) ||
-					 (done.i1 == i2 && done.j1 == j2) ||
-					 (done.i2 == i1 && done.j2 == j1);
-	});
-	exchanges.update(c, ex, ctx);
+		if (c(i) != c(j)) {
+	// std::cout << "\tpos i:" << i.x << "," << i.y << "," << i.z << "\t";
+	// std::cout << "\tpos j:" << j.x << "," << j.y << "," << j.z << "\t";
+	// std::cout << c(i) << " " << c(j) << "\t";
+			dE = c.exchangeEnergyChange(i, j);
+			if (isAccepted(dE, c.getTemp(), ctx)) break;
+		}
+		if (iter == BAIL) return;
+	// std::cout << c(i) << " " << c(j) << "\t";
+		// if (c(i) != c(j)) break;
+	}
+	c.exchange(i, j);
+	// std::cout << " nn:" << q << " ";
+	// std::cout << "\t" << idx << std::endl;
+	// c.exchange(i, j);
 }

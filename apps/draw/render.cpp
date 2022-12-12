@@ -4,6 +4,7 @@
 
 #include <SFML/Graphics.hpp>
 #include "defaults.hpp"
+#include "context.hpp"
 
 #define sysWidth 600
 #define sysHeight 600
@@ -63,12 +64,12 @@ void getStatusBar(sf::Text* statusBar, float x, float y) {
  * @param T The temperature of the simulation.
  * @return std::string 
  */
-std::string getStatus(int time, int member, double T) {
+std::string getStatus(int time, int member, float T) {
 	return "t = " + std::to_string(time) + "\t" +
 				 "Ensemble = " + std::to_string(member) + "\t" +
 				 "Temperature = " + std::to_string(T);
 }
-std::string getStatus(int time, std::string member, double T) {
+std::string getStatus(int time, std::string member, float T) {
 	return "t = " + std::to_string(time) + "\t" +
 				 "Ensemble = " + member + "\t" +
 				 "Temperature = " + std::to_string(T);
@@ -84,9 +85,9 @@ std::string getStatus(int time, std::string member, std::string T) {
  * This function works only if the full path to the experiment folder is used.
  * 
  * @param name 
- * @return double 
+ * @return float 
  */
-double getTemp(std::string name) {
+float getTemp(std::string name) {
 	int idxT = name.find("Temp") + 4;
 	int c = 0;
 	for (int i = 0; i < (int)name.length() - idxT; i++, c++)
@@ -104,16 +105,16 @@ double getTemp(std::string name) {
  * @return true if the read is successful,
  * @return false if the read did not complete
  */
-bool readNext(std::ifstream& file, uWord_t* grid, const int w, const int h) {
-	int N = w * h;
-	uWord_t number;
-	int idx = 0;
+bool readNext(std::ifstream& file, uWord* grid, const uIndx w, const uIndx h) {
+	uSize N = (uSize)w * h;
+	uWord number;
+	uIndx idx = 0;
 	while (N > 0) {
 		if (N < WORD_SIZE) {
 			std::cout << "Bad file format." << std::endl;
 			return false;
 		}
-		if (!file.read((char*) &number, sizeof(uWord_t)))
+		if (!file.read((char*) &number, sizeof(uWord)))
 			return false;
 		grid[idx++] = number;
 		N -= WORD_SIZE;
@@ -131,12 +132,12 @@ std::string frameName(int n, const int maxLen) {
 	return fno;
 }
 
-void drawFrame(uWord_t* grid, std::uint16_t Lx, std::uint16_t Ly, float scale, sf::RenderTexture& target) {
-	for (uint y = 0; y < Ly; y++) {
-		for (uint x = 0; x < Lx; x++) {
+void drawFrame(uWord* grid, uIndx Lx, uIndx Ly, float scale, sf::RenderTexture& target) {
+	for (uIndx y = 0; y < Ly; y++) {
+		for (uIndx x = 0; x < Lx; x++) {
 			sf::RectangleShape sq(sf::Vector2f(scale, scale));
-			uint idx = y * Lx + x;
-			uWord_t number = grid[idx / WORD_SIZE];
+			uSize idx = y * Lx + x;
+			uWord number = grid[idx / WORD_SIZE];
 			bool spin = (number >> (WORD_SIZE - (idx%WORD_SIZE) - 1)) & 1;
 			if ( !spin ) continue;
 			sq.setFillColor(sf::Color::White);
@@ -146,12 +147,12 @@ void drawFrame(uWord_t* grid, std::uint16_t Lx, std::uint16_t Ly, float scale, s
 		}
 	}
 }
-void drawFrame(uWord_t* grid, std::uint16_t Lx, std::uint16_t Ly, float scale, sf::RenderWindow& target) {
-	for (uint y = 0; y < Ly; y++) {
-		for (uint x = 0; x < Lx; x++) {
+void drawFrame(uWord* grid, uIndx Lx, uIndx Ly, float scale, sf::RenderWindow& target) {
+	for (uIndx y = 0; y < Ly; y++) {
+		for (uIndx x = 0; x < Lx; x++) {
 			sf::RectangleShape sq(sf::Vector2f(scale, scale));
-			uint idx = y * Lx + x;
-			uWord_t number = grid[idx / WORD_SIZE];
+			uSize idx = (uSize)Lx * y + x;
+			uWord number = grid[idx / WORD_SIZE];
 			bool spin = (number >> (WORD_SIZE - (idx%WORD_SIZE) - 1)) & 1;
 			if ( !spin ) continue;
 			sq.setFillColor(sf::Color::White);
@@ -193,45 +194,52 @@ void print_progress(int p, int total, int width = 80) {
 	if(p == total) std::cout << std::endl;
 }
 
+enum Mode {
+	save, draw
+};
+enum Source {
+	ensemble, initial
+};
+
 int main(int argc, char** argv) {
-	std::string exT;
-	std::string member;
-	std::string dispMode = "draw";
-	std::string source = "en";
+	std::string expName;
+	int member;
+	Mode disp = Mode::draw;
+	Source src = Source::ensemble;
 	if (argc < 2) {
+		std::cout << "Don't know what to do." << std::endl;
+		return EXIT_FAILURE;
+	}
+	if (argc < 3) {
 		std::cout << "No file given." << std::endl;
 		return EXIT_FAILURE;
-	} else if (argc < 3) {
-		std::cout << "Ensemble not specified." << std::endl;
+	}
+	if (argc < 4) {
+		std::cout << "No ensemble specified." << std::endl;
 		return EXIT_FAILURE;
 	}
-	exT = argv[1];
-	member = argv[2];
 
-	// true is for draw, false is for save
-	bool mode = true;
-	if (argc > 3) {
-		dispMode = argv[3];
-		if (dispMode != "save" && dispMode != "draw") {
-			std::cout << "Unknown mode." << std::endl;
-		} else
-		mode = dispMode == "draw";
-		if (argc > 4) {
-			source = argv[4];
-			if (source != "en" && source != "ini") {
-				std::cout << "Unknown source." << std::endl;
-				source = "ini";
-			}
-		}
+	if (std::string(argv[1]) == "save")	disp = Mode::save; else
+	if (std::string(argv[1]) != "draw") {
+		std::cout << "Unknown mode." << std::endl;
+		return EXIT_FAILURE;
+	}
+	expName = argv[2];
+	if (std::string(argv[3]) == "ini")
+		src = Source::initial;
+	else {
+		member = std::stoi(argv[3]);
+		src = Source::ensemble;
 	}
 
-	if (source == "ini") {
-		std::string path = exT + "initial" + BIN_EXT;
+	if (src == Source::initial) {
+		std::string path = expName + "initial" + BIN_EXT;
 		std::ifstream iniCon(path);
-		std::ofstream frame(exT + "initial" + IMG_EXT);
-		std::uint16_t Lx, Ly;
-		iniCon.read((char*) &Lx, sizeof(std::uint16_t));
-		iniCon.read((char*) &Ly, sizeof(std::uint16_t));
+		std::ofstream frame(expName + "initial" + IMG_EXT);
+		uIndx Lx, Ly, Lz;
+		iniCon.read((char*) &Lx, sizeof(uIndx));
+		iniCon.read((char*) &Ly, sizeof(uIndx));
+		iniCon.read((char*) &Lz, sizeof(uIndx));
 		float scale = (float)sysWidth / Lx;
 
 		sf::Text statusBar;
@@ -240,7 +248,7 @@ int main(int argc, char** argv) {
 			std::cout << "Something went wrong." << std::endl;
 			return EXIT_FAILURE;
 		}
-		uWord_t* lattice = new uWord_t[Lx*Ly / sizeof(uWord_t)];
+		uWord* lattice = new uWord[Lx*Ly / sizeof(uWord)];
 		if (!readNext(iniCon, lattice, Lx, Ly)) {
 			std::cout << "Could not read initial frame." << std::endl;
 			return EXIT_FAILURE;
@@ -248,7 +256,7 @@ int main(int argc, char** argv) {
 
 		statusBar.setString("Initial condition "
 												+ std::to_string(Lx) + "x" + std::to_string(Ly)
-												+ "\tTemperature: " + std::to_string(getTemp(exT)));
+												+ "\tTemperature: " + std::to_string(getTemp(expName)));
 
 		int wWidth  = sysWidth;
 		int wHeight = sysHeight + STAT_BAR_H;
@@ -259,13 +267,13 @@ int main(int argc, char** argv) {
 		drawFrame(lattice, Lx, Ly, scale, texture);
 		texture.draw(statusBar);
 		texture.display();
-		texture.getTexture().copyToImage().saveToFile(exT + "initial" + IMG_EXT);
+		texture.getTexture().copyToImage().saveToFile(expName + "initial" + IMG_EXT);
 		delete lattice;
 		return EXIT_SUCCESS;
 	}
 
-	std::string snapsPath = exT + "snaps/En" + member + BIN_EXT;
-	std::string framePath = exT + "frames/En" + member + "/fr";
+	std::string snapsPath = expName + "snaps/En" + std::to_string(member) + BIN_EXT;
+	std::string framePath = expName + "frames/En" + std::to_string(member) + "/fr";
 
 	std::ifstream snap(snapsPath, std::ios::binary);
 	std::ofstream frame;
@@ -274,18 +282,19 @@ int main(int argc, char** argv) {
 		return EXIT_FAILURE;
 	}
 
-	std::uint16_t Lx, Ly;
-	snap.read((char*) &Lx, sizeof(std::uint16_t));
-	snap.read((char*) &Ly, sizeof(std::uint16_t));
+	uIndx Lx, Ly, Lz;
+	snap.read((char*) &Lx, sizeof(uIndx));
+	snap.read((char*) &Ly, sizeof(uIndx));
+	snap.read((char*) &Lz, sizeof(uIndx));
 	float scale = (float)sysWidth / Lx;
 
 	std::cout << "Width: " << Lx << "\n";
 	std::cout << "Height: " << Ly << "\n";
 	std::cout << "Scale: " << scale << "\n";
 
-	// read Temp from exT
-	// read ensemble # from exT
-	double temp = getTemp(exT);
+	// read Temp from expName
+	// read ensemble # from expName
+	float temp = getTemp(expName);
 
 	// The total window width and height
 	int wWidth  = sysWidth;
@@ -300,11 +309,11 @@ int main(int argc, char** argv) {
 	}
 
 	std::cout << "Generating lattice..." << std::endl;
-	uWord_t* lattice = new uWord_t[Lx*Ly / sizeof(uWord_t)];
+	uWord* lattice = new uWord[Lx*Ly / sizeof(uWord)];
 
 	sf::RenderWindow window;
 	sf::RenderTexture texture;
-	if (mode)	{
+	if (disp == Mode::draw)	{
 		window.create(sf::VideoMode(wWidth, wHeight), "Ising model");
 		texture.~RenderTexture();
 	}	else {
@@ -313,8 +322,8 @@ int main(int argc, char** argv) {
 	}
 
 	int t = 0;
-	while ((mode && window.isOpen()) || !mode) { 
-		if (mode) handleEvents(window);
+	while ((disp == Mode::draw && window.isOpen()) || disp == Mode::save) {
+		if (disp == Mode::draw) handleEvents(window);
 		if (pause) continue;
 		if (!readNext(snap, lattice, Lx, Ly)) {
 			if (t == RUN) break;
@@ -323,7 +332,7 @@ int main(int argc, char** argv) {
 		}
 
 		status.setString(getStatus(++t, member, temp));
-		if (mode) {
+		if (disp == Mode::draw) {
 			window.clear();
 			drawFrame(lattice, Lx, Ly, scale, window);
 			window.draw(status);

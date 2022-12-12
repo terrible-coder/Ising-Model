@@ -8,17 +8,25 @@
  * to the spin representation in Ising model.
  * 
  * @param s The spin value: `true` for up and `false` for down.
- * @return double `+1.0` for up and `-1.0` for down.
+ * @return float `+1.0` for up and `-1.0` for down.
  */
-double bool2spin(bool s);
+float bool2spin(bool s);
 /**
  * @brief Converts sum of spins in boolean representation to integer representation.
  * 
  * @param S The sum of booleans.
  * @param n Number of spins that have been summed.
- * @return double 
+ * @return float 
  */
-double bool2spin(uint, int);
+float bool2spin(uSize S, uSize n);
+/**
+ * @brief Converts sum of spins in boolean representation to integer representation.
+ * 
+ * @param J The sum of booleans multiplied by some float values.
+ * @param n Number of spins that have been summed.
+ * @return float 
+ */
+float bool2spin(float J, float n);
 
 /**
  * @brief Gets the bit value (1 or 0) `a` positions from the end (LSB is treated

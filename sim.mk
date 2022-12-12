@@ -1,14 +1,14 @@
 BIN=Ising_sim
 
 CODEDIR=./src ./src/io ./apps/simulation
-INCDIRS=./include ./include/io ./include/lib
+INCDIRS=./include ./include/io ./include/lib /usr/local/openmpi/include
 LIBDIRS=./lib
 OBJDIR=./bin
 
 LFLAGS=$(foreach D,$(LIBDIRS),-L$(D))
 IFLAGS=$(foreach D,$(INCDIRS),-I$(D))
 
-CC=c++
+CC=mpic++
 DEPFLAGS=-MP -MD
 CPPFLAGS=-Wall -std=c++17 $(IFLAGS) $(LFLAGS) $(DEPFLAGS)
 
